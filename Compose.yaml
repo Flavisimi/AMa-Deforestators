@@ -1,0 +1,14 @@
+name: ama_site
+services:
+  web:
+    image: ama/web
+    build: 
+      context: .
+      dockerfile: ./deploy/web.dockerfile
+    ports:
+      - "2501:80"
+    develop:
+      watch:
+        - action: sync
+          path: ./web
+          target: /var/www/html

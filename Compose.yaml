@@ -2,7 +2,7 @@ name: ama_site
 services:
   web:
     image: ama/web
-    build: 
+    build:
       context: .
       dockerfile: ./deploy/web.dockerfile
     ports:
@@ -12,3 +12,28 @@ services:
         - action: sync
           path: ./web
           target: /var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - ORACLE_HOST=db
+      - ORACLE_PORT=1519
+      - ORACLE_SID=FREEPDB1
+      - ORACLE_USER=AMA
+      - ORACLE_PASSWORD=AMA
+  db:
+    image: gvenzl/oracle-free:23-slim
+    ports:
+      - "1519:1521"
+    environment:
+      - ORACLE_PASSWORD=AMA
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "sqlplus", "-L", "sys/AMA@//localhost:1521/FREEPDB1", "as", "sysdba", "@healthcheck.sql"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+volumes:
+  oracle-data:

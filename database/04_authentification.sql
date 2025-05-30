@@ -5,7 +5,6 @@ create or replace package auth_package as
     function validate_login(p_username in varchar2, p_password in varchar2) return number;
     procedure register_user(p_username in varchar2, p_password in varchar2, p_email in varchar2, p_user_id out number);
 end auth_package;
-commit;
 /
 create or replace package body auth_package as
 
@@ -17,7 +16,7 @@ create or replace package body auth_package as
     end hash_password;
 
     function validate_login(p_username in varchar2, p_password in varchar2) return number is
-        v_user_id users.id%TYPE;
+        v_user_id number;
         v_hashed_password varchar2(255);
     begin
         v_hashed_password := hash_password(p_password);
@@ -45,7 +44,7 @@ create or replace package body auth_package as
 
         v_hashed_password := hash_password(p_password);
         insert into users(id, name, user_password, email)
-        values (users_seq.NEXTVAL, p_username, v_hashed_password, p_email)
+        values (seq_user.NEXTVAL, p_username, v_hashed_password, p_email)
         returning id into p_user_id;
     end register_user; 
 

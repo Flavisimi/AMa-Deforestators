@@ -51,4 +51,4 @@ create or replace package body auth_package as
 end auth_package;
 /
 commit;
-
+--pentru stiinta

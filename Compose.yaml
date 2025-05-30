@@ -17,7 +17,7 @@ services:
         condition: service_healthy
     environment:
       - ORACLE_HOST=db
-      - ORACLE_PORT=1519
+      - ORACLE_PORT=1521
       - ORACLE_SID=FREEPDB1
       - ORACLE_USER=AMA
       - ORACLE_PASSWORD=AMA

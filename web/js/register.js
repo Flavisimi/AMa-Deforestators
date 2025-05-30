@@ -1,3 +1,5 @@
+
+
 document.getElementById('register-form').addEventListener('submit', function(e) {
     const username = document.getElementById('username').value;
     const email = document.getElementById('email').value;

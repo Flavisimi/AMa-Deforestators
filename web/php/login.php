@@ -5,15 +5,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Oracle connection
-    $conn = oci_connect('your_username', 'your_password', 'your_tns');
-    if (!$conn) {
+    $conn = oci_connect('AMA', 'AMA', '//db:1519/FREEPDB1');
+    if (!$conn) 
+    {
         $e = oci_error();
         die("Connection failed: " . $e['message']);
     }
 
     // Call PL/SQL function
-    $sql = 'BEGIN :result := auth_pkg.validate_login(:username, :password); END;';
+    $sql = 'BEGIN :result := auth_package.validate_login(:username, :password); END;';
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ':username', $username);
     oci_bind_by_name($stmt, ':password', $password);

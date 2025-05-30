@@ -17,14 +17,14 @@ services:
         condition: service_healthy
     environment:
       - ORACLE_HOST=db
-      - ORACLE_PORT=1521
+      - ORACLE_PORT=1530
       - ORACLE_SID=FREEPDB1
       - ORACLE_USER=AMA
       - ORACLE_PASSWORD=AMA
   db:
     image: gvenzl/oracle-free:23-slim
     ports:
-      - "1521:1521"
+      - "1530:1521"
     environment:
       - ORACLE_PASSWORD=AMA
     volumes:

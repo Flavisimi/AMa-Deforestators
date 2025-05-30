@@ -17,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Call PL/SQL function
+    try
+    {
     $sql = 'BEGIN :result := auth_package.validate_login(:username, :password); END;';
     $stmt = oci_parse($conn, $sql);
     oci_bind_by_name($stmt, ':username', $username);
@@ -24,13 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oci_bind_by_name($stmt, ':result', $result, -1, SQLT_INT);
     oci_execute($stmt);
 
-    if ($result > 0) {
         $_SESSION['user_id'] = $result;
         $_SESSION['username'] = $username;
         header('Location: dashboard.php'); // Redirect to dashboard (not implemented)
-        exit;
-    } else {
-        $error = "Invalid username or password";
+    } 
+    
+    catch (Exception $e) 
+    {
+            $error = "Login failed: " . oci_error($stmt)['message'];
+            if (strpos($error, 'Not existing') !== false) {
+                $error = "Not existing";
+            } 
     }
 
     oci_free_statement($stmt);

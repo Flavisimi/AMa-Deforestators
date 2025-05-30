@@ -1,41 +1,27 @@
 FROM php:8.2-apache
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    libaio1 \
-    unzip \
-    build-essential \
-    libaio-dev \
-    autoconf \
-    && rm -rf /var/lib/apt/lists/*
 
-# Create target dir and copy zips
-RUN mkdir -p /opt/oracle
-COPY deploy/instantclient-basic-linux.zip /opt/oracle/
-COPY deploy/instantclient-sdk-linux.zip /opt/oracle/
+ARG URL_INSTALL_CLIENT_BASIC='https://download.oracle.com/otn_software/linux/instantclient/2380000/instantclient-basic-linux.arm64-23.8.0.25.04.zip'
+ARG URL_INSTALL_CLIENT_SDK='https://download.oracle.com/otn_software/linux/instantclient/2380000/instantclient-sdk-linux.arm64-23.8.0.25.04.zip'
 
-# Unzip, inspect contents, and prepare Instant Client
-WORKDIR /opt/oracle
-RUN unzip -q instantclient-basic-linux.zip -d /opt/oracle/ \
- && unzip -q instantclient-sdk-linux.zip -d /opt/oracle/ \
- && ls -l /opt/oracle/ \
- && find /opt/oracle/ -type d -name include \
- && find /opt/oracle/ -type f -name oci.h \
- && rm -f instantclient-basic-linux.zip instantclient-sdk-linux.zip \
- && mkdir -p /opt/oracle/instantclient_23_8/include \
- && find /opt/oracle/ -type d -name include -exec cp -r {}/* /opt/oracle/instantclient_23_8/include/ \; 2>/dev/null || true \
- && rm -rf /opt/oracle/instantclient*/sdk 2>/dev/null || true \
- && echo /opt/oracle/instantclient_23_8 > /etc/ld.so.conf.d/oracle-instantclient.conf \
- && ldconfig
+RUN apt-get update
 
-# Set environment variable for OCI runtime linking
-ENV LD_LIBRARY_PATH=/opt/oracle/instantclient_23_8
+RUN apt install -y unzip curl libaio1
 
-# Install oci8 via PECL
-RUN docker-php-source extract \
- && echo "instantclient,/opt/oracle/instantclient_23_8" | pecl install oci8-3.2.0 \
- && docker-php-ext-enable oci8 \
- && docker-php-source delete
+RUN mkdir /opt/oracle
+RUN curl ${URL_INSTALL_CLIENT_BASIC} --output /opt/oracle/instantclient-basic-linux.zip
+RUN curl ${URL_INSTALL_CLIENT_SDK} --output /opt/oracle/instantclient-sdk-linux.zip
+RUN unzip -o '/opt/oracle/instantclient-basic-linux.zip' -d /opt/oracle
+RUN unzip -o '/opt/oracle/instantclient-sdk-linux.zip' -d /opt/oracle
+RUN rm /opt/oracle/instantclient-*.zip
+RUN mv /opt/oracle/instantclient_* /opt/oracle/instantclient
+RUN docker-php-ext-configure oci8 --with-oci8=instantclient,/opt/oracle/instantclient
+RUN [ ! -e /opt/oracle/instantclient/libclntsh.so ] && ln -s /opt/oracle/instantclient/libclntsh.so.21.1 /opt/oracle/instantclient/libclntsh.so || true
+
+
+RUN docker-php-ext-install oci8
+RUN echo /opt/oracle/instantclient/ > /etc/ld.so.conf.d/oracle-insantclient.conf
+RUN ldconfig
 
 # Copy your PHP app
 COPY ./web /var/www/html

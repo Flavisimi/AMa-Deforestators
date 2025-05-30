@@ -5,7 +5,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    $conn = oci_connect('AMA', 'AMA', '//db:1519/FREEPDB1');
+    $conn = oci_connect(
+    getenv('ORACLE_USER'),
+    getenv('ORACLE_PASSWORD'),
+    '//' . getenv('ORACLE_HOST') . ':' . getenv('ORACLE_PORT') . '/' . getenv('ORACLE_SID')
+    );
     if (!$conn) 
     {
         $e = oci_error();

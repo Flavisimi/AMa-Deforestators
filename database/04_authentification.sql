@@ -1,7 +1,11 @@
+ALTER SESSION SET CONTAINER = FREEPDB1;
+CONNECT AMA/AMA@localhost:1521/FREEPDB1;
+set SERVEROUTPUT on;
 create or replace package auth_package as
     function validate_login(p_username in varchar2, p_password in varchar2) return number;
     procedure register_user(p_username in varchar2, p_password in varchar2, p_email in varchar2, p_user_id out number);
 end auth_package;
+commit;
 /
 create or replace package body auth_package as
 
@@ -10,7 +14,7 @@ create or replace package body auth_package as
     begin
         v_raw := DBMS_CRYPTO.HASH(UTL_I18N.STRING_TO_RAW(p_password, 'AL32UTF8'), DBMS_CRYPTO.HASH_SH256);
         return RAWTOHEX(v_raw);
-    end;
+    end hash_password;
 
     function validate_login(p_username in varchar2, p_password in varchar2) return number is
         v_user_id users.id%TYPE;
@@ -23,7 +27,7 @@ create or replace package body auth_package as
     exception
         when NO_DATA_FOUND then
             RETURN -1;
-    end;
+    end validate_login;
 
     procedure register_user(p_username in varchar2, p_password in varchar2, p_email in varchar2, p_user_id out number) is
         v_count number;
@@ -43,8 +47,9 @@ create or replace package body auth_package as
         insert into users(id, name, user_password, email)
         values (users_seq.NEXTVAL, p_username, v_hashed_password, p_email)
         returning id into p_user_id;
-    end;
+    end register_user; 
 
 end auth_package;
 /
+commit;
 

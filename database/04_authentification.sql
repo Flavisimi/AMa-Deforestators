@@ -22,10 +22,9 @@ create or replace package body auth_package as
         v_hashed_password := hash_password(p_password);
         select id into v_user_id from users where name = p_username and user_password = v_hashed_password;
         return v_user_id;
-
     exception
         when NO_DATA_FOUND then
-            RETURN -1;
+            RAISE_APPLICATION_ERROR(-20003, 'Not existing');
     end validate_login;
 
     procedure register_user(p_username in varchar2, p_password in varchar2, p_email in varchar2, p_user_id out number) is

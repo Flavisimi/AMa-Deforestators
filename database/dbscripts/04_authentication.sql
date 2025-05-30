@@ -1,5 +1,3 @@
-ALTER SESSION SET CONTAINER = FREEPDB1;
-CONNECT AMA/AMA@localhost:1521/FREEPDB1;
 set SERVEROUTPUT on;
 create or replace package auth_package as
     function validate_login(p_username in varchar2, p_password in varchar2) return number;
@@ -50,4 +48,3 @@ create or replace package body auth_package as
 end auth_package;
 /
 commit;
---pentru stiinta

@@ -34,8 +34,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     catch (Exception $e) 
     {
             $error = "Login failed: " . oci_error($stmt)['message'];
-            if (strpos($error, 'Not existing') !== false) {
-                $error = "Not existing";
+            if (strpos($error, 'User does not exist') !== false) {
+                $error = "Invalid user";
+            } 
+            else if (strpos($error, 'Incorrect password') !== false) {
+                $error = "Invalid password";
             } 
     }
 

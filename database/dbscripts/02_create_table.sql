@@ -11,10 +11,10 @@ create table users(
     id integer primary key, 
     name varchar2(30) not null,
     user_password varchar2(255) not null,
-    role varchar2(10),
-    created_at date,
+    role varchar2(10) not null, --USER pentru utilizator de rand sau ADMIN cu permisiuni
+    created_at date not null,
     profile_picture blob,
-    email varchar2(50)
+    email varchar2(50) unique not null
 );
 
 create table abbreviations(

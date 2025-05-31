@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Abbreviations Manager</title>
+    <link rel="stylesheet" href="css/dashboard.css?v=3">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="user-profile">
+        <div class="avatar"></div>
+        <span class="username">User123</span>
+        <div class="profile-menu">
+            <a href="profile.html">View Profile</a>
+            <a href="index.html">Logout</a>
+        </div>
+    </div>
+
+    <nav class="navigator">
+        <div class="nav-header">
+            <h2>Abbreviations</h2>
+        </div>
+        <ul class="nav-list">
+            <li><a href="#vote" class="nav-button">Vote</a></li>
+            <li><a href="#create" class="nav-button">Create an Abbreviation</a></li>
+            <li><a href="#top" class="nav-button">Top Abbreviations</a></li>
+            <li><a href="#trending" class="nav-button">Trending Abbreviations</a></li>
+            <li><a href="#feed" class="nav-button">Feed Abbreviations</a></li>
+        </ul>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+    <main class="main-content">
+        <div class="search-container">
+            <div class="search-wrapper">
+                <input type="text" id="search-bar" placeholder="Search abbreviations..." aria-label="Search abbreviations">
+                <select id="search-type" aria-label="Search type">
+                    <option value="name">Abbreviation Name</option>
+                    <option value="signification">Signification</option>
+                </select>
+                <button class="search-button">Search</button>
+            </div>
+        </div>
+        <section class="content-placeholder">
+            <p>Ama DEFORESTATORS</p>
+        </section>
+    </main>
+
+    <script>
+        document.querySelector('.hamburger').addEventListener('click', function() {
+            document.querySelector('.navigator').classList.toggle('active');
+        });
+
+        document.querySelector('.user-profile').addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.querySelector('.profile-menu').classList.toggle('active');
+        });
+
+        document.addEventListener('click', function(e) {
+            const profileMenu = document.querySelector('.profile-menu');
+            if (!profileMenu.contains(e.target) && profileMenu.classList.contains('active')) {
+                profileMenu.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

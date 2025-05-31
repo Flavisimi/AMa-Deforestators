@@ -74,40 +74,6 @@ end;
 
 /
 
---delete abbreviations that have no meanings
--- create or replace trigger meaning_delete
--- for delete on meanings
--- compound trigger
---     type id_list is table of integer index by integer;
---     v_abbr_ids id_list;
-
---     before statement is
---     begin
---         v_ids := id_list();
---     end before statement;
-
---     after each row is
---     begin
---         v_ids(:old.abbr_id) := 1;
---     end after each row;
-
---     after statement is
---         v_index integer;
---         v_count integer;
---     begin
---         if(v_ids.count > 0) then
---             v_index := v_ids.first;
---             loop
-
---                 exit when v_index = v_ids.last;
---                 v_index := v_ids.next(v_index);
---             end loop;
---         end if;
---     end after statement;     
--- end;
-
--- /
-
 create or replace trigger meaning_delete
 after delete on meanings
 for each row
@@ -120,6 +86,69 @@ begin
     else
         update abbreviations set meaning_count = meaning_count - 1 where id = :old.abbr_id;
     end if;
+end;
+
+/
+
+create or replace trigger abbr_list_insert
+before insert on abbr_lists
+for each row
+begin
+    if(:new.id is null) then
+        :new.id := seq_list.nextval;
+    end if;
+
+    if(:new.created_at is null) then
+        :new.created_at := sysdate;
+    end if;
+
+    if(:new.updated_at is null) then
+        :new.updated_at := sysdate;
+    end if;
+end;
+
+
+/
+
+create or replace trigger abbr_list_contents_delete
+for delete on abbr_list_contents
+compound trigger
+    type id_list is table of integer index by pls_integer;
+    v_affected_lists id_list;
+
+    after each row is
+    begin
+        v_affected_lists(:old.list_id) := 1;
+    end after each row;
+
+    after statement is
+        cursor list_entries(v_list_id integer) is select * from abbr_list_contents where list_id = v_list_id order by list_index asc for update of list_index nowait; 
+        v_list_id integer;
+        v_index integer;
+    begin
+        if(v_affected_lists.count > 0) then
+            v_list_id := v_affected_lists.first;
+            while v_list_id is not null loop
+                v_index := 0;
+                for v_entry in list_entries(v_list_id) loop
+                    update abbr_list_contents set list_index = v_index where list_id = v_list_id and list_index = v_entry.list_index;
+                    v_index := v_index + 1;
+                end loop;
+
+                update abbr_lists set updated_at = sysdate where id = v_list_id;
+                v_list_id := v_affected_lists.next(v_list_id);
+            end loop;
+        end if;
+    end after statement;
+end;
+
+/
+
+create or replace trigger abbr_list_contents_insert
+after insert on abbr_list_contents
+for each row
+begin
+    update abbr_lists set updated_at = sysdate where id = :new.list_id;
 end;
 
 /

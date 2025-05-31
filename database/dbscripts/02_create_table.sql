@@ -3,8 +3,8 @@ drop view languages;
 drop view combined_view;
 
 drop table abbr_list_contents;
-drop table abbr_list;
-drop table visit_log;
+drop table abbr_lists;
+drop table visit_logs;
 drop table votes;
 drop table meanings;
 drop table abbreviations;
@@ -52,7 +52,7 @@ create table votes(
     vote_date date not null
 );
 
-create table abbr_list(
+create table abbr_lists(
     id integer primary key,
     creator_id integer references users(id) not null,
     name varchar(50) not null,
@@ -62,12 +62,12 @@ create table abbr_list(
 );
 
 create table abbr_list_contents(
-    list_id integer references abbr_list(id) not null,
-    meaning_id integer references meanings(id) not null,
+    list_id integer references abbr_lists(id) on delete cascade not null,
+    meaning_id integer references meanings(id) on delete cascade not null,
     list_index integer not null
 );
 
-create table visit_log(
+create table visit_logs(
     visitor_id integer references users(id) not null,
     abbr_id integer references users(id) not null,
     visit_date date not null

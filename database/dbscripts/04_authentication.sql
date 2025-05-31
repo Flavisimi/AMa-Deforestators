@@ -1,6 +1,7 @@
 set SERVEROUTPUT on;
 create or replace package auth_package as
     function validate_login(p_username in varchar2, p_password in varchar2) return number;
+    function hash_password(p_password in varchar2) return varchar2;
     procedure register_user(p_username in varchar2, p_password in varchar2, p_email in varchar2, p_user_id out number);
 end auth_package;
 /

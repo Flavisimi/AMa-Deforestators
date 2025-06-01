@@ -169,7 +169,7 @@ begin
     end if;
     select id into v_abbr_id from abbreviations where searchable_name = v_searchable_name;
 
-    insert into meanings values(null, v_abbr_id, :new.name, :new.short_expansion, :new.uploader_id, 'pending', :new.lang, :new.domain, null, null);
+    insert into meanings values(null, v_abbr_id, :new.name, :new.short_expansion, :new.description, :new.uploader_id, 'pending', :new.lang, :new.domain, null, null);
 end;
 
 /

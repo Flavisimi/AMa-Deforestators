@@ -37,6 +37,7 @@ create table meanings(
     abbr_id integer references abbreviations(id) not null,
     name varchar2(30) not null,
     short_expansion varchar2(256) unique not null,
+    description varchar2(500) not null,
     uploader_id integer references users(id) not null,
     approval_status varchar2(50) not null, -- pending, accepted, rejected, manual
     lang varchar2(3) not null,
@@ -76,6 +77,6 @@ create table visit_logs(
 create view languages as select unique lang from meanings;
 create view domains as select unique domain from meanings;
 
-create view combined_view(name, short_expansion, lang, domain, uploader_id, created_at, updated_at) as select name, short_expansion, lang, domain, uploader_id, created_at, updated_at from meanings;
+create view combined_view(name, short_expansion, description, lang, domain, uploader_id, created_at, updated_at) as select name, short_expansion, description, lang, domain, uploader_id, created_at, updated_at from meanings;
 
 commit;

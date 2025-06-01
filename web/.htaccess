@@ -1,2 +1,4 @@
 RewriteEngine On
+
 RewriteRule ^abbreviations php/controllers/abbreviation-controller.php
+RewriteRule ^meanings php/controllers/meaning-controller.php

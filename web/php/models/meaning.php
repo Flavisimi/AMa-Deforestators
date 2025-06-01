@@ -1,0 +1,18 @@
+<?php
+
+namespace ama\models;
+class Meaning
+{
+    public int $id;
+    public int $abbr_id;
+    public string $name;
+    public string $short_expansion;
+    public int $uploader_id;
+    public string $approval_status;
+    public string $lang;
+    public string $domain;
+    public \DateTime $created_at;
+    public \DateTime $updated_at;
+}
+
+?>

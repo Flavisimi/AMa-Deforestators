@@ -7,6 +7,20 @@ require_once( __DIR__ . "/../models/abbreviation.php");
 
 class AbbreviationRepository
 {
+    public static function convert_row_to_object( $row ): Abbreviation
+    {
+        $abbreviation = new Abbreviation();
+        $abbreviation->id = $row["ID"];
+        $abbreviation->searchable_name = $row["SEARCHABLE_NAME"];
+        $abbreviation->meaning_count = $row["MEANING_COUNT"];
+        $abbreviation->created_at = new \DateTime();
+        $abbreviation->created_at->setTimestamp(strtotime($row["CREATED_AT"]));
+        $abbreviation->updated_at = new \DateTime();
+        $abbreviation->updated_at->setTimestamp(strtotime($row["UPDATED_AT"]));
+
+        return $abbreviation;
+    }
+
     public static function load_abbreviation($conn, int $id): ?Abbreviation
     {
         $stmt = oci_parse($conn, "select id, searchable_name, meaning_count, created_at, updated_at from abbreviations where id = :id");
@@ -20,14 +34,7 @@ class AbbreviationRepository
             return null;
         }
 
-        $abbreviation = new Abbreviation();
-        $abbreviation->id = $row["ID"];
-        $abbreviation->searchable_name = $row["SEARCHABLE_NAME"];
-        $abbreviation->meaning_count = $row["MEANING_COUNT"];
-        $abbreviation->created_at = new \DateTime();
-        $abbreviation->created_at->setTimestamp(strtotime($row["CREATED_AT"]));
-        $abbreviation->updated_at = new \DateTime();
-        $abbreviation->updated_at->setTimestamp(strtotime($row["UPDATED_AT"]));
+        $abbreviation = AbbreviationRepository::convert_row_to_object($row);
 
         oci_free_statement($stmt);
 
@@ -43,14 +50,7 @@ class AbbreviationRepository
         $output = array();
         while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)
         {
-            $abbreviation = new Abbreviation();
-            $abbreviation->id = $row["ID"];
-            $abbreviation->searchable_name = $row["SEARCHABLE_NAME"];
-            $abbreviation->meaning_count = $row["MEANING_COUNT"];
-            $abbreviation->created_at = new \DateTime();
-            $abbreviation->created_at->setTimestamp(strtotime($row["CREATED_AT"]));
-            $abbreviation->updated_at = new \DateTime();
-            $abbreviation->updated_at->setTimestamp(strtotime($row["UPDATED_AT"]));
+            $abbreviation = AbbreviationRepository::convert_row_to_object($row);
 
             $output[$row["ID"]] = $abbreviation;
         }

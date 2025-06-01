@@ -81,6 +81,17 @@ class AbbreviationController
             header("Content-Type: application/json");
             echo json_encode(AbbreviationController::create_abbreviation($dto));
         }
+        else if($url === "/abbreviations/upvote" || $url === "/abbreviations/downvote")
+        {
+            if(!isset($query_components["id"]))
+            {
+                http_response_code(400);
+                return;
+            }
+
+            $id = $query_components["id"];
+            $is_upvote = $url === "/abbreviations/upvote";
+        }
         else
         {
             http_response_code(400);

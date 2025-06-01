@@ -50,7 +50,8 @@ create table votes(
     voter_id integer references users(id) not null,
     meaning_id integer references meanings(id) not null,
     vote number(1,0) not null, -- 1 sau -1
-    vote_date date not null
+    vote_date date not null,
+    constraint vote_uq_ids unique(voter_id, meaning_id)
 );
 
 create table abbr_lists(

@@ -7,7 +7,7 @@ class Abbreviation
     public int $meaning_count;
     public \DateTime $created_at;
     public \DateTime $updated_at;
-    public array $meaning_ids;
+    public ?array $meanings;
 }
 
 

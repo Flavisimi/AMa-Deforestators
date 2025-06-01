@@ -64,6 +64,26 @@ class MeaningRepository
 
         return $output;
     }
+
+    public static function load_meanings_by_abbr_id($conn, int $abbr_id): ?array
+    {
+        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where abbr_id = :abbr_id");
+        oci_bind_by_name($stmt, ":abbr_id", $abbr_id);
+        
+        oci_execute($stmt);
+        
+        $output = array();
+        while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)
+        {
+            $meaning = MeaningRepository::convert_row_to_object($row);
+
+            $output[$row["ID"]] = $meaning;
+        }
+
+        oci_free_statement($stmt);
+
+        return $output;
+    }
 }
 
 

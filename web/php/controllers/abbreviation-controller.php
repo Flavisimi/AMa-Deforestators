@@ -1,12 +1,16 @@
 <?php
 
+namespace ama\controllers;
+
 require_once( __DIR__ . "/../models/abbreviation.php");
 require_once( __DIR__ . "/../helpers/connection-helper.php");
 require_once( __DIR__ . "/../repositories/abbreviation-repository.php");
+require_once( __DIR__ . "/../services/abbreviation-service.php");
 
 use ama\models\Abbreviation;
 use ama\helpers\ConnectionHelper;
 use ama\repositories\AbbreviationRepository;
+use ama\services\AbbreviationService;
 
 class AbbreviationController
 {
@@ -14,6 +18,7 @@ class AbbreviationController
     {
         $conn = ConnectionHelper::open_connection();
         $abbreviation = AbbreviationRepository::load_abbreviation($conn, $id);
+        AbbreviationService::attach_meanings($conn, $abbreviation);
         oci_close($conn);
         return $abbreviation;
     }

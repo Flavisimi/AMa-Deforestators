@@ -1,5 +1,7 @@
 <?php
 
+namespace ama\controllers;
+
 require_once( __DIR__ . "/../models/meaning.php");
 require_once( __DIR__ . "/../helpers/connection-helper.php");
 require_once( __DIR__ . "/../repositories/meaning-repository.php");

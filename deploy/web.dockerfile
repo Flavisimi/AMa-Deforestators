@@ -30,7 +30,9 @@ RUN echo /opt/oracle/instantclient/ > /etc/ld.so.conf.d/oracle-insantclient.conf
 RUN ldconfig
 
 # Copy your PHP app
-COPY ./web /var/www/html
+# COPY ./web /var/www/html
+
+RUN a2enmod rewrite
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \

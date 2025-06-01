@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^abbreviations php/controllers/abbreviation-controller.php

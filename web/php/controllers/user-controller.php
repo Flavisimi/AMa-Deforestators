@@ -15,17 +15,17 @@ class UserController
     public static function get_user_by_id(int $id): ?User
     {
         $conn = ConnectionHelper::open_connection();
-        $meaning = UserRepository::load_user($conn, $id);
+        $user = UserRepository::load_user($conn, $id);
         oci_close($conn);
-        return $meaning;
+        return $user;
     }
 
     public static function get_all_users(): ?array
     {
         $conn = ConnectionHelper::open_connection();
-        $abbreviations = UserRepository::load_all_users($conn);
+        $users = UserRepository::load_all_users($conn);
         oci_close($conn);
-        return $abbreviations;
+        return $users;
     }
 
     public static function handle_get()

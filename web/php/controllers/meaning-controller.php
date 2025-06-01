@@ -23,9 +23,9 @@ class MeaningController
     public static function get_all_meanings(): ?array
     {
         $conn = ConnectionHelper::open_connection();
-        $abbreviations = MeaningRepository::load_all_meanings($conn);
+        $meanings = MeaningRepository::load_all_meanings($conn);
         oci_close($conn);
-        return $abbreviations;
+        return $meanings;
     }
 
     public static function handle_get()

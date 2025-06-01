@@ -2,8 +2,11 @@
 
 namespace ama\repositories;
 
+use ama\dtos\AbbrInsertDTO;
 use ama\models\Abbreviation;
+
 require_once( __DIR__ . "/../models/abbreviation.php");
+require_once( __DIR__ . "/../dtos/abbreviation-insert-dto.php");
 
 class AbbreviationRepository
 {
@@ -58,6 +61,40 @@ class AbbreviationRepository
         oci_free_statement($stmt);
 
         return $output;
+    }
+
+    public static function load_abbreviation_by_name($conn, string $name): ?Abbreviation
+    {
+        $stmt = oci_parse($conn, "select id, searchable_name, meaning_count, created_at, updated_at from abbreviations where searchable_name = ama_helper.get_searchable_name(:name)");
+        oci_bind_by_name($stmt, ":name", $name);
+        
+        oci_execute($stmt);
+        
+        $row = oci_fetch_array($stmt, OCI_ASSOC);
+        if($row === false)
+        {
+            return null;
+        }
+
+        $abbreviation = AbbreviationRepository::convert_row_to_object($row);
+
+        oci_free_statement($stmt);
+
+        return $abbreviation;
+    }
+
+    public static function insert_abbreviation($conn, AbbrInsertDTO $dto)
+    {
+        $stmt = oci_parse($conn, "insert into combined_view(name, short_expansion, lang, domain, uploader_id) values (:name, :short, :lang, :domain, :uploader)");
+        oci_bind_by_name($stmt, ":name", $dto->name);
+        oci_bind_by_name($stmt, ":short", $dto->short_expansion);
+        oci_bind_by_name($stmt, ":lang", $dto->lang);
+        oci_bind_by_name($stmt, ":domain", $dto->domain);
+        oci_bind_by_name($stmt, ":uploader", $_SESSION["user_id"]);
+
+        oci_execute($stmt, OCI_COMMIT_ON_SUCCESS);
+
+        oci_free_statement($stmt);
     }
 }
 

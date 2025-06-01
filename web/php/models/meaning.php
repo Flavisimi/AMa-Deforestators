@@ -7,6 +7,7 @@ class Meaning
     public int $abbr_id;
     public string $name;
     public string $short_expansion;
+    public string $description;
     public int $uploader_id;
     public string $approval_status;
     public string $lang;

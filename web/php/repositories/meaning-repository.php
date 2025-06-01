@@ -14,6 +14,7 @@ class MeaningRepository
         $meaning->abbr_id = $row["ABBR_ID"];
         $meaning->name = $row["NAME"];
         $meaning->short_expansion = $row["SHORT_EXPANSION"];
+        $meaning->description = $row["DESCRIPTION"];
         $meaning->uploader_id = $row["UPLOADER_ID"];
         $meaning->approval_status = $row["APPROVAL_STATUS"];
         $meaning->lang = $row["LANG"];
@@ -28,7 +29,7 @@ class MeaningRepository
 
     public static function load_meaning($conn, int $id): ?Meaning
     {
-        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where id = :id");
+        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, description, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where id = :id");
         oci_bind_by_name($stmt, ":id", $id);
         
         oci_execute($stmt);
@@ -48,7 +49,7 @@ class MeaningRepository
 
     public static function load_all_meanings($conn): ?array
     {
-        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings");
+        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, description, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings");
         
         oci_execute($stmt);
         
@@ -67,7 +68,7 @@ class MeaningRepository
 
     public static function load_meanings_by_abbr_id($conn, int $abbr_id): ?array
     {
-        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where abbr_id = :abbr_id");
+        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, description, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where abbr_id = :abbr_id");
         oci_bind_by_name($stmt, ":abbr_id", $abbr_id);
         
         oci_execute($stmt);

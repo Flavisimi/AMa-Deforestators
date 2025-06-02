@@ -38,7 +38,7 @@ class AbbreviationRepository
         oci_bind_by_name($stmt,":id", $id);
         
         if(!oci_execute($stmt)) 
-            throw new ApiException(500, oci_error($stmt));
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
         
         
         $row = oci_fetch_array($stmt, OCI_ASSOC);
@@ -61,7 +61,7 @@ class AbbreviationRepository
             throw new ApiException(500, "Failed to parse SQL statement");
 
         if(!oci_execute($stmt)) 
-            throw new ApiException(500, oci_error($stmt));
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
         
         $output = array();
         while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)
@@ -85,7 +85,7 @@ class AbbreviationRepository
         oci_bind_by_name($stmt, ":name", $name);
         
          if(!oci_execute($stmt)) 
-            throw new ApiException(500, oci_error($stmt));
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
         
         $row = oci_fetch_array($stmt, OCI_ASSOC);
         if($row === false)

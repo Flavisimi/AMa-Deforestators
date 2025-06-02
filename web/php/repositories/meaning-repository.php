@@ -3,7 +3,13 @@
 namespace ama\repositories;
 
 use ama\models\Meaning;
+use ama\exceptions\ApiException;
+
 require_once( __DIR__ . "/../models/meaning.php");
+require_once( __DIR__ . "/../exceptions/api-exception.php");
+
+ini_set('display_errors', 0);
+error_reporting(0);
 
 class MeaningRepository
 {
@@ -30,9 +36,13 @@ class MeaningRepository
     public static function load_meaning($conn, int $id): ?Meaning
     {
         $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, description, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where id = :id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
         oci_bind_by_name($stmt, ":id", $id);
         
-        oci_execute($stmt);
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+        
         
         $row = oci_fetch_array($stmt, OCI_ASSOC);
         if($row === false)
@@ -50,8 +60,10 @@ class MeaningRepository
     public static function load_all_meanings($conn): ?array
     {
         $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, description, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings");
-        
-        oci_execute($stmt);
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
         
         $output = array();
         while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)
@@ -69,9 +81,12 @@ class MeaningRepository
     public static function load_meanings_by_abbr_id($conn, int $abbr_id): ?array
     {
         $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, description, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where abbr_id = :abbr_id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
         oci_bind_by_name($stmt, ":abbr_id", $abbr_id);
         
-        oci_execute($stmt);
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
         
         $output = array();
         while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)

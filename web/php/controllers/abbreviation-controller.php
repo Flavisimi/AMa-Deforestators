@@ -30,6 +30,9 @@ class AbbreviationController
             oci_close($conn);
             throw $e;
         }
+
+        AbbreviationRepository::visit_abbreviation($conn, $id);
+
         oci_close($conn);
         return $abbreviation;
     }

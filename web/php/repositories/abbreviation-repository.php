@@ -118,6 +118,24 @@ class AbbreviationRepository
 
         oci_free_statement($stmt);
     }
+
+    public static function visit_abbreviation($conn, int $abbr_id)
+    {
+        $stmt = oci_parse($conn, "insert into visit_logs values(:visitor, :abbr, sysdate)");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        $null_id = null;
+        if(isset($_SESSION["user_id"]))
+            oci_bind_by_name($stmt, ":visitor", $_SESSION["user_id"]);
+        else
+            oci_bind_by_name($stmt, ":visitor", $null_id);
+        oci_bind_by_name($stmt, ":abbr", $abbr_id);
+        
+        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+
+        oci_free_statement($stmt);
+    }
 }
 
 

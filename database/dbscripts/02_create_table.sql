@@ -71,7 +71,7 @@ create table abbr_list_contents(
 );
 
 create table visit_logs(
-    visitor_id integer references users(id) not null,
+    visitor_id integer references users(id), --if this column is null then a guest (not logged in user) visited the abbreviation
     abbr_id integer references users(id) not null,
     visit_date date not null
 );

@@ -92,7 +92,7 @@ class MeaningController
 
     public static function handle_get()
     {
-        $url = $_SERVER['REQUEST_URI'];
+        $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
@@ -100,13 +100,15 @@ class MeaningController
         {
             if(isset($query_components["id"]))
             {
+                $rez = MeaningController::get_meaning_by_id($query_components["id"]);
                 header("Content-Type: application/json");
-                echo json_encode(MeaningController::get_meaning_by_id($query_components["id"]));
+                echo json_encode($rez);
             }
             else
             {
+                $rez = MeaningController::get_all_meanings();
                 header("Content-Type: application/json");
-                echo json_encode(MeaningController::get_all_meanings());
+                echo json_encode($rez);
             }
         }
         else
@@ -160,6 +162,12 @@ try
 catch(ApiException $e)
 {
     http_response_code($e->status_code);
+    header("Content-Type: application/json");
+    echo json_encode($e);
+}
+catch(\Exception $e)
+{
+    http_response_code(500);
     header("Content-Type: application/json");
     echo json_encode($e);
 }

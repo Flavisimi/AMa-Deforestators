@@ -79,13 +79,15 @@ class AbbreviationController
         {
             if(isset($query_components["id"]))
             {
+                $rez = AbbreviationController::get_abbreviation_by_id($query_components["id"]);
                 header("Content-Type: application/json");
-                echo json_encode(AbbreviationController::get_abbreviation_by_id($query_components["id"]));
+                echo json_encode($rez);
             }
             else
             {
+                $rez = AbbreviationController::get_all_abbreviations();
                 header("Content-Type: application/json");
-                echo json_encode(AbbreviationController::get_all_abbreviations());
+                echo json_encode($rez);
             }
         }
         else
@@ -104,9 +106,10 @@ class AbbreviationController
         {
             $request_body = file_get_contents("php://input");
             $dto = AbbrInsertDTO::from_json($request_body);
+            $rez = AbbreviationController::create_abbreviation($dto);
 
             header("Content-Type: application/json");
-            echo json_encode(AbbreviationController::create_abbreviation($dto));
+            echo json_encode($rez);
         }
         else
         {
@@ -137,6 +140,11 @@ catch(ApiException $e)
     header("Content-Type: application/json");
     echo json_encode($e);
 }
-
+catch(\Exception $e)
+{
+    http_response_code(500);
+    header("Content-Type: application/json");
+    echo json_encode($e);
+}
 
 ?>

@@ -56,13 +56,15 @@ class UserController
         {
             if(isset($query_components["id"]))
             {
+                $rez = UserController::get_user_by_id($query_components["id"]);
                 header("Content-Type: application/json");
-                echo json_encode(UserController::get_user_by_id($query_components["id"]));
+                echo json_encode($rez);
             }
             else
             {
+                $rez = UserController::get_all_users();
                 header("Content-Type: application/json");
-                echo json_encode(UserController::get_all_users());
+                echo json_encode($rez);
             }
         }
         else
@@ -88,6 +90,12 @@ try
 catch(ApiException $e)
 {
     http_response_code($e->status_code);
+    header("Content-Type: application/json");
+    echo json_encode($e);
+}
+catch(\Exception $e)
+{
+    http_response_code(500);
     header("Content-Type: application/json");
     echo json_encode($e);
 }

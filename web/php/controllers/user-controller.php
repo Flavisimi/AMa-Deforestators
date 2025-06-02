@@ -5,17 +5,27 @@ namespace ama\controllers;
 require_once( __DIR__ . "/../models/user.php");
 require_once( __DIR__ . "/../helpers/connection-helper.php");
 require_once( __DIR__ . "/../repositories/user-repository.php");
+require_once( __DIR__ . "/../exceptions/api-exception.php");
 
 use ama\models\User;
 use ama\helpers\ConnectionHelper;
 use ama\repositories\UserRepository;
+use ama\exceptions\ApiException;
 
 class UserController
 {
     public static function get_user_by_id(int $id): ?User
     {
         $conn = ConnectionHelper::open_connection();
-        $user = UserRepository::load_user($conn, $id);
+        try
+        {
+            $user = UserRepository::load_user($conn, $id);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+        
         oci_close($conn);
         return $user;
     }
@@ -23,18 +33,26 @@ class UserController
     public static function get_all_users(): ?array
     {
         $conn = ConnectionHelper::open_connection();
-        $users = UserRepository::load_all_users($conn);
+        try
+        {
+            $users = UserRepository::load_all_users($conn);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+
         oci_close($conn);
         return $users;
     }
 
     public static function handle_get()
     {
-        $url = $_SERVER['REQUEST_URI'];
+        $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if(str_starts_with($url, "/users"))
+        if($url === "/users")
         {
             if(isset($query_components["id"]))
             {
@@ -63,6 +81,15 @@ class UserController
     }
 }
 
-UserController::handle_request();
+try
+{
+    UserController::handle_request();
+} 
+catch(ApiException $e)
+{
+    http_response_code($e->status_code);
+    header("Content-Type: application/json");
+    echo json_encode($e);
+}
 
 ?>

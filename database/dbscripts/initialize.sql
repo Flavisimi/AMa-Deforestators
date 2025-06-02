@@ -4,3 +4,4 @@
 @@ 05_helper.sql
 @@ 06_triggers.sql
 @@ 07_populate_example_data.sql
+@@ 08_search_function.sql

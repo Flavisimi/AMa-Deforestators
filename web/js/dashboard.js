@@ -14,6 +14,22 @@ document.addEventListener('click', function(e) {
     }
 });
 
+document.querySelectorAll('.nav-button').forEach(button => {
+    button.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        
+        if (href === '#create') {
+            e.preventDefault();
+            window.location.href = 'create-abbreviation.html';
+            return;
+        }
+        
+        if (href.startsWith('#')) {
+            e.preventDefault();
+        }
+    });
+});
+
 function createAbbreviationCard(abbreviation) {
     const card = document.createElement('div');
     card.className = 'abbreviation-card';
@@ -76,6 +92,11 @@ function displayAbbreviations(data, isSearchResult = false) {
                 <div class="empty-icon">📝</div>
                 <h3>No abbreviations found</h3>
                 <p>${isSearchResult ? 'Try adjusting your search terms' : 'No abbreviations available at the moment'}</p>
+                <div style="margin-top: 20px;">
+                    <a href="create-abbreviation.html" class="btn btn-primary" style="padding: 12px 24px; background: linear-gradient(135deg, #4caf50, #45a049); color: white; text-decoration: none; border-radius: 25px; font-weight: 500; transition: all 0.3s ease;">
+                        Create First Abbreviation
+                    </a>
+                </div>
             </div>
         `;
         return;

@@ -81,4 +81,13 @@ create view domains as select unique domain from meanings;
 
 create view combined_view(name, short_expansion, description, lang, domain, uploader_id, created_at, updated_at) as select name, short_expansion, description, lang, domain, uploader_id, created_at, updated_at from meanings;
 
+create index votes_by_voter on votes(voter_id);
+create index votes_by_meaning on votes(meaning_id);
+
+create index meanings_by_uploader on meanings(uploader_id);
+create index meanings_by_abbreviation on meanings(abbr_id);
+
+create index lists_by_creator on abbr_lists(creator_id);
+
+
 commit;

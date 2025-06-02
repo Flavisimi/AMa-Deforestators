@@ -7,20 +7,29 @@ require_once( __DIR__ . "/../helpers/connection-helper.php");
 require_once( __DIR__ . "/../repositories/abbreviation-repository.php");
 require_once( __DIR__ . "/../services/abbreviation-service.php");
 require_once( __DIR__ . "/../dtos/abbreviation-insert-dto.php");
+require_once( __DIR__ . "/../exceptions/api-exception.php");
 
 use ama\models\Abbreviation;
 use ama\helpers\ConnectionHelper;
 use ama\repositories\AbbreviationRepository;
 use ama\services\AbbreviationService;
 use ama\dtos\AbbrInsertDTO;
+use ama\exceptions\ApiException;
 
 class AbbreviationController
 {
     public static function get_abbreviation_by_id(int $id): ?Abbreviation
     {
         $conn = ConnectionHelper::open_connection();
-        $abbreviation = AbbreviationRepository::load_abbreviation($conn, $id);
-        AbbreviationService::attach_meanings($conn, $abbreviation);
+        try
+        {
+            $abbreviation = AbbreviationRepository::load_abbreviation($conn, $id);
+            AbbreviationService::attach_meanings($conn, $abbreviation);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
         oci_close($conn);
         return $abbreviation;
     }
@@ -28,17 +37,35 @@ class AbbreviationController
     public static function get_all_abbreviations(): ?array
     {
         $conn = ConnectionHelper::open_connection();
-        $abbreviations = AbbreviationRepository::load_all_abbreviations($conn);
+        try
+        {
+            $abbreviations = AbbreviationRepository::load_all_abbreviations($conn);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
         oci_close($conn);
         return $abbreviations;
     }
 
     public static function create_abbreviation($dto) : Abbreviation
     {
+        if(!isset($_SESSION["user_id"]))
+            throw new ApiException(401, "You need to be logged in to create an abbreviation");
+
         $conn = ConnectionHelper::open_connection();
-        AbbreviationRepository::insert_abbreviation($conn, $dto);
-        $abbreviation = AbbreviationRepository::load_abbreviation_by_name($conn, $dto->name);
-        AbbreviationService::attach_meanings($conn, $abbreviation);
+        try
+        {
+            AbbreviationRepository::insert_abbreviation($conn, $dto);
+            $abbreviation = AbbreviationRepository::load_abbreviation_by_name($conn, $dto->name);
+            AbbreviationService::attach_meanings($conn, $abbreviation);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+        
         oci_close($conn);
         return $abbreviation;
     }
@@ -48,17 +75,22 @@ class AbbreviationController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if(str_starts_with($url, "/abbreviations"))
+        if($url === "/abbreviations")
         {
             if(isset($query_components["id"]))
             {
+                if(!is_numeric($query_components["id"]))
+                    throw new ApiException(400, "Invalid ID");
+                
+                $rez = AbbreviationController::get_abbreviation_by_id($query_components["id"]);
                 header("Content-Type: application/json");
-                echo json_encode(AbbreviationController::get_abbreviation_by_id($query_components["id"]));
+                echo json_encode($rez);
             }
             else
             {
+                $rez = AbbreviationController::get_all_abbreviations();
                 header("Content-Type: application/json");
-                echo json_encode(AbbreviationController::get_all_abbreviations());
+                echo json_encode($rez);
             }
         }
         else
@@ -77,9 +109,10 @@ class AbbreviationController
         {
             $request_body = file_get_contents("php://input");
             $dto = AbbrInsertDTO::from_json($request_body);
+            $rez = AbbreviationController::create_abbreviation($dto);
 
             header("Content-Type: application/json");
-            echo json_encode(AbbreviationController::create_abbreviation($dto));
+            echo json_encode($rez);
         }
         else
         {
@@ -100,6 +133,21 @@ class AbbreviationController
     }
 }
 
-AbbreviationController::handle_request();
+try
+{
+    AbbreviationController::handle_request();
+} 
+catch(ApiException $e)
+{
+    http_response_code($e->status_code);
+    header("Content-Type: application/json");
+    echo json_encode($e);
+}
+catch(\Exception $e)
+{
+    http_response_code(500);
+    header("Content-Type: application/json");
+    echo json_encode($e);
+}
 
 ?>

@@ -18,13 +18,29 @@ function createAbbreviationCard(abbreviation) {
     const card = document.createElement('div');
     card.className = 'abbreviation-card';
     
-    const createdDate = new Date(abbreviation.created_at.date || abbreviation.created_at).toLocaleDateString();
-    const updatedDate = new Date(abbreviation.updated_at.date || abbreviation.updated_at).toLocaleDateString();
+    let createdDate = 'N/A';
+    let updatedDate = 'N/A';
+    
+    try {
+        if (abbreviation.created_at) {
+            createdDate = abbreviation.created_at.date ? 
+                new Date(abbreviation.created_at.date).toLocaleDateString() :
+                new Date(abbreviation.created_at).toLocaleDateString();
+        }
+        
+        if (abbreviation.updated_at) {
+            updatedDate = abbreviation.updated_at.date ? 
+                new Date(abbreviation.updated_at.date).toLocaleDateString() :
+                new Date(abbreviation.updated_at).toLocaleDateString();
+        }
+    } catch (e) {
+        console.warn('Date parsing error:', e);
+    }
     
     card.innerHTML = `
         <div class="card-header">
             <h3 class="abbreviation-name">${abbreviation.searchable_name}</h3>
-            <span class="meaning-count">${abbreviation.meaning_count || 0} meanings</span>
+            <span class="meaning-count">${abbreviation.meaning_count} meanings</span>
         </div>
         <div class="card-body">
             <div class="card-info">
@@ -48,11 +64,13 @@ function createAbbreviationCard(abbreviation) {
     return card;
 }
 
-function displayAbbreviations(abbreviations, isSearchResult = false) {
+function displayAbbreviations(data, isSearchResult = false) {
     const placeholder = document.querySelector('.content-placeholder');
     placeholder.innerHTML = '';
     
-    if (!abbreviations || abbreviations.length === 0) {
+    const abbreviations = Object.values(data);
+    
+    if (abbreviations.length === 0) {
         placeholder.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📝</div>
@@ -86,20 +104,21 @@ function loadAllAbbreviations() {
     
     fetch('/abbreviations')
         .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return response.json();
         })
         .then(data => {
             displayAbbreviations(data);
         })
         .catch(error => {
-            console.error('Error:', error);
-            const placeholder = document.querySelector('.content-placeholder');
+            console.error('Error loading abbreviations:', error);
             placeholder.innerHTML = `
                 <div class="error-state">
                     <div class="error-icon">⚠️</div>
                     <h3>Failed to load abbreviations</h3>
-                    <p>Please try refreshing the page</p>
+                    <p>${error.message}</p>
                     <button onclick="loadAllAbbreviations()" class="retry-btn">Retry</button>
                 </div>
             `;
@@ -117,19 +136,21 @@ function fetchMeanings(abbrId) {
     
     fetch(`/abbreviations?id=${abbrId}`)
         .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return response.json();
         })
         .then(data => {
             displayMeanings(data);
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error fetching meanings:', error);
             placeholder.innerHTML = `
                 <div class="error-state">
                     <div class="error-icon">⚠️</div>
                     <h3>Failed to load meanings</h3>
-                    <p>Please try again</p>
+                    <p>${error.message}</p>
                     <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
                 </div>
             `;
@@ -140,7 +161,9 @@ function displayMeanings(data) {
     const placeholder = document.querySelector('.content-placeholder');
     placeholder.innerHTML = '';
     
-    if (!data || !data.meanings || data.meanings.length === 0) {
+    const meanings = Object.values(data.meanings);
+    
+    if (meanings.length === 0) {
         placeholder.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📖</div>
@@ -166,7 +189,7 @@ function displayMeanings(data) {
     const meaningsGrid = document.createElement('div');
     meaningsGrid.className = 'meanings-grid';
     
-    data.meanings.forEach((meaning, index) => {
+    meanings.forEach((meaning, index) => {
         const meaningCard = document.createElement('div');
         meaningCard.className = 'meaning-card';
         meaningCard.style.animationDelay = `${index * 0.1}s`;
@@ -231,7 +254,6 @@ document.querySelector('.search-button').addEventListener('click', function() {
     })
     .catch(error => {
         console.error('Error:', error);
-        const placeholder = document.querySelector('.content-placeholder');
         placeholder.innerHTML = `
             <div class="error-state">
                 <div class="error-icon">⚠️</div>

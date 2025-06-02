@@ -92,6 +92,29 @@ class VoteRepository
 
         oci_free_statement($stmt);
     }
+
+    public static function get_score($conn, int $meaning_id): ?int
+    {
+        $stmt = oci_parse($conn, "select sum(vote) as score from votes where meaning_id = :meaning");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        oci_bind_by_name($stmt, ":meaning", $meaning_id);
+        
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+        
+        $row = oci_fetch_array($stmt, OCI_ASSOC);
+        if($row === false)
+        {
+            return null;
+        }
+
+        $vote = $row["SCORE"];
+
+        oci_free_statement($stmt);
+
+        return $vote;
+    }
 }
 
 

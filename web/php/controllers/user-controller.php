@@ -46,6 +46,14 @@ class UserController
         return $users;
     }
 
+    public static function get_current_user(): ?User
+    {
+        if(!isset($_SESSION["user_id"]))
+            throw new ApiException(401, "You need to be logged in to get your user profile");
+
+        return UserController::get_user_by_id($_SESSION["user_id"]);
+    }
+
     public static function handle_get()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -70,6 +78,12 @@ class UserController
                 echo json_encode($rez);
             }
         }
+        else if($url === "/users/current")
+        {
+            $rez = UserController::get_current_user();
+            header("Content-Type: application/json");
+            echo json_encode($rez);
+        }
         else
         {
             http_response_code(400);
@@ -77,6 +91,7 @@ class UserController
     }
     public static function handle_request()
     {
+        session_start();
         if($_SERVER['REQUEST_METHOD'] === 'GET')
             UserController::handle_get();
         else

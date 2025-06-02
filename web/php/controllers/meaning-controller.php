@@ -8,6 +8,7 @@ require_once( __DIR__ . "/../repositories/meaning-repository.php");
 require_once( __DIR__ . "/../models/vote.php");
 require_once( __DIR__ . "/../repositories/vote-repository.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
+require_once( __DIR__ . "/../services/meaning-service.php");
 
 use ama\models\Meaning;
 use ama\helpers\ConnectionHelper;
@@ -15,6 +16,7 @@ use ama\repositories\MeaningRepository;
 use ama\models\Vote;
 use ama\repositories\VoteRepository;
 use ama\exceptions\ApiException;
+use ama\services\MeaningService;
 
 class MeaningController
 {
@@ -24,6 +26,9 @@ class MeaningController
         try
         {
             $meaning = MeaningRepository::load_meaning($conn, $id);
+            if($meaning === null)
+                throw new ApiException(404, "No meaning was found with the given ID");
+            MeaningService::attach_score($conn, $meaning);
         } catch(ApiException $e)
         {
             oci_close($conn);
@@ -96,7 +101,7 @@ class MeaningController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if(str_starts_with($url, "/meanings"))
+        if($url === "/meanings")
         {
             if(isset($query_components["id"]))
             {

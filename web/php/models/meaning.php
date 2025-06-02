@@ -14,6 +14,8 @@ class Meaning
     public string $domain;
     public \DateTime $created_at;
     public \DateTime $updated_at;
+
+    public int $score;
 }
 
 ?>

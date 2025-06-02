@@ -145,10 +145,27 @@ end;
 /
 
 create or replace trigger abbr_list_contents_insert
-after insert on abbr_list_contents
-for each row
-begin
-    update abbr_lists set updated_at = sysdate where id = :new.list_id;
+for insert on abbr_list_contents
+compound trigger
+    before each row is
+        v_index integer;
+        v_count integer;
+    begin
+        select count(*) into v_count from abbr_list_contents where list_id = :new.list_id;
+        if(v_count = 0) then
+            v_index := 0;
+        else
+            select max(list_index) into v_index from abbr_list_contents where list_id = :new.list_id;
+            v_index := v_index + 1;
+        end if;
+
+        :new.list_index := v_index;
+    end before each row;
+
+    after each row is
+    begin
+        update abbr_lists set updated_at = sysdate where id = :new.list_id;
+    end after each row;
 end;
 
 /

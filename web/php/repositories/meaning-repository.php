@@ -100,6 +100,30 @@ class MeaningRepository
 
         return $output;
     }
+
+    public static function load_meanings_from_list($conn, int $list_id): ?array
+    {
+        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, description, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings join abbr_list_contents on meanings.id = abbr_list_contents.meaning_id and abbr_list_contents.list_id = :list_id order by list_index asc");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        oci_bind_by_name($stmt, ":list_id", $list_id);
+        
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+        
+        $output = array();
+        $index = 0;
+        while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)
+        {
+            $meaning = MeaningRepository::convert_row_to_object($row);
+
+            $output[$index++] = $meaning;
+        }
+
+        oci_free_statement($stmt);
+
+        return $output;
+    }
 }
 
 

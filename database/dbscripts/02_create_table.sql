@@ -57,7 +57,7 @@ create table votes(
 create table abbr_lists(
     id integer primary key,
     creator_id integer references users(id) not null,
-    name varchar(50) not null,
+    name varchar(50) unique not null,
     private number(1, 0) not null,
     created_at date not null,
     updated_at date not null
@@ -66,7 +66,8 @@ create table abbr_lists(
 create table abbr_list_contents(
     list_id integer references abbr_lists(id) on delete cascade not null,
     meaning_id integer references meanings(id) on delete cascade not null,
-    list_index integer not null
+    list_index integer not null,
+    constraint abbr_list_only_once unique(list_id, meaning_id)
 );
 
 create table visit_logs(

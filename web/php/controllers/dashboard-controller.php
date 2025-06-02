@@ -31,7 +31,6 @@ class DashboardController
             exit;
         }
 
-        // Map 'signification' to 'meaning' for search_abbreviations
         $search_type = ($search_type === 'signification') ? 'meaning' : $search_type;
 
         $conn = ConnectionHelper::open_connection();

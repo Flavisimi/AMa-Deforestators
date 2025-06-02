@@ -1,15 +1,13 @@
-// Hamburger menu toggle
+
 document.querySelector('.hamburger').addEventListener('click', function() {
     document.querySelector('.navigator').classList.toggle('active');
 });
 
-// Profile menu toggle
 document.querySelector('.user-profile').addEventListener('click', function(e) {
     e.stopPropagation();
     this.querySelector('.profile-menu').classList.toggle('active');
 });
 
-// Close profile menu on outside click
 document.addEventListener('click', function(e) {
     const profileMenu = document.querySelector('.profile-menu');
     if (!profileMenu.contains(e.target) && profileMenu.classList.contains('active')) {
@@ -17,7 +15,6 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Fetch meanings for an abbreviation
 function fetchMeanings(abbrId) {
     fetch(`/abbreviations?id=${abbrId}`)
         .then(response => {
@@ -50,7 +47,6 @@ function fetchMeanings(abbrId) {
         });
 }
 
-// Search button handler
 document.querySelector('.search-button').addEventListener('click', function() {
     const searchTerm = document.querySelector('#search-bar').value.trim();
     const searchType = document.querySelector('#search-type').value;
@@ -65,6 +61,7 @@ document.querySelector('.search-button').addEventListener('click', function() {
         body: JSON.stringify({ search_term: searchTerm, search_type: searchType })
     })
     .then(response => {
+        //console.log(response.text());
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         return response.json();
     })
@@ -84,8 +81,7 @@ document.querySelector('.search-button').addEventListener('click', function() {
                     fetchMeanings(result.id);
                 });
                 resultP.appendChild(abbrLink);
-                const distanceText = searchType === 'name' ? ` [Distance: ${result.distance}]` : '';
-                resultP.innerHTML += `${distanceText} (Meanings: ${result.meaning_count})`;
+                resultP.innerHTML += `(Meanings: ${result.meaning_count})`;
                 resultsDiv.appendChild(resultP);
             });
             placeholder.appendChild(resultsDiv);

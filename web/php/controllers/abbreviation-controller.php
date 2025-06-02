@@ -79,6 +79,9 @@ class AbbreviationController
         {
             if(isset($query_components["id"]))
             {
+                if(!is_numeric($query_components["id"]))
+                    throw new ApiException(400, "Invalid ID");
+                
                 $rez = AbbreviationController::get_abbreviation_by_id($query_components["id"]);
                 header("Content-Type: application/json");
                 echo json_encode($rez);

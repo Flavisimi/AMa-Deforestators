@@ -1,5 +1,5 @@
 create or replace function levenshtein_distance( p_searched_abv in varchar2, p_abv in varchar2) return number deterministic is
-    type t_number_array is table of number index by pls_integer;
+    type t_number_array is table of char index by pls_integer;
     type t_array is table of t_number_array index by pls_integer;
     v_mat t_array;
     v_searched_abv_chars t_number_array;
@@ -10,7 +10,7 @@ create or replace function levenshtein_distance( p_searched_abv in varchar2, p_a
     v_min_distance pls_integer;
     i pls_integer;
     j pls_integer;
-    v_stop constant pls_integer := 4;
+    v_stop constant pls_integer := 3;
 begin
     if p_searched_abv = p_abv then
         return 0;
@@ -91,11 +91,11 @@ create or replace function search_abv(p_search_term in varchar2,p_search_type in
     v_search_term varchar2(256) := upper(trim(p_search_term));
 begin
     if p_search_term is null or v_search_term = '' then
-        raise_application_error(-20004, 'Search term cannot be empty');
+        raise_application_error(-20005, 'Search term cannot be empty');
     end if;
 
     if p_search_type not in ('name', 'meaning') then
-        raise_application_error(-20005, 'Invalid search type');
+        raise_application_error(-20006, 'Invalid search type');
     end if;
 
     if p_search_type = 'name' then
@@ -117,7 +117,7 @@ begin
                     levenshtein_distance(v_search_term, upper(a.searchable_name)) as distance
                 from abbreviations a
             )
-            where distance <= 3
+            where distance < 3
             order by distance, searchable_name;
     else 
         open v_cursor for
@@ -137,6 +137,6 @@ begin
     return v_cursor;
 exception
     when others then
-        raise_application_error(-20006, 'Error in search_abv');
+        raise_application_error(-20007, 'Error in search_abv');
 end search_abv;
 /

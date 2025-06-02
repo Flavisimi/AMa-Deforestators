@@ -42,6 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             elseif (strpos($error, 'Email already exists') !== false) $error = 'Email already exists';
             else $error = 'Registration failed';
             echo json_encode(['success' => false, 'error' => $error]);
+           
         } 
         else echo json_encode(['success' => true, 'message' => 'Registration successful']);
     } 
@@ -52,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         elseif (strpos($error, 'Email already exists') !== false) $error = 'Email already exists';
         else $error = 'Registration failed: ' . $error;  
         echo json_encode(['success' => false, 'error' => $error]);
+        
     }
     if ($stmt) oci_free_statement($stmt);
     oci_close($conn);

@@ -4,3 +4,4 @@ RewriteRule ^abbreviations php/controllers/abbreviation-controller.php
 RewriteRule ^meanings php/controllers/meaning-controller.php
 RewriteRule ^users php/controllers/user-controller.php
 RewriteRule ^abbr-lists php/controllers/abbreviation-list-controller.php
+RewriteRule ^dashboard php/controllers/dashboard-controller.php

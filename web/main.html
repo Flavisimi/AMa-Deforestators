@@ -6,11 +6,12 @@
     <title>Dashboard - Abbreviations Manager</title>
     <link rel="stylesheet" href="css/dashboard.css?v=3">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="js/dashboard.js" defer></script>
 </head>
 <body>
     <div class="user-profile">
         <div class="avatar"></div>
-        <span class="username">User123</span>
+        <span class="username">Loading...</span>
         <div class="profile-menu">
             <a href="profile.html">View Profile</a>
             <a href="index.html">Logout</a>
@@ -34,6 +35,7 @@
             <span></span>
         </div>
     </nav>
+
     <main class="main-content">
         <div class="search-container">
             <div class="search-wrapper">
@@ -46,26 +48,8 @@
             </div>
         </div>
         <section class="content-placeholder">
-            <p>Ama DEFORESTATORS</p>
+            <p>Welcome to Abbreviations Manager</p>
         </section>
     </main>
-
-    <script>
-        document.querySelector('.hamburger').addEventListener('click', function() {
-            document.querySelector('.navigator').classList.toggle('active');
-        });
-
-        document.querySelector('.user-profile').addEventListener('click', function(e) {
-            e.stopPropagation();
-            this.querySelector('.profile-menu').classList.toggle('active');
-        });
-
-        document.addEventListener('click', function(e) {
-            const profileMenu = document.querySelector('.profile-menu');
-            if (!profileMenu.contains(e.target) && profileMenu.classList.contains('active')) {
-                profileMenu.classList.remove('active');
-            }
-        });
-    </script>
 </body>
 </html>

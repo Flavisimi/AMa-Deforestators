@@ -47,8 +47,8 @@ create or replace package body auth_package as
         end if;
 
         v_hashed_password := hash_password(p_password);
-        insert into users(id, name, user_password, email, created_at,role)
-        values (seq_user.NEXTVAL, p_username, v_hashed_password, p_email, CURRENT_DATE,'USER')
+        insert into users(id, name, user_password, email, created_at,role,updated_at)
+        values (seq_user.NEXTVAL, p_username, v_hashed_password, p_email, CURRENT_DATE,'USER',CURRENT_DATE)
         returning id into p_user_id;
     end register_user; 
 

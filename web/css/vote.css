@@ -43,6 +43,12 @@
     padding: 40px 30px 30px;
 }
 
+.nav-button:hover, .nav-button.active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateX(8px) translateY(-2px);
+    box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.2);
+}
+
 .meaning-card {
     background: white;
     border: 2px solid #e9ecef;

@@ -1,4 +1,4 @@
-create or replace function levenshtein_distance( p_searched_abv in varchar2, p_abv in varchar2) return number deterministic is
+create or replace function levenshtein_distance( p_searched_abv in varchar2, p_abv in varchar2, p_ignore_stop in number) return number deterministic is
     type t_number_array is table of char index by pls_integer;
     type t_array is table of t_number_array index by pls_integer;
     v_mat t_array;
@@ -53,7 +53,7 @@ begin
             );
             v_min_distance := least(v_min_distance, v_mat(i)(j));
         end loop;
-        if v_min_distance >= v_stop then
+        if v_min_distance >= v_stop and p_ignore_stop = 0 then
             return v_stop; 
         end if;
     end loop;
@@ -114,7 +114,7 @@ begin
                     a.meaning_count,
                     a.created_at,
                     a.updated_at,
-                    levenshtein_distance(v_search_term, upper(a.searchable_name)) as distance
+                    levenshtein_distance(v_search_term, upper(a.searchable_name), 0) as distance
                 from abbreviations a
             )
             where distance < 3

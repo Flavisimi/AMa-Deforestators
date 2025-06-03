@@ -367,12 +367,17 @@ body {
     border-bottom: 1px solid #e9ecef;
 }
 
+.meaning-description h3 {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 600;
+}
+
 .meaning-header h4 {
     font-size: 1.3rem;
     color: #333;
     font-weight: 600;
 }
-
 
 .meaning-body {
     padding: 25px;

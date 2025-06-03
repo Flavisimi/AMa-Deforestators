@@ -28,7 +28,11 @@ document.querySelectorAll('.nav-button').forEach(button => {
             window.location.href = 'my_abbreviations.html';
             return;
         }
-        
+        if (href === '#vote') {
+            e.preventDefault();
+            window.location.href = 'vote.html';
+            return;
+        }
         if (href.startsWith('#')) {
             e.preventDefault();
         }

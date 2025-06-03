@@ -45,6 +45,11 @@ class MeaningController
         try
         {
             $meanings = MeaningRepository::load_all_meanings($conn);
+            if($meanings !== null) {
+                foreach($meanings as &$meaning) {
+                    MeaningService::attach_score($conn, $meaning);
+                }
+            }
         } catch(ApiException $e)
         {
             oci_close($conn);

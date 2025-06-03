@@ -106,21 +106,12 @@ function createListCard(list) {
             </div>
             <div class="list-actions">
                 <button class="view-btn" onclick="viewList(${list.id})">View List</button>
-                <button class="delete-btn" onclick="deleteList(${list.id}, '${escapedName}')" 
-                        style="display: ${canDeleteList(list) ? 'inline-block' : 'none'}">Delete</button>
+                <button class="delete-btn" onclick="deleteList(${list.id}, '${escapedName}')">Delete</button>
             </div>
         </div>
     `;
 
     return card;
-}
-
-// Helper function to check if current user can delete the list
-function canDeleteList(list) {
-    // This is a simple check - you might want to store current user ID in a global variable
-    // or get it from the server. For now, we'll show delete button for all lists
-    // and let the server handle the authorization
-    return true;
 }
 
 document.getElementById('createListForm').addEventListener('submit', function(e) {
@@ -140,9 +131,9 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
 
     // Convert boolean to string that PHP can understand
     const privateValue = isPrivate ? 'true' : 'false';
-    
+
     // Server expects query parameters for POST
-    fetch(`/abbr-lists?name=${encodeURIComponent(name)}&private=${privateValue}`, {
+    fetch(`/abbr-lists?name=${encodeURIComponent(name)}&private=${isPrivate}`, {
         method: 'POST'
     })
     .then(response => {
@@ -172,18 +163,10 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
     })
     .catch(error => {
         console.error('Error creating list:', error);
-        console.log('Full error details:', error); // Debug logging
-        
         // Better error message display
         let errorMessage = 'Failed to create list';
         if (error && typeof error === 'object') {
-            if (error.err_msg) {
-                errorMessage = error.err_msg;
-            } else if (error.message) {
-                errorMessage = error.message;
-            } else if (error.status_code) {
-                errorMessage = `Server error (${error.status_code})`;
-            }
+            errorMessage = error.err_msg || error.message || errorMessage;
         } else if (typeof error === 'string') {
             errorMessage = error;
         }
@@ -226,24 +209,16 @@ function deleteList(listId, listName) {
     })
     .catch(error => {
         console.error('Error deleting list:', error);
-        console.log('Full error details:', error); // Debug logging
-        
         // Better error message display
         let errorMessage = 'Failed to delete list';
         if (error && typeof error === 'object') {
-            if (error.err_msg) {
-                errorMessage = error.err_msg;
-            } else if (error.message) {
-                errorMessage = error.message;
-            } else if (error.status_code) {
-                // Handle specific error cases
-                if (error.status_code === 403) {
-                    errorMessage = 'You can only delete your own lists.';
-                } else if (error.status_code === 400) {
-                    errorMessage = 'Invalid list ID provided.';
-                } else {
-                    errorMessage = `Server error (${error.status_code})`;
-                }
+            errorMessage = error.err_msg || error.message || errorMessage;
+            
+            // Handle specific error cases
+            if (error.status_code === 403 || errorMessage.includes('may not delete')) {
+                errorMessage = 'You can only delete your own lists.';
+            } else if (error.status_code === 400 && errorMessage.includes('Missing ID')) {
+                errorMessage = 'Invalid list ID provided.';
             }
         } else if (typeof error === 'string') {
             errorMessage = error;

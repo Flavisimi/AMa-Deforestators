@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Lists - Abbreviations Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/my_abbreviations.css">
+</head>
+<body>
+    <div class="user-profile">
+        <div class="avatar"></div>
+        <span class="username">Guest</span>
+        <div class="profile-menu">
+            <a href="profile.html">View Profile</a>
+            <a href="index.html">Logout</a>
+        </div>
+    </div>
+
+    <nav class="navigator">
+        <div class="nav-header">
+            <h2>Abbreviations</h2>
+        </div>
+        <ul class="nav-list">
+            <li><a href="#vote" class="nav-button">Vote</a></li>
+            <li><a href="#create" class="nav-button">Create an Abbreviation</a></li>
+            <li><a href="#top" class="nav-button">Top Abbreviations</a></li>
+            <li><a href="#trending" class="nav-button">Trending Abbreviations</a></li>
+            <li><a href="#feed" class="nav-button">Feed</a></li>
+            <li><a href="#myabv" class="nav-button active">Saved Abbreviations</a></li>
+            <li><a href="#lists" class="nav-button ">Abbreviation Lists</a></li>
+        </ul>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">My Abbreviation Lists</h1>
+            <button class="create-list-btn" onclick="openCreateModal()">
+                + Create New List
+            </button>
+        </div>
+
+        <div class="lists-container">
+            <div id="lists-content">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading your lists...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New List</h2>
+                <button class="close-btn" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <form id="createListForm">
+                <div class="form-group">
+                    <label class="form-label" for="listName">List Name</label>
+                    <input type="text" id="listName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-checkbox">
+                        <input type="checkbox" id="isPrivate">
+                        <span>Make this list private</span>
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Create List</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="js/my_abbreviations.js"></script>
+</body>
+</html>

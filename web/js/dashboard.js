@@ -23,6 +23,11 @@ document.querySelectorAll('.nav-button').forEach(button => {
             window.location.href = 'create-abbreviation.html';
             return;
         }
+        if (href === '#myabv') {
+            e.preventDefault();
+            window.location.href = 'my_abbreviations.html';
+            return;
+        }
         
         if (href.startsWith('#')) {
             e.preventDefault();

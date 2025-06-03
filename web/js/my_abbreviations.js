@@ -32,7 +32,7 @@ function loadAbbreviationLists() {
         </div>
     `;
 
-    fetch('/abbr-lists')
+    fetch('/abbr-lists/mine')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -133,7 +133,7 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
     const privateValue = isPrivate ? 'true' : 'false';
 
     // Server expects query parameters for POST
-    fetch(`/abbr-lists?name=${encodeURIComponent(name)}&private=${isPrivate}`, {
+    fetch(`/abbr-lists?name=${encodeURIComponent(name)}&private=${privateValue}`, {
         method: 'POST'
     })
     .then(response => {

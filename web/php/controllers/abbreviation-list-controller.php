@@ -214,7 +214,7 @@ class AbbreviationListController
                 throw new ApiException(400, "Missing name");
             if(!isset($query_components["private"]))
                 throw new ApiException(400, "Missing private setting");
-            $rez = AbbreviationListController::create_abbr_list($query_components["name"], $query_components["private"]);
+            $rez = AbbreviationListController::create_abbr_list($query_components["name"], $query_components["private"] == "true" ? true : false);
 
             header("Content-Type: application/json");
             echo json_encode($rez);

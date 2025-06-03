@@ -3,6 +3,6 @@
 @@ 04_authentication.sql
 @@ 05_helper.sql
 @@ 06_triggers.sql
-@@ 07_statistics.sql
-@@ 08_search_function.sql
+@@ 07_search_function.sql
+@@ 08_statistics.sql
 @@ 09_populate_example_data.sql

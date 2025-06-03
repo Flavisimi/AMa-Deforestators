@@ -63,12 +63,20 @@ compound trigger
             raise_application_error(-20100, 'Cannot modify abbreviation name to mean something else');
         end if;
         
-        :new.approval_status := 'pending';
+        if(:new.name != :old.name 
+            or :new.short_expansion != :new.short_expansion
+            or :new.description != :new.description) then
+            :new.approval_status := 'pending';
+        end if;
     end before each row;
 
     after each row is
     begin
-        delete from votes where meaning_id = :new.id;
+        if(:new.name != :old.name 
+            or :new.short_expansion != :new.short_expansion
+            or :new.description != :new.description) then
+            delete from votes where meaning_id = :new.id;
+        end if;
     end after each row;
 end;
 

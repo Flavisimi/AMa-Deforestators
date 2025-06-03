@@ -199,4 +199,49 @@ end;
 
 /
 
+create or replace trigger vote_trigger
+for insert or delete or update on votes
+compound trigger
+    type id_list is table of integer index by pls_integer;
+    v_meanings id_list;
+    
+    after each row is
+    begin
+        if(DELETING) then
+            v_meanings(:old.meaning_id) := 1;
+        elsif(UPDATING) then
+            v_meanings(:old.meaning_id) := 1;
+            v_meanings(:new.meaning_id) := 1;
+        else
+            v_meanings(:new.meaning_id) := 1;
+        end if;
+    end after each row;
+
+    after statement is
+        v_meaning_id integer;
+        v_score integer;
+    begin
+        if(v_meanings.count > 0) then
+            v_meaning_id := v_meanings.first;
+
+            while v_meaning_id is not null loop
+                v_score := 0;
+                select sum(vote) into v_score from votes where meaning_id = v_meaning_id;
+                
+                if(v_score <= -100) then
+                    update meanings set approval_status = 'rejected' where id = v_meaning_id;
+                end if;
+
+                if(v_score >= 100) then
+                    update meanings set approval_status = 'approved' where id = v_meaning_id;
+                end if;
+
+                v_meaning_id := v_meanings.next(v_meaning_id);
+            end loop;
+        end if;
+    end after statement;
+end;
+
+/
+
 commit;

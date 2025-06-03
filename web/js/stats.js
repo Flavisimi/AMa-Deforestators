@@ -9,7 +9,8 @@ const API_ENDPOINTS = {
     mostVisited: 'statistics/most_visited',
     mostControversial: 'statistics/most_controversial', 
     highestLikeRate: 'statistics/highest_like_rate',
-    mostActiveUsers: 'statistics/most_active_users'
+    mostActiveUsers: 'statistics/most_active_users',
+    medianAbbreviation: 'statistics/median_abbreviation'
 };
 
 function showLoading() {
@@ -107,6 +108,23 @@ function renderMostActiveUsers(data) {
     `).join('');
 }
 
+function renderMedianAbbreviation(data) {
+    const container = document.getElementById('median-abbreviation-list');
+    if (!data || data.length === 0) {
+        container.innerHTML = '<li class="stat-item"><span class="stat-name">No data available</span></li>';
+        return;
+    }
+
+    container.innerHTML = data.map((item, index) => `
+        <li class="stat-item">
+            <div style="display: flex; align-items: center;">
+                <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
+                <span class="stat-name">${item.abbreviation || item.searchable_name || 'Unknown'}</span>
+            </div>
+        </li>
+    `).join('');
+}
+
 async function fetchStatistics(endpoint, key) {
     try {
         console.log(`Fetching: ${endpoint}`);
@@ -142,17 +160,19 @@ async function loadAllStatistics() {
     showLoading();
 
     try {
-        const [mostVisited, mostControversial, highestLikeRate, mostActiveUsers] = await Promise.all([
+        const [mostVisited, mostControversial, highestLikeRate, mostActiveUsers, medianAbbreviation] = await Promise.all([
             fetchStatistics(API_ENDPOINTS.mostVisited, 'mostVisited'),
             fetchStatistics(API_ENDPOINTS.mostControversial, 'mostControversial'),
             fetchStatistics(API_ENDPOINTS.highestLikeRate, 'highestLikeRate'),
-            fetchStatistics(API_ENDPOINTS.mostActiveUsers, 'mostActiveUsers')
+            fetchStatistics(API_ENDPOINTS.mostActiveUsers, 'mostActiveUsers'),
+            fetchStatistics(API_ENDPOINTS.medianAbbreviation, 'medianAbbreviation')
         ]);
 
         renderMostVisited(mostVisited);
         renderMostControversial(mostControversial);
         renderHighestLikeRate(highestLikeRate);
         renderMostActiveUsers(mostActiveUsers);
+        renderMedianAbbreviation(medianAbbreviation);
 
     } catch (error) {
         console.error('Error loading statistics:', error);

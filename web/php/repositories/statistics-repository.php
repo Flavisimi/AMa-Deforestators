@@ -140,6 +140,28 @@ class StatisticsRepository
 
         return $output;
     }
+
+    public static function median_abbreviation($conn): ?array
+    {
+        $stmt = oci_parse($conn, "select id, searchable_name, meaning_count, created_at, updated_at from abbreviations where id = (select ama_statistics.median_abbreviation() from dual)");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+
+        $output = [];
+        $row = oci_fetch_array($stmt, OCI_ASSOC);
+
+        if ($row == true) {
+            $abbreviation = AbbreviationRepository::convert_row_to_object($row);
+            $output[] = $abbreviation;
+        }
+
+        oci_free_statement($stmt);
+
+        return $output;
+    }
 }
 
 

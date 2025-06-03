@@ -76,6 +76,22 @@ class StatisticsController
         return $output;
     }
 
+    public static function median_abbreviation(): ?array
+    {
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $output = StatisticsRepository::median_abbreviation($conn);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+
+        oci_close($conn);
+        return $output;
+    }
+
     public static function handle_get()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -103,6 +119,12 @@ class StatisticsController
         else if($url === "/statistics/most_active_users")
         {
             $rez = StatisticsController::most_active_users();
+            header("Content-Type: application/json");
+            echo json_encode($rez);
+        }
+        else if($url === "/statistics/median_abbreviation")
+        {
+            $rez = StatisticsController::median_abbreviation();
             header("Content-Type: application/json");
             echo json_encode($rez);
         }

@@ -131,7 +131,6 @@ function createAbbreviationCard(meaning, index) {
         <div class="meaning-header">
             <h4>${meaning.short_expansion}</h4>
             <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
-            <button class="remove-btn" onclick="removeAbbreviation(${index})" title="Remove from list">×</button>
         </div>
         <div class="meaning-body">
             <p class="meaning-description">${meaning.description}</p>
@@ -179,66 +178,6 @@ function setupSearch() {
         
         displayAbbreviations(filteredAbbreviations);
     });
-}
-
-function removeAbbreviation(index) {
-    if (!confirm('Are you sure you want to remove this abbreviation from the list?')) {
-        return;
-    }
-
-    const listId = getListIdFromUrl();
-    
-    fetch(`/abbr-lists/entry?id=${listId}&index=${index}`, {
-        method: 'DELETE',
-        credentials: 'include' 
-    })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 401) {
-                alert('Please log in to remove abbreviations');
-                window.location.href = 'login.html';
-                return;
-            } else if (response.status === 403) {
-                alert('You do not have permission to modify this list');
-                return;
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        loadListDetails();
-    })
-    .catch(error => {
-        console.error('Error removing abbreviation:', error);
-        alert('Failed to remove abbreviation: ' + error.message);
-    });
-}
-
-function openAddModal() {
-    const modal = document.getElementById('addModal');
-    if (modal) {
-        modal.classList.add('active');
-        const searchInput = document.getElementById('abbreviationSearch');
-        if (searchInput) {
-            searchInput.focus();
-        }
-        resetSearchResults();
-    }
-}
-
-function closeAddModal() {
-    const modal = document.getElementById('addModal');
-    if (modal) {
-        modal.classList.remove('active');
-        const searchInput = document.getElementById('abbreviationSearch');
-        if (searchInput) {
-            searchInput.value = '';
-        }
-        resetSearchResults();
-        selectedMeaningId = null;
-        const addBtn = document.getElementById('addSelectedBtn');
-        if (addBtn) {
-            addBtn.disabled = true;
-        }
-    }
 }
 
 function resetSearchResults() {
@@ -386,54 +325,6 @@ function displaySearchResults(results) {
         }
 
         container.appendChild(resultItem);
-    });
-}
-
-function addSelectedAbbreviation() {
-    if (!selectedMeaningId) {
-        alert('Please select an abbreviation to add');
-        return;
-    }
-
-    const listId = getListIdFromUrl();
-    const addBtn = document.getElementById('addSelectedBtn');
-    
-    if (addBtn) {
-        addBtn.textContent = 'Adding...';
-        addBtn.disabled = true;
-    }
-
-    fetch(`/abbr-lists/entry?id=${listId}&meaning=${selectedMeaningId}`, {
-        method: 'POST',
-        credentials: 'include' 
-    })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 401) {
-                alert('Please log in to add abbreviations');
-                window.location.href = 'login.html';
-                return;
-            } else if (response.status === 403) {
-                alert('You do not have permission to modify this list');
-                return;
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        closeAddModal();
-        loadListDetails(); 
-    })
-    .catch(error => {
-        console.error('Error adding abbreviation:', error);
-        alert('Failed to add abbreviation: ' + error.message);
-    })
-    .finally(() => {
-        if (addBtn) {
-            addBtn.textContent = 'Add Selected';
-            addBtn.disabled = false;
-        }
     });
 }
 

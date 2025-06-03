@@ -15,12 +15,19 @@ begin
     insert into combined_view values('ms', 'mersi', 'expression of gratitude', 'ro', 'speech', 81, null, null);
     insert into combined_view values('MS', 'microsoft', 'large tech company', 'eng', 'tech', 7, null, null);
     insert into combined_view values('Ms', 'miss', 'a form of referring to a woman', 'eng', 'speech', 22, null, null);
+    insert into combined_view values('LOL', 'laughing out loud', 'expression of amusement', 'eng', 'speech', 99, null, null);
+    insert into combined_view values('LoL', 'League of Legends', 'video game', 'eng', 'gaming', 1, null, null);
 
     insert into abbr_lists values(seq_list.nextval, 2, 'my list', 0, null, null);
     insert into abbr_list_contents values(1, 3, null);
     insert into abbr_list_contents values(1, 2, null);
     insert into abbr_list_contents values(1, 1, null);
     insert into abbr_list_contents values(1, 6, null);
+
+    insert into abbr_lists values(seq_list.nextval, 1, 'my private list', 1, null, null);
+    insert into abbr_list_contents values(2, 11, null);
+    insert into abbr_list_contents values(2, 10, null);
+    insert into abbr_list_contents values(2, 7, null);
 
     insert into visit_logs values(null, 2, sysdate - 1);
     insert into visit_logs values(null, 2, sysdate - 2);
@@ -59,6 +66,15 @@ begin
     insert into visit_logs values(8, 1, sysdate);
     insert into votes values(7, 2, -1, sysdate);
     insert into visit_logs values(7, 1, sysdate);
+
+    for v_index in 1..99 loop
+        insert into votes values(v_index, 11, 1, sysdate);
+        insert into visit_logs values(v_index, 6, sysdate);
+    end loop;
+
+    for v_index in 1..99 loop
+        insert into visit_logs values(null, 6, sysdate - dbms_random.value(1, 30));
+    end loop;
 
     commit;
 end;

@@ -3,6 +3,7 @@ create or replace package ama_statistics as
     function most_controversial return SYS_REFCURSOR;
     function highest_like_rate return SYS_REFCURSOR;
     function most_active_users(v_cutoff_date date) return SYS_REFCURSOR;
+    function median_abbreviation return integer;
 end;
 
 /
@@ -58,6 +59,33 @@ create or replace package body ama_statistics as
         order by activity desc;
 
         return v_cursor;
+    end;
+
+    function median_abbreviation return integer is
+        v_abbr_id integer;
+
+        v_average_distance number;
+        v_abbr_count integer;
+        v_min_average number := -1;
+    begin
+        select count(*) into v_abbr_count from abbreviations;
+
+        for v_abbr in (select id, searchable_name from abbreviations) loop
+            v_average_distance := 0;
+
+            for v_other_abbr in (select searchable_name from abbreviations) loop
+                v_average_distance := v_average_distance + levenshtein_distance(v_abbr.searchable_name, v_other_abbr.searchable_name, 1);
+            end loop;
+
+            v_average_distance := v_average_distance / v_abbr_count;
+
+            if(v_average_distance < v_min_average or v_min_average = -1) then
+                v_min_average := v_average_distance;
+                v_abbr_id := v_abbr.id;
+            end if;
+        end loop;
+
+        return v_abbr_id;
     end;
 end;
 

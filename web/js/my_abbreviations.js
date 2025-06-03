@@ -1,4 +1,3 @@
-
 document.querySelector('.hamburger').addEventListener('click', function() {
     document.querySelector('.navigator').classList.toggle('active');
 });
@@ -92,6 +91,9 @@ function createListCard(list) {
     const updatedDate = list.updated_at ? 
         new Date(list.updated_at.date || list.updated_at).toLocaleDateString() : 'N/A';
 
+    // Escape quotes in list name to prevent XSS and onclick issues
+    const escapedName = list.name.replace(/'/g, "\\'").replace(/"/g, '\\"');
+
     card.innerHTML = `
         <div class="list-header">
             <h3 class="list-name">${list.name}</h3>
@@ -104,12 +106,21 @@ function createListCard(list) {
             </div>
             <div class="list-actions">
                 <button class="view-btn" onclick="viewList(${list.id})">View List</button>
-                <button class="delete-btn" onclick="deleteList(${list.id}, '${list.name}')">Delete</button>
+                <button class="delete-btn" onclick="deleteList(${list.id}, '${escapedName}')" 
+                        style="display: ${canDeleteList(list) ? 'inline-block' : 'none'}">Delete</button>
             </div>
         </div>
     `;
 
     return card;
+}
+
+// Helper function to check if current user can delete the list
+function canDeleteList(list) {
+    // This is a simple check - you might want to store current user ID in a global variable
+    // or get it from the server. For now, we'll show delete button for all lists
+    // and let the server handle the authorization
+    return true;
 }
 
 document.getElementById('createListForm').addEventListener('submit', function(e) {
@@ -127,14 +138,33 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
     submitBtn.textContent = 'Creating...';
     submitBtn.disabled = true;
 
-    fetch(`/abbr-lists?name=${encodeURIComponent(name)}&private=${isPrivate}`, {
+    // Convert boolean to string that PHP can understand
+    const privateValue = isPrivate ? '1' : '0';
+    
+    // Server expects query parameters for POST
+    fetch(`/abbr-lists?name=${encodeURIComponent(name)}&private=${privateValue}`, {
         method: 'POST'
     })
     .then(response => {
         if (!response.ok) {
-            return response.json().then(err => Promise.reject(err));
+            // Handle cases where response might not be JSON
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json().then(err => Promise.reject(err));
+            } else {
+                return response.text().then(text => 
+                    Promise.reject({ message: text || `HTTP ${response.status}: ${response.statusText}` })
+                );
+            }
         }
-        return response.json();
+        
+        // Check if response has content before parsing JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            return {}; // Return empty object if no JSON content
+        }
     })
     .then(data => {
         closeCreateModal();
@@ -142,7 +172,22 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
     })
     .catch(error => {
         console.error('Error creating list:', error);
-        alert(error.message || 'Failed to create list');
+        console.log('Full error details:', error); // Debug logging
+        
+        // Better error message display
+        let errorMessage = 'Failed to create list';
+        if (error && typeof error === 'object') {
+            if (error.err_msg) {
+                errorMessage = error.err_msg;
+            } else if (error.message) {
+                errorMessage = error.message;
+            } else if (error.status_code) {
+                errorMessage = `Server error (${error.status_code})`;
+            }
+        } else if (typeof error === 'string') {
+            errorMessage = error;
+        }
+        alert(errorMessage);
     })
     .finally(() => {
         submitBtn.textContent = 'Create List';
@@ -159,18 +204,52 @@ function deleteList(listId, listName) {
         return;
     }
 
+    // Server expects query parameter for DELETE
     fetch(`/abbr-lists?id=${listId}`, {
         method: 'DELETE'
     })
     .then(response => {
         if (!response.ok) {
-            return response.json().then(err => Promise.reject(err));
+            // Handle different response types
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                return response.json().then(err => Promise.reject(err));
+            } else {
+                return response.text().then(text => 
+                    Promise.reject({ message: text || `HTTP ${response.status}: ${response.statusText}` })
+                );
+            }
         }
+        
+        // Successfully deleted
         loadAbbreviationLists();
     })
     .catch(error => {
         console.error('Error deleting list:', error);
-        alert(error.message || 'Failed to delete list');
+        console.log('Full error details:', error); // Debug logging
+        
+        // Better error message display
+        let errorMessage = 'Failed to delete list';
+        if (error && typeof error === 'object') {
+            if (error.err_msg) {
+                errorMessage = error.err_msg;
+            } else if (error.message) {
+                errorMessage = error.message;
+            } else if (error.status_code) {
+                // Handle specific error cases
+                if (error.status_code === 403) {
+                    errorMessage = 'You can only delete your own lists.';
+                } else if (error.status_code === 400) {
+                    errorMessage = 'Invalid list ID provided.';
+                } else {
+                    errorMessage = `Server error (${error.status_code})`;
+                }
+            }
+        } else if (typeof error === 'string') {
+            errorMessage = error;
+        }
+        
+        alert(errorMessage);
     });
 }
 

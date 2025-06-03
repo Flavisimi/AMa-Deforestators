@@ -10,7 +10,7 @@ create or replace package body auth_package as
     function hash_password(p_password in varchar2) return varchar2 is
         v_raw RAW(32);
     begin
-        v_raw := DBMS_CRYPTO.HASH(UTL_I18N.STRING_TO_RAW(p_password, 'AL32UTF8'), DBMS_CRYPTO.HASH_SH1);
+        v_raw := DBMS_CRYPTO.HASH(UTL_I18N.STRING_TO_RAW(p_password, 'AL32UTF8'), DBMS_CRYPTO.HASH_SH256);
         return RAWTOHEX(v_raw);
     end hash_password;
 

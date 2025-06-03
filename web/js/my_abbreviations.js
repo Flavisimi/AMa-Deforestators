@@ -129,6 +129,9 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
     submitBtn.textContent = 'Creating...';
     submitBtn.disabled = true;
 
+    // Convert boolean to string that PHP can understand
+    const privateValue = isPrivate ? 'true' : 'false';
+
     // Server expects query parameters for POST
     fetch(`/abbr-lists?name=${encodeURIComponent(name)}&private=${isPrivate}`, {
         method: 'POST'

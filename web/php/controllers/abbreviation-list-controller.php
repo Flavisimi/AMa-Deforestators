@@ -49,7 +49,7 @@ class AbbreviationListController
         return $abbr_lists;
     }
 
-    public static function create_abbr_list(string $name,  bool $private) : AbbreviationList
+    public static function create_abbr_list(string $name, bool $private) : AbbreviationList
     {
         if(!isset($_SESSION["user_id"]))
             throw new ApiException(401, "You need to be logged in to create an abbreviation list");

@@ -124,6 +124,32 @@ class MeaningRepository
 
         return $output;
     }
+    public static function search_meanings($conn, string $query): ?array
+{
+    $sql = "SELECT * FROM meanings m 
+            JOIN abbreviations a ON m.abbreviation_id = a.id 
+            WHERE LOWER(a.name) LIKE LOWER(:query) 
+            OR LOWER(m.meaning) LIKE LOWER(:query)
+            ORDER BY a.name";
+    
+    $stmt = oci_parse($conn, $sql);
+    oci_bind_by_name($stmt, ':query', '%' . $query . '%');
+    
+    if (!oci_execute($stmt)) {
+        throw new ApiException(500, "Database error occurred");
+    }
+    
+    $meanings = [];
+    while ($row = oci_fetch_assoc($stmt)) {
+        $meaning = new Meaning();
+        $meaning->id = $row['ID'];
+        $meaning->abbreviation = $row['NAME']; 
+        $meaning->meaning = $row['MEANING'];
+        $meanings[] = $meaning;
+    }
+    
+    return $meanings;
+}
 }
 
 

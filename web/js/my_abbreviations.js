@@ -179,7 +179,7 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
 });
 
 function viewList(listId) {
-    alert(`Viewing list functionality will be implemented later. List ID: ${listId}`);
+     window.location.href = `mylist.html?id=${listId}`;
 }
 
 function deleteList(listId, listName) {

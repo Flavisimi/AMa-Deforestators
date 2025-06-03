@@ -350,7 +350,7 @@ function showListModal(meaningId, meaningName) {
                     const listName = list.name || 'Unnamed List';
                     const listId = list.id || list.list_id || 0;
                     const isPrivate = list.private || list.is_private || false;
-                    const createdAt = list.created_at || new Date().toISOString();
+                    const createdAt = list.created_at.date || new Date().toISOString();
                     const meaningsCount = list.meanings ? list.meanings.length : (list.meanings_count || 0);
                     
                     return `

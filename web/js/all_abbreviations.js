@@ -97,7 +97,6 @@ function createListCard(list) {
             </div>
             <div class="list-actions">
                 <button class="view-btn" onclick="viewList(${list.id})">View List</button>
-                <button class="delete-btn" onclick="deleteList(${list.id}, '${escapedName}')">Delete</button>
             </div>
         </div>
     `;

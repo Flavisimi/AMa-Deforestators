@@ -15,7 +15,8 @@ class ConnectionHelper
         $conn = oci_connect(
             getenv('ORACLE_USER'),
             getenv('ORACLE_PASSWORD'),
-            '//' . getenv('ORACLE_HOST') . ':' . getenv('ORACLE_PORT') . '/' . getenv('ORACLE_SID')
+            '//' . getenv('ORACLE_HOST') . ':' . getenv('ORACLE_PORT') . '/' . getenv('ORACLE_SID'),
+            "UTF8"
         );
         if(!$conn)
             throw new ApiException(500, "Can't open database connection");

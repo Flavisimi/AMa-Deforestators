@@ -89,6 +89,7 @@
         .stat-icon.controversial { background: linear-gradient(135deg, #e74c3c, #c0392b); }
         .stat-icon.liked { background: linear-gradient(135deg, #f39c12, #e67e22); }
         .stat-icon.active { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+        .stat-icon.median { background: linear-gradient(135deg, #11ca5e, #08511b); }
 
         .stat-title {
             font-size: 1.4rem;

@@ -39,6 +39,7 @@ class StatisticsRepository
         $output = [];
         while ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
             $abbreviation = AbbreviationRepository::convert_row_to_object($row);
+            $abbreviation->visits = $row["VISITS"];
             $output[] = $abbreviation;
         }
 
@@ -101,6 +102,7 @@ class StatisticsRepository
         $output = [];
         while ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
             $meaning = MeaningRepository::convert_row_to_object($row);
+            $meaning->like_rate = $row["RATE"];
             $output[] = $meaning;
         }
 
@@ -132,6 +134,7 @@ class StatisticsRepository
         $output = [];
         while ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
             $user = UserRepository::convert_row_to_object($row);
+            $user->activity = $row["ACTIVITY"];
             $output[] = $user;
         }
 

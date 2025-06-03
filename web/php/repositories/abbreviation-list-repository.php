@@ -107,7 +107,8 @@ class AbbreviationListRepository
         
         oci_bind_by_name($stmt, ":name", $name);
         oci_bind_by_name($stmt, ":creator", $_SESSION["user_id"]);
-        oci_bind_by_name($stmt, ":private", $private ? "1" : "0");
+        $private_in_sql = $private ? "1" : "0";
+        oci_bind_by_name($stmt, ":private", $private_in_sql);
 
         if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
             throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");

@@ -47,7 +47,7 @@ function renderMostVisited(data) {
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.abbreviation || item.name || 'Unknown'}</span>
+                <span class="stat-name">${item.abbreviation || item.searchable_name || 'Unknown'}</span>
             </div>
             <span class="stat-value visited">${item.visits || item.views || item.count || 0}</span>
         </li>
@@ -67,7 +67,6 @@ function renderMostControversial(data) {
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.abbreviation || item.name || 'Unknown'}</span>
             </div>
-            <span class="stat-value controversial">${item.controversy_score || item.score || item.votes || 0}</span>
         </li>
     `).join('');
 }

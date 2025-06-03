@@ -1,8 +1,9 @@
+Options +MultiViews
 RewriteEngine On
 
-RewriteRule ^abbreviations php/controllers/abbreviation-controller.php
-RewriteRule ^meanings php/controllers/meaning-controller.php
-RewriteRule ^users php/controllers/user-controller.php
-RewriteRule ^abbr-lists php/controllers/abbreviation-list-controller.php
-RewriteRule ^dashboard php/controllers/dashboard-controller.php
-RewriteRule ^statistics php/controllers/statistics-controller.php
+RewriteRule ^abbreviations php/controllers/abbreviation-controller.php [L]
+RewriteRule ^meanings php/controllers/meaning-controller.php [L]
+RewriteRule ^users php/controllers/user-controller.php [L]
+RewriteRule ^abbr-lists php/controllers/abbreviation-list-controller.php [L]
+RewriteRule ^dashboard php/controllers/dashboard-controller.php [L]
+RewriteRule ^statistics php/controllers/statistics-controller.php [L]

@@ -33,6 +33,11 @@ document.querySelectorAll('.nav-button').forEach(button => {
             window.location.href = 'vote.html';
             return;
         }
+        if (href === '#stats') {
+            e.preventDefault();
+            window.location.href = 'stats.html';
+            return;
+        }
         if (href.startsWith('#')) {
             e.preventDefault();
         }

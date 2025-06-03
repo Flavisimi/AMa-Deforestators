@@ -125,15 +125,24 @@ function displayAbbreviations(meanings) {
 
 function createAbbreviationCard(meaning, index) {
     const card = document.createElement('div');
-    card.className = 'abbreviation-card';
+    card.className = 'meaning-card';
 
     card.innerHTML = `
-        <div class="abbreviation-header">
-            <div>
-                <div class="abbreviation-term">${escapeHtml(meaning.abbreviation || 'N/A')}</div>
-                <div class="abbreviation-meaning">${escapeHtml(meaning.meaning || 'N/A')}</div>
-            </div>
+        <div class="meaning-header">
+            <h4>${meaning.short_expansion}</h4>
+            <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
             <button class="remove-btn" onclick="removeAbbreviation(${index})" title="Remove from list">×</button>
+        </div>
+        <div class="meaning-body">
+            <p class="meaning-description">${meaning.description}</p>
+            <div class="meaning-meta">
+                <span class="meta-item">
+                    <strong>Language:</strong> ${meaning.lang}
+                </span>
+                <span class="meta-item">
+                    <strong>Domain:</strong> ${meaning.domain}
+                </span>
+            </div>
         </div>
     `;
 

@@ -337,7 +337,7 @@ function showListModal(meaningId, meaningName) {
                         <div class="empty-icon">📋</div>
                         <h4>No lists found</h4>
                         <p>You don't have any lists yet. Create one first!</p>
-                        <button class="btn btn-primary" onclick="window.location.href='create-list.html'">
+                        <button class="btn btn-primary" onclick="window.location.href='my_abbreviations.html'">
                             Create List
                         </button>
                     </div>

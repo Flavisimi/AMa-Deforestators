@@ -34,12 +34,15 @@ class AbbreviationListController
         return $abbr_list;
     }
 
-    public static function get_all_abbr_lists(): ?array
+    public static function get_my_abbr_lists(): ?array
     {
+        if(!isset($_SESSION["user_id"]))
+            throw new ApiException(401, "You need to be logged in to see your abbreviation lists");
+
         $conn = ConnectionHelper::open_connection();
         try
         {
-            $abbr_lists = AbbreviationListRepository::load_all_abbr_lists($conn);
+            $abbr_lists = AbbreviationListRepository::load_all_abbr_lists_by_user($conn, $_SESSION["user_id"]);
         } catch(ApiException $e)
         {
             oci_close($conn);
@@ -47,6 +50,25 @@ class AbbreviationListController
         }
         oci_close($conn);
         return $abbr_lists;
+    }
+
+    public static function get_all_abbr_lists(): ?array
+    {
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $abbr_lists = AbbreviationListRepository::load_all_abbr_lists($conn);
+            $output = [];
+            foreach($abbr_lists as $abbr_list)
+                if($abbr_list->private === false || $abbr_list->creator_id == $_SESSION["user_id"])
+                    $output[] = $abbr_list;
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+        oci_close($conn);
+        return $output;
     }
 
     public static function create_abbr_list(string $name, bool $private) : AbbreviationList
@@ -167,6 +189,12 @@ class AbbreviationListController
                 header("Content-Type: application/json");
                 echo json_encode($rez);
             }
+        }
+        else if($url === "/abbr-lists/mine")
+        {
+            $rez = AbbreviationListController::get_my_abbr_lists();
+            header("Content-Type: application/json");
+            echo json_encode($rez);
         }
         else
         {

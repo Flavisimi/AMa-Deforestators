@@ -75,6 +75,30 @@ class AbbreviationListRepository
         return $output;
     }
 
+    public static function load_all_abbr_lists_by_user($conn, int $user_id): ?array
+    {
+        $stmt = oci_parse($conn, "select id, creator_id, name, private, created_at, updated_at from abbr_lists where creator_id = :id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+
+        oci_bind_by_name($stmt, ":id", $user_id);
+        
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+        
+        $output = array();
+        while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)
+        {
+            $abbr_list = AbbreviationListRepository::convert_row_to_object($row);
+
+            $output[$row["ID"]] = $abbr_list;
+        }
+
+        oci_free_statement($stmt);
+
+        return $output;
+    }
+
     public static function load_abbr_list_by_name($conn, string $name): ?AbbreviationList
     {
         $stmt = oci_parse($conn, "select id, creator_id, name, private, created_at, updated_at from abbr_lists where name = :name");

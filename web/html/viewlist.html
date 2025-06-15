@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View List - Abbreviations Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/mylist.css">
+    <link rel="stylesheet" href="../css/mylist.css">
+    <link rel="stylesheet" href="../css/common.css">
 </head>
 <body>
     <div class="user-profile">
@@ -36,7 +37,7 @@
     <main class="main-content">
         <div class="page-header">
             <h1 class="page-title" id="listTitle">Loading...</h1>
-            <a href="my_abbreviations.html" class="back-btn">← Back to Lists</a>
+            <a href="all_abbreviations.html" class="back-btn">← Back to Lists</a>
         </div>
 
         <div class="list-info">
@@ -52,7 +53,6 @@
             <div class="search-box">
                 <input type="text" class="search-input" id="searchInput" placeholder="Search abbreviations in this list...">
             </div>
-            <button class="add-abbreviation-btn" onclick="openAddModal()">+ Add Abbreviation</button>
         </div>
 
         <div id="abbreviationsContainer">
@@ -63,31 +63,6 @@
         </div>
     </main>
 
-    <div id="addModal" class="modal"> window.location.href = `my_list.html?id=${listId}`;
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Add Abbreviation to List</h2>
-                <button class="close-btn" onclick="closeAddModal()">&times;</button>
-            </div>
-            
-            <div class="search-box" style="margin-bottom: 20px;">
-                <input type="text" class="search-input" id="abbreviationSearch" placeholder="Search for abbreviations...">
-            </div>
-            
-            <div id="searchResults" class="search-results">
-                <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
-                    <h3>Search for abbreviations</h3>
-                    <p>Type in the search box above to find abbreviations to add to your list.</p>
-                </div>
-            </div>
-            
-            <div class="form-actions">
-                <button type="button" class="btn-secondary" onclick="closeAddModal()">Cancel</button>
-                <button type="button" class="btn-primary" id="addSelectedBtn" onclick="addSelectedAbbreviation()" disabled>Add Selected</button>
-            </div>
-        </div>
-    </div>
-    <script src="js/mylist.js"></script>
+    <script src="../js/viewlist.js"></script>
 </body>
 </html>

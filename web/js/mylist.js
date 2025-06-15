@@ -22,7 +22,7 @@ function loadListDetails() {
     const listId = getListIdFromUrl();
     if (!listId) {
         alert('No list ID provided');
-        window.location.href = 'my_lists.html';
+        window.location.href = '../html/my_lists.html';
         return;
     }
 
@@ -33,11 +33,11 @@ function loadListDetails() {
         if (!response.ok) {
             if (response.status === 401) {
                 alert('Please log in to access this list');
-                window.location.href = 'login.html';
+                window.location.href = '../html/login.html';
                 return;
             } else if (response.status === 403) {
                 alert('You do not have permission to access this list');
-                window.location.href = 'my_lists.html';
+                window.location.href = '../html/my_lists.html';
                 return;
             }
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -197,7 +197,7 @@ function removeAbbreviation(index) {
         if (!response.ok) {
             if (response.status === 401) {
                 alert('Please log in to remove abbreviations');
-                window.location.href = 'login.html';
+                window.location.href = '../html/login.html';
                 return;
             } else if (response.status === 403) {
                 alert('You do not have permission to modify this list');
@@ -304,7 +304,7 @@ function searchAbbreviations(query) {
         if (!response.ok) {
             if (response.status === 401) {
                 alert('Please log in to search abbreviations');
-                window.location.href = 'login.html';
+                window.location.href = '../html/login.html';
                 return;
             }
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -412,7 +412,7 @@ function addSelectedAbbreviation() {
         if (!response.ok) {
             if (response.status === 401) {
                 alert('Please log in to add abbreviations');
-                window.location.href = 'login.html';
+                window.location.href = '../html/login.html';
                 return;
             } else if (response.status === 403) {
                 alert('You do not have permission to modify this list');

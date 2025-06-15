@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) 
             {
                 console.log('Registration successful, redirecting to index.html');
-                window.location.href = 'index.html';
+                window.location.href = '../html/index.html';
             } 
             else 
             {

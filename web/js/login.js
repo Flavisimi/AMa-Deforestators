@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) 
             {
                 console.log('Login successful, redirecting to dashboard.php');
-                window.location.href = 'main.html';
+                window.location.href = '../html/main.html';
             } 
             else
             {

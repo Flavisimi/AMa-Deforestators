@@ -1,4 +1,5 @@
 RewriteEngine On
+DirectoryIndex html/index.html
 
 RewriteRule ^abbreviations php/controllers/abbreviation-controller.php
 RewriteRule ^meanings php/controllers/meaning-controller.php

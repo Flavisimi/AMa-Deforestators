@@ -53,7 +53,7 @@ document.getElementById('abbreviation-form').addEventListener('submit', function
         document.getElementById('abbreviation-form').reset();
         
         setTimeout(() => {
-            window.location.href = 'main.html';
+            window.location.href = '../html/main.html';
         }, 1000);
     })
     .catch(error => {

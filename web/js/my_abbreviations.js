@@ -179,7 +179,7 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
 });
 
 function viewList(listId) {
-     window.location.href = `mylist.html?id=${listId}`;
+     window.location.href = `../html/mylist.html?id=${listId}`;
 }
 
 function deleteList(listId, listName) {

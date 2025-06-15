@@ -1,3 +1,4 @@
+
 .vote-container {
     max-width: 900px;
     margin: 0 auto;
@@ -41,12 +42,6 @@
 
 .vote-body {
     padding: 40px 30px 30px;
-}
-
-.nav-button:hover, .nav-button.active {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateX(8px) translateY(-2px);
-    box-shadow: -4px 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .meaning-card {
@@ -156,74 +151,6 @@
     margin-left: 10px;
 }
 
-.loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
-
-.loading-content {
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #4caf50;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 15px;
-}
-
-.error-message {
-    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-    padding: 15px 20px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    display: none;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
 @media (max-width: 768px) {
     .vote-container {
         margin: 20px;
@@ -253,5 +180,11 @@
 
     .vote-actions {
         margin-top: 15px;
+        flex-wrap: wrap;
+    }
+
+    .vote-btn {
+        padding: 8px 12px;
+        font-size: 0.9rem;
     }
 }

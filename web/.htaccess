@@ -1,5 +1,6 @@
 Options +MultiViews
 RewriteEngine On
+DirectoryIndex html/index.html
 
 RewriteRule ^abbreviations php/controllers/abbreviation-controller.php [L]
 RewriteRule ^meanings php/controllers/meaning-controller.php [L]

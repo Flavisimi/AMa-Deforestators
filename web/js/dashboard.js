@@ -20,22 +20,22 @@ document.querySelectorAll('.nav-button').forEach(button => {
         
         if (href === '#create') {
             e.preventDefault();
-            window.location.href = 'create-abbreviation.html';
+            window.location.href = '../html/create-abbreviation.html';
             return;
         }
         if (href === '#myabv') {
             e.preventDefault();
-            window.location.href = 'my_abbreviations.html';
+            window.location.href = '../html/my_abbreviations.html';
             return;
         }
         if (href === '#vote') {
             e.preventDefault();
-            window.location.href = 'vote.html';
+            window.location.href = '../html/vote.html';
             return;
         }
         if (href === '#stats') {
             e.preventDefault();
-            window.location.href = 'stats.html';
+            window.location.href = '../html/stats.html';
             return;
         }
         if (href.startsWith('#')) {
@@ -337,7 +337,7 @@ function showListModal(meaningId, meaningName) {
                         <div class="empty-icon">📋</div>
                         <h4>No lists found</h4>
                         <p>You don't have any lists yet. Create one first!</p>
-                        <button class="btn btn-primary" onclick="window.location.href='my_abbreviations.html'">
+                        <button class="btn btn-primary" onclick="window.location.href='../html/my_abbreviations.html'">
                             Create List
                         </button>
                     </div>

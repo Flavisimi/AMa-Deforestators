@@ -41,3 +41,14 @@ RUN chown -R www-data:www-data /var/www/html \
 RUN mkdir /abbreviations
 RUN chown -R www-data:www-data /abbreviations \
  && chmod -R 755 /abbreviations
+
+RUN mkdir /tmp/php/
+WORKDIR /tmp/php
+
+COPY ./deploy/php/initialize_meanings.php ./initialize_meanings.php
+COPY ./deploy/php/default_meanings.csv ./default_meanings.csv
+COPY ./deploy/php/init.sh ./init.sh
+
+WORKDIR /var/www/hml
+ENTRYPOINT [ "/tmp/php/init.sh" ]
+CMD ["apache2-foreground"]

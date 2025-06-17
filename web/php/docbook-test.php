@@ -13,7 +13,9 @@ $meaning->short_expansion = "ask me anything";
 $meaning->lang = "eng";
 $meaning->domain = "internet";
 
-$elem = DocbookHelper::create_abbreviation_document_with_meaning("AMA", $meaning, "ceva");
+$elem = DocbookHelper::create_abbreviation_document("AMA");
+DocbookHelper::add_meaning_to_abbr_document($elem, $meaning, "ceva");
+
 echo $elem->asXML();
 
 ?>

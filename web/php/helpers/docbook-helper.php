@@ -1,18 +1,12 @@
 <?php
 namespace ama\helpers;
 
-use ama\exceptions\ApiException;
-use ama\models\Meaning;
-
-require_once( __DIR__ . "/../exceptions/api-exception.php");
-require_once( __DIR__ . "/../models/meaning.php");
-
 ini_set('display_errors', 0);
 error_reporting(0);
 
 class DocbookHelper
 {
-    public static function create_abbreviation_document_with_meaning($abbr_name, Meaning $meaning, $description): \SimpleXMLElement
+    public static function create_abbreviation_document($abbr_name): \SimpleXMLElement
     {
         $document = new \SimpleXMLElement("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<article version=\"5.2\" xmlns=\"http://docbook.org/ns/docbook\"></article>");
 
@@ -22,8 +16,6 @@ class DocbookHelper
         $meanings = $document->addChild("variablelist");
         $meanings->addChild("title", "Meanings");
 
-        self::add_meaning_to_abbr_document($document, $meaning, $description);
-        
         return $document;
     }
 

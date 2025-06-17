@@ -77,16 +77,16 @@ class AbbreviationController
 
             $document = DocbookHelper::load_abbreviation_document($abbreviation->searchable_name);
             if($document == null)
-                $document = DocbookHelper::create_abbreviation_document_with_meaning($abbreviation->searchable_name, $meaning, $description);
-            else
-                DocbookHelper::add_meaning_to_abbr_document($document, $meaning, $description);
+                $document = DocbookHelper::create_abbreviation_document($abbreviation->searchable_name);
+            
+            DocbookHelper::add_meaning_to_abbr_document($document, $meaning, $description);
 
             if(!DocbookHelper::save_document($document))
             {
                 oci_rollback($conn);
                 throw new ApiException(500, "Could not save abbreviation to file");
             }
-            
+
             oci_commit($conn);
             AbbreviationService::attach_meanings($conn, $abbreviation);
         } catch(ApiException $e)

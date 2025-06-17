@@ -48,9 +48,9 @@ function renderMostVisited(data) {
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.abbreviation || item.searchable_name || 'Unknown'}</span>
+                <span class="stat-name">${item.searchable_name}</span>
             </div>
-            <span class="stat-value visited">${item.visits || item.views || item.count || 0}</span>
+            <span class="stat-value visited">${item.visits || 0}</span>
         </li>
     `).join('');
 }
@@ -66,7 +66,7 @@ function renderMostControversial(data) {
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.abbreviation || item.name || 'Unknown'}</span>
+                <span class="stat-name">${item.name}</span>
             </div>
         </li>
     `).join('');
@@ -83,9 +83,9 @@ function renderHighestLikeRate(data) {
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.abbreviation || item.name || 'Unknown'}</span>
+                <span class="stat-name">${item.name}</span>
             </div>
-            <span class="stat-value liked">${Math.round((item.like_rate || item.rate || 0) * 100)}%</span>
+            <span class="stat-value liked">${Math.round((item.like_rate || 0) * 100)}%</span>
         </li>
     `).join('');
 }
@@ -101,9 +101,9 @@ function renderMostActiveUsers(data) {
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.username || item.user || item.name || 'Anonymous'}</span>
+                <span class="stat-name">${item.name}</span>
             </div>
-            <span class="stat-value active">${item.activity_score || item.score || item.contributions || 0}</span>
+            <span class="stat-value active">${item.activity || 0}</span>
         </li>
     `).join('');
 }
@@ -119,7 +119,7 @@ function renderMedianAbbreviation(data) {
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.abbreviation || item.searchable_name || 'Unknown'}</span>
+                <span class="stat-name">${item.searchable_name}</span>
             </div>
         </li>
     `).join('');

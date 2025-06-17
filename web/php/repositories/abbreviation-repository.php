@@ -100,7 +100,7 @@ class AbbreviationRepository
         return $abbreviation;
     }
 
-    public static function insert_abbreviation($conn, AbbrInsertDTO $dto)
+    public static function insert_abbreviation($conn, AbbrInsertDTO $dto, bool $autocommit = false)
     {
         $stmt = oci_parse($conn, "insert into combined_view(name, short_expansion, description, lang, domain, uploader_id) values (:name, :short, :descr, :lang, :domain, :uploader)");
         if(!$stmt) 
@@ -113,7 +113,7 @@ class AbbreviationRepository
         oci_bind_by_name($stmt, ":domain", $dto->domain);
         oci_bind_by_name($stmt, ":uploader", $_SESSION["user_id"]);
 
-        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
+        if(!oci_execute($stmt, $autocommit ? OCI_COMMIT_ON_SUCCESS : OCI_NO_AUTO_COMMIT)) 
             throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
 
         oci_free_statement($stmt);

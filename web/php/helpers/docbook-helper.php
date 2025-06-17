@@ -24,9 +24,6 @@ class DocbookHelper
 
         self::add_meaning_to_abbr_document($document, $meaning, $description);
         
-        // mkdir("/abbreviations");
-        file_put_contents("/abbreviations/" . $abbr_name . ".xml", $document->asXML());
-
         return $document;
     }
 
@@ -66,6 +63,12 @@ class DocbookHelper
         $domain_para = $item->addChild("formalpara");
         $domain_para->addChild("title", "Domain");
         $domain_para->addChild("para", $meaning->domain);
+    }
+
+    public static function save_document($document)
+    {
+        $abbr_name = (string)$document->title->abbrev;
+        return file_put_contents("/abbreviations/" . $abbr_name . ".xml", $document->asXML());
     }
 }
 

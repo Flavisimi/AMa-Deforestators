@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('email', email);
         formData.append('password', password);
         console.log('Sending fetch to php/register.php'); 
-        fetch('php/register.php', 
+        fetch('/php/register.php', 
         {
             method: 'POST',
             body: formData

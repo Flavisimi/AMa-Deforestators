@@ -6,11 +6,11 @@ let statisticsData = {
 };
 
 const API_ENDPOINTS = {
-    mostVisited: '../statistics/most_visited',
-    mostControversial: '../statistics/most_controversial', 
-    highestLikeRate: '../statistics/highest_like_rate',
-    mostActiveUsers: '../statistics/most_active_users',
-    medianAbbreviation: '../statistics/median_abbreviation'
+    mostVisited: '/statistics/most_visited',
+    mostControversial: '/statistics/most_controversial', 
+    highestLikeRate: '/statistics/highest_like_rate',
+    mostActiveUsers: '/statistics/most_active_users',
+    medianAbbreviation: '/statistics/median_abbreviation'
 };
 
 function showLoading() {

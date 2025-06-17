@@ -105,7 +105,7 @@ function createListCard(list) {
 }
 
 function viewList(listId) {
-     window.location.href = `..html/viewlist.html?id=${listId}`;
+     window.location.href = `../html/viewlist.html?id=${listId}`;
 }
 
 document.addEventListener('DOMContentLoaded', function() {

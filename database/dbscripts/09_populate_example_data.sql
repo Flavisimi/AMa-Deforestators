@@ -6,17 +6,17 @@ begin
         insert into users values(seq_user.nextval, 'user' || v_index, auth_package.hash_password('user' || v_index || '_test'), 'USER', sysdate, sysdate, null, 'user' || v_index || '@ama.io');
     end loop;
 
-    insert into combined_view values('AMA', 'ask me anything', 'used on internet forums when a person wants to receive questions from netizens', 'eng', 'internet', 2, null, null);
-    insert into combined_view values('AMa', 'abbreviation management', 'an application which manages abbreviations and their meanings', 'eng', 'web', 1, null, null);
-    insert into combined_view values('Îma--ș!!', 'intalnirea martorilor americani -- serpii !!', 'nonsens', 'ro', 'random', 3, null, null);
-    insert into combined_view values('NP', 'no problem', 'a common saying', 'eng', 'speech', 1, null, null);
-    insert into combined_view values('NP', 'nondeterministic polynomial', 'a class of decisional problems', 'eng', 'computer science', 1, null, null);
-    insert into combined_view values('TY', 'thank you', 'expression of gratitude', 'eng', 'speech', 23, null, null);
-    insert into combined_view values('ms', 'mersi', 'expression of gratitude', 'ro', 'speech', 81, null, null);
-    insert into combined_view values('MS', 'microsoft', 'large tech company', 'eng', 'tech', 7, null, null);
-    insert into combined_view values('Ms', 'miss', 'a form of referring to a woman', 'eng', 'speech', 22, null, null);
-    insert into combined_view values('LOL', 'laughing out loud', 'expression of amusement', 'eng', 'speech', 99, null, null);
-    insert into combined_view values('LoL', 'League of Legends', 'video game', 'eng', 'gaming', 1, null, null);
+    insert into combined_view values('AMA', 'ask me anything', 'eng', 'internet', 2, null, null);
+    insert into combined_view values('AMa', 'abbreviation management', 'eng', 'web', 1, null, null);
+    insert into combined_view values('Îma--ș!!', 'nonsens', 'ro', 'random', 3, null, null);
+    insert into combined_view values('NP', 'no problem', 'eng', 'speech', 1, null, null);
+    insert into combined_view values('NP', 'nondeterministic polynomial', 'eng', 'computer science', 1, null, null);
+    insert into combined_view values('TY', 'thank you', 'eng', 'speech', 23, null, null);
+    insert into combined_view values('ms', 'mersi', 'ro', 'speech', 81, null, null);
+    insert into combined_view values('MS', 'microsoft', 'eng', 'tech', 7, null, null);
+    insert into combined_view values('Ms', 'miss', 'eng', 'speech', 22, null, null);
+    insert into combined_view values('LOL', 'laughing out loud', 'eng', 'speech', 99, null, null);
+    insert into combined_view values('LoL', 'League of Legends', 'eng', 'gaming', 1, null, null);
 
     insert into abbr_lists values(seq_list.nextval, 2, 'my list', 0, null, null);
     insert into abbr_list_contents values(1, 3, null);

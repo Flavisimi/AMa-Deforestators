@@ -25,7 +25,7 @@ create or replace package body ama_statistics as
         v_cursor SYS_REFCURSOR;
     begin
         open v_cursor for
-        select m.id, m.abbr_id, m.name, m.short_expansion, m.description, m.uploader_id, m.approval_status, m.lang, m.domain, m.created_at, m.updated_at
+        select m.id, m.abbr_id, m.name, m.short_expansion, m.uploader_id, m.approval_status, m.lang, m.domain, m.created_at, m.updated_at
         from meanings m join 
         (select meaning_id as id from votes group by meaning_id order by count(*) desc, abs(sum(vote)) asc) v 
         on m.id = v.id;
@@ -37,7 +37,7 @@ create or replace package body ama_statistics as
         v_cursor SYS_REFCURSOR;
     begin
         open v_cursor for
-        select m.id, m.abbr_id, m.name, m.short_expansion, m.description, m.uploader_id, m.approval_status, m.lang, m.domain, m.created_at, m.updated_at,
+        select m.id, m.abbr_id, m.name, m.short_expansion, m.uploader_id, m.approval_status, m.lang, m.domain, m.created_at, m.updated_at,
             (select count(*) from votes where meaning_id = m.id and vote = 1)/(select count(*) from visit_logs where abbr_id = m.abbr_id and visitor_id is not null) as rate
         from meanings m 
         where (select count(*) from visit_logs where abbr_id = m.abbr_id and visitor_id is not null) > 0 

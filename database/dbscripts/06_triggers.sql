@@ -64,8 +64,7 @@ compound trigger
         end if;
         
         if(:new.name != :old.name 
-            or :new.short_expansion != :new.short_expansion
-            or :new.description != :new.description) then
+            or :new.short_expansion != :new.short_expansion) then
             :new.approval_status := 'pending';
         end if;
     end before each row;
@@ -73,8 +72,7 @@ compound trigger
     after each row is
     begin
         if(:new.name != :old.name 
-            or :new.short_expansion != :new.short_expansion
-            or :new.description != :new.description) then
+            or :new.short_expansion != :new.short_expansion) then
             delete from votes where meaning_id = :new.id;
         end if;
     end after each row;
@@ -194,7 +192,7 @@ begin
     end if;
     select id into v_abbr_id from abbreviations where searchable_name = v_searchable_name;
 
-    insert into meanings values(null, v_abbr_id, :new.name, :new.short_expansion, :new.description, :new.uploader_id, 'pending', :new.lang, :new.domain, null, null);
+    insert into meanings values(null, v_abbr_id, :new.name, :new.short_expansion, :new.uploader_id, 'pending', :new.lang, :new.domain, null, null);
 end;
 
 /

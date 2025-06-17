@@ -47,8 +47,9 @@ WORKDIR /tmp/php
 
 COPY ./deploy/php/initialize_meanings.php ./initialize_meanings.php
 COPY ./deploy/php/default_meanings.csv ./default_meanings.csv
-COPY ./deploy/php/init.sh ./init.sh
+
+COPY ./deploy/php/ama-init /usr/bin/local/ama-init
 
 WORKDIR /var/www/hml
-ENTRYPOINT [ "/tmp/php/init.sh" ]
+ENTRYPOINT [ "/usr/bin/local/ama-init" ]
 CMD ["apache2-foreground"]

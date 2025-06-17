@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ -d /tmp/php ]; then
+    php /tmp/php/initialize_meanings.php
+    rm -rf /tmp/php
+fi
+
+exec docker-php-entrypoint "$@"

@@ -231,10 +231,11 @@ function displayMeanings(data) {
         
         meaningCard.innerHTML = `
             <div class="meaning-header">
-                <h4>${meaning.short_expansion}</h4>
+                <h4>${meaning.name}</h4>
                 <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
             </div>
             <div class="meaning-body">
+                <h3 class="meaning-description">${meaning.short_expansion}</h3>
                 <p class="meaning-description">${meaning.description}</p>
                 <div class="meaning-meta">
                     <span class="meta-item">

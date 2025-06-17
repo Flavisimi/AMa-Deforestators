@@ -4,6 +4,7 @@ namespace ama\controllers;
 
 require_once( __DIR__ . "/../models/meaning.php");
 require_once( __DIR__ . "/../helpers/connection-helper.php");
+require_once( __DIR__ . "/../repositories/abbreviation-repository.php");
 require_once( __DIR__ . "/../repositories/meaning-repository.php");
 require_once( __DIR__ . "/../models/vote.php");
 require_once( __DIR__ . "/../repositories/vote-repository.php");
@@ -12,6 +13,7 @@ require_once( __DIR__ . "/../services/meaning-service.php");
 
 use ama\models\Meaning;
 use ama\helpers\ConnectionHelper;
+use ama\repositories\AbbreviationRepository;
 use ama\repositories\MeaningRepository;
 use ama\models\Vote;
 use ama\repositories\VoteRepository;
@@ -28,7 +30,10 @@ class MeaningController
             $meaning = MeaningRepository::load_meaning($conn, $id);
             if($meaning === null)
                 throw new ApiException(404, "No meaning was found with the given ID");
+
+            $abbreviation = AbbreviationRepository::load_abbreviation($conn, $meaning->abbr_id);
             MeaningService::attach_score($conn, $meaning);
+            MeaningService::attach_description($meaning, $abbreviation->searchable_name);
         } catch(ApiException $e)
         {
             oci_close($conn);

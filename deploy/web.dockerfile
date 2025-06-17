@@ -37,3 +37,19 @@ RUN a2enmod rewrite
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
  && chmod -R 755 /var/www/html
+
+RUN mkdir /abbreviations
+RUN chown -R www-data:www-data /abbreviations \
+ && chmod -R 755 /abbreviations
+
+RUN mkdir /tmp/php/
+WORKDIR /tmp/php
+
+COPY ./deploy/php/initialize_meanings.php ./initialize_meanings.php
+COPY ./deploy/php/default_meanings.csv ./default_meanings.csv
+
+COPY ./deploy/php/ama-init /usr/bin/local/ama-init
+
+WORKDIR /var/www/hml
+ENTRYPOINT [ "/usr/bin/local/ama-init" ]
+CMD ["apache2-foreground"]

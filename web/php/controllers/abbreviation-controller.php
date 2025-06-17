@@ -3,14 +3,18 @@
 namespace ama\controllers;
 
 require_once( __DIR__ . "/../models/abbreviation.php");
+require_once( __DIR__ . "/../models/meaning.php");
 require_once( __DIR__ . "/../helpers/connection-helper.php");
+require_once( __DIR__ . "/../helpers/docbook-helper.php");
 require_once( __DIR__ . "/../repositories/abbreviation-repository.php");
 require_once( __DIR__ . "/../services/abbreviation-service.php");
 require_once( __DIR__ . "/../dtos/abbreviation-insert-dto.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
 
 use ama\models\Abbreviation;
+use ama\models\Meaning;
 use ama\helpers\ConnectionHelper;
+use ama\helpers\DocbookHelper;
 use ama\repositories\AbbreviationRepository;
 use ama\services\AbbreviationService;
 use ama\dtos\AbbrInsertDTO;
@@ -60,8 +64,30 @@ class AbbreviationController
         $conn = ConnectionHelper::open_connection();
         try
         {
-            AbbreviationRepository::insert_abbreviation($conn, $dto);
+            AbbreviationRepository::insert_abbreviation($conn, $dto, false);
             $abbreviation = AbbreviationRepository::load_abbreviation_by_name($conn, $dto->name);
+            
+            $meaning = new Meaning;
+            $meaning->name = $dto->name;
+            $meaning->short_expansion = $dto->short_expansion;
+            $meaning->lang = $dto->lang;
+            $meaning->domain = $dto->domain;
+
+            $description = $dto->description;
+
+            $document = DocbookHelper::load_abbreviation_document($abbreviation->searchable_name);
+            if($document == null)
+                $document = DocbookHelper::create_abbreviation_document($abbreviation->searchable_name);
+            
+            DocbookHelper::add_meaning_to_abbr_document($document, $meaning, $description);
+
+            if(!DocbookHelper::save_document($document))
+            {
+                oci_rollback($conn);
+                throw new ApiException(500, "Could not save abbreviation to file");
+            }
+
+            oci_commit($conn);
             AbbreviationService::attach_meanings($conn, $abbreviation);
         } catch(ApiException $e)
         {

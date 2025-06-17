@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article version="5.2" xmlns="http://docbook.org/ns/docbook">
+    <title>AMA</title>
+    <variablelist>
+        <title>Meanings</title>
+        <varlistentry>
+            <term><abbrev>AMa</abbrev></term>
+            <listitem>
+                <formalpara>
+                    <title>Expansion</title>
+                    <para>abbreviation management</para>
+                </formalpara>
+                <formalpara>
+                    <title>Description</title>
+                    <para>an application which manages abbreviations and their meanings</para>
+                </formalpara>
+                <formalpara>
+                    <title>Language</title>
+                    <para>eng</para>
+                </formalpara>
+                <formalpara>
+                    <title>Domain</title>
+                    <para>web</para>
+                </formalpara>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><abbrev>AMA</abbrev></term>
+            <listitem>
+                <formalpara>
+                    <title>Expansion</title>
+                    <para>ask me anything</para>
+                </formalpara>
+                <formalpara>
+                    <title>Description</title>
+                    <para>used on internet forums when a person wants to receive questions from netizens</para>
+                </formalpara>
+                <formalpara>
+                    <title>Language</title>
+                    <para>eng</para>
+                </formalpara>
+                <formalpara>
+                    <title>Domain</title>
+                    <para>internet</para>
+                </formalpara>
+            </listitem>
+        </varlistentry>
+    </variablelist>
+</article>

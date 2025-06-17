@@ -9,6 +9,7 @@ services:
       - "2501:80"
     volumes:
       - ./web:/var/www/html
+      - abbreviations:/abbreviations
     # develop:
     #   watch:
     #     - action: sync
@@ -41,3 +42,4 @@ services:
       start_period: 120s
 volumes:
   oracle-data:
+  abbreviations:

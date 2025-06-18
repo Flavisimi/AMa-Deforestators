@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<rss version="2.0">
+    <channel>
+        <title>Abbreviation Management</title>
+        <link>http://ama-deforestators/</link>
+        <description>Search and manage your favorite abbreviations!</description>
+        <item>
+            <title>AMA</title> <!--searchable_name-->
+            <guid>1</guid> <!--id-ul din baza de date-->
+            <pubDate>2025-06-18</pubDate>
+            <description>100 visits</description>
+        </item>
+        <item>
+            <title>LOL</title>
+            <guid>2</guid>
+            <pubDate>2025-06-18</pubDate>
+            <description>35 visits</description>
+        </item>
+    </channel>
+</rss>

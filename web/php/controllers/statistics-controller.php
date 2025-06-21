@@ -5,7 +5,7 @@ namespace ama\controllers;
 require_once( __DIR__ . "/../helpers/connection-helper.php");
 require_once( __DIR__ . "/../repositories/statistics-repository.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
-require_once("/fpdf/fpdf.php");
+require_once("/tfpdf/tfpdf.php");
 
 use ama\helpers\ConnectionHelper;
 use ama\repositories\StatisticsRepository;
@@ -48,9 +48,10 @@ class StatisticsController
         {
             header("Content-Type: application/pdf");
 
-            $pdf = new \FPDF();
+            $pdf = new \tFPDF();
             $pdf->AddPage();
-            $pdf->SetFont("Arial", "B", 16);
+            $pdf->AddFont("DejaVuBold", "", "DejaVuSansCondensed-Bold.ttf", true);
+            $pdf->SetFont("DejaVuBold", "", 16);
             $pdf->Cell(0, 20, "Most visited abbreviations", 0, 1, "C");
             $width = $pdf->GetPageWidth();
 
@@ -59,7 +60,8 @@ class StatisticsController
             $pdf->Cell(self::$CELL_WIDTH, 20, "Visits", 1, 0, "C");
             $pdf->Ln();
 
-            $pdf->SetFont("Arial", "", 16);
+            $pdf->AddFont("DejaVu", "", "DejaVuSansCondensed.ttf", true);
+            $pdf->SetFont("DejaVu", "", 16);
             foreach($output as $abbrev)
             {
                 $pdf->Cell($width / 2 - self::$CELL_WIDTH - 11);
@@ -105,9 +107,10 @@ class StatisticsController
         {
             header("Content-Type: application/pdf");
 
-            $pdf = new \FPDF();
+            $pdf = new \tFPDF();
             $pdf->AddPage();
-            $pdf->SetFont("Arial", "B", 16);
+            $pdf->AddFont("DejaVuBold", "", "DejaVuSansCondensed-Bold.ttf", true);
+            $pdf->SetFont("DejaVuBold", "", 16);
             $pdf->Cell(0, 20, "Most controversial meanings", 0, 1, "C");
             $width = $pdf->GetPageWidth();
 
@@ -117,7 +120,8 @@ class StatisticsController
             $pdf->Cell(self::$CELL_WIDTH, 20, "Controversy", 1, 0, "C");
             $pdf->Ln();
 
-            $pdf->SetFont("Arial", "", 16);
+            $pdf->AddFont("DejaVu", "", "DejaVuSansCondensed.ttf", true);
+            $pdf->SetFont("DejaVu", "", 16);
             foreach($output as $meaning)
             {
                 $pdf->Cell($width / 2 - 1.5*self::$CELL_WIDTH - 11);
@@ -165,9 +169,10 @@ class StatisticsController
         {
             header("Content-Type: application/pdf");
 
-            $pdf = new \FPDF();
+            $pdf = new \tFPDF();
             $pdf->AddPage();
-            $pdf->SetFont("Arial", "B", 16);
+            $pdf->AddFont("DejaVuBold", "", "DejaVuSansCondensed-Bold.ttf", true);
+            $pdf->SetFont("DejaVuBold", "", 16);
             $pdf->Cell(0, 20, "Highest like rates of meanings", 0, 1, "C");
             $width = $pdf->GetPageWidth();
 
@@ -177,7 +182,8 @@ class StatisticsController
             $pdf->Cell(self::$CELL_WIDTH, 20, "Like rate", 1, 0, "C");
             $pdf->Ln();
 
-            $pdf->SetFont("Arial", "", 16);
+            $pdf->AddFont("DejaVu", "", "DejaVuSansCondensed.ttf", true);
+            $pdf->SetFont("DejaVu", "", 16);
             foreach($output as $meaning)
             {
                 $pdf->Cell($width / 2 - 1.5*self::$CELL_WIDTH - 11);
@@ -224,9 +230,10 @@ class StatisticsController
         {
             header("Content-Type: application/pdf");
 
-            $pdf = new \FPDF();
+            $pdf = new \tFPDF();
             $pdf->AddPage();
-            $pdf->SetFont("Arial", "B", 16);
+            $pdf->AddFont("DejaVuBold", "", "DejaVuSansCondensed-Bold.ttf", true);
+            $pdf->SetFont("DejaVuBold", "", 16);
             $pdf->Cell(0, 20, "Most active users", 0, 1, "C");
             $width = $pdf->GetPageWidth();
 
@@ -235,7 +242,8 @@ class StatisticsController
             $pdf->Cell(self::$CELL_WIDTH, 20, "Activity", 1, 0, "C");
             $pdf->Ln();
 
-            $pdf->SetFont("Arial", "", 16);
+            $pdf->AddFont("DejaVu", "", "DejaVuSansCondensed.ttf", true);
+            $pdf->SetFont("DejaVu", "", 16);
             foreach($output as $user)
             {
                 $pdf->Cell($width / 2 - self::$CELL_WIDTH - 11);
@@ -281,9 +289,10 @@ class StatisticsController
         {
             header("Content-Type: application/pdf");
 
-            $pdf = new \FPDF();
+            $pdf = new \tFPDF();
             $pdf->AddPage();
-            $pdf->SetFont("Arial", "B", 16);
+            $pdf->AddFont("DejaVuBold", "", "DejaVuSansCondensed-Bold.ttf", true);
+            $pdf->SetFont("DejaVuBold", "", 16);
             $pdf->Cell(0, 20, "Median abbreviation ", 0, 1, "C");
             $width = $pdf->GetPageWidth();
 
@@ -291,7 +300,8 @@ class StatisticsController
             $pdf->Cell(self::$CELL_WIDTH, 20, "Abbreviation", 1, 0, "C");
             $pdf->Ln();
 
-            $pdf->SetFont("Arial", "", 16);
+            $pdf->AddFont("DejaVu", "", "DejaVuSansCondensed.ttf", true);
+            $pdf->SetFont("DejaVu", "", 16);
             foreach($output as $abbrev)
             {
                 $pdf->Cell($width / 2 - 0.5*self::$CELL_WIDTH - 11);

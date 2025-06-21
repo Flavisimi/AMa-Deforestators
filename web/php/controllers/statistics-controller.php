@@ -204,7 +204,48 @@ class StatisticsController
         }
 
         oci_close($conn);
-        return $output;
+
+        if($format == "json")
+        {
+            header("Content-Type: application/json");
+            return json_encode($output);
+        }
+        else if($format == "csv")
+        {
+            header("Content-Type: text/csv");
+
+            $text = "";
+
+            foreach($output as $user)
+                $text .= $user->name . "," . $user->activity . "\n";
+            return $text;
+        }
+        else //pdf
+        {
+            header("Content-Type: application/pdf");
+
+            $pdf = new \FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont("Arial", "B", 16);
+            $pdf->Cell(0, 20, "Most active users", 0, 1, "C");
+            $width = $pdf->GetPageWidth();
+
+            $pdf->Cell($width / 2 - self::$CELL_WIDTH - 11);
+            $pdf->Cell(self::$CELL_WIDTH, 20, "User", 1, 0, "C");
+            $pdf->Cell(self::$CELL_WIDTH, 20, "Activity", 1, 0, "C");
+            $pdf->Ln();
+
+            $pdf->SetFont("Arial", "", 16);
+            foreach($output as $user)
+            {
+                $pdf->Cell($width / 2 - self::$CELL_WIDTH - 11);
+                $pdf->Cell(self::$CELL_WIDTH, 20, $user->name, 1, 0, "C");
+                $pdf->Cell(self::$CELL_WIDTH, 20, $user->activity, 1, 0, "C");
+                $pdf->Ln();
+            }
+            
+            return $pdf->Output("S");
+        }
     }
 
     public static function median_abbreviation($format): ?string

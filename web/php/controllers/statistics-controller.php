@@ -261,7 +261,46 @@ class StatisticsController
         }
 
         oci_close($conn);
-        return $output;
+
+        if($format == "json")
+        {
+            header("Content-Type: application/json");
+            return json_encode($output);
+        }
+        else if($format == "csv") 
+        {
+            header("Content-Type: text/csv");
+
+            $text = "";
+
+            foreach($output as $abbrev) //only name, and only a single abbreviation
+                $text .= $abbrev->searchable_name . "\n";
+            return $text;
+        }
+        else //pdf
+        {
+            header("Content-Type: application/pdf");
+
+            $pdf = new \FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont("Arial", "B", 16);
+            $pdf->Cell(0, 20, "Median abbreviation ", 0, 1, "C");
+            $width = $pdf->GetPageWidth();
+
+            $pdf->Cell($width / 2 - 0.5*self::$CELL_WIDTH - 11);
+            $pdf->Cell(self::$CELL_WIDTH, 20, "Abbreviation", 1, 0, "C");
+            $pdf->Ln();
+
+            $pdf->SetFont("Arial", "", 16);
+            foreach($output as $abbrev)
+            {
+                $pdf->Cell($width / 2 - 0.5*self::$CELL_WIDTH - 11);
+                $pdf->Cell(self::$CELL_WIDTH, 20, $abbrev->searchable_name, 1, 0, "C");
+                $pdf->Ln();
+            }
+            
+            return $pdf->Output("S");
+        }
     }
 
     public static function handle_get()

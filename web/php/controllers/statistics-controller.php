@@ -129,8 +129,6 @@ class StatisticsController
             
             return $pdf->Output("S");
         }
-
-        return $output;
     }
 
     public static function highest_like_rate($format): ?string
@@ -146,7 +144,51 @@ class StatisticsController
         }
 
         oci_close($conn);
-        return $output;
+
+        
+        if($format == "json")
+        {
+            header("Content-Type: application/json");
+            return json_encode($output);
+        }
+        else if($format == "csv")
+        {
+            header("Content-Type: text/csv");
+
+            $text = "";
+
+            foreach($output as $meaning)
+                $text .= $meaning->id . "," . $meaning->name . "," . $meaning->like_rate . "\n";
+            return $text;
+        }
+        else //pdf
+        {
+            header("Content-Type: application/pdf");
+
+            $pdf = new \FPDF();
+            $pdf->AddPage();
+            $pdf->SetFont("Arial", "B", 16);
+            $pdf->Cell(0, 20, "Highest like rates of meanings", 0, 1, "C");
+            $width = $pdf->GetPageWidth();
+
+            $pdf->Cell($width / 2 - 1.5*self::$CELL_WIDTH - 11);
+            $pdf->Cell(self::$CELL_WIDTH, 20, "Meaning ID", 1, 0, "C");
+            $pdf->Cell(self::$CELL_WIDTH, 20, "Name", 1, 0, "C");
+            $pdf->Cell(self::$CELL_WIDTH, 20, "Like rate", 1, 0, "C");
+            $pdf->Ln();
+
+            $pdf->SetFont("Arial", "", 16);
+            foreach($output as $meaning)
+            {
+                $pdf->Cell($width / 2 - 1.5*self::$CELL_WIDTH - 11);
+                $pdf->Cell(self::$CELL_WIDTH, 20, $meaning->id, 1, 0, "C");
+                $pdf->Cell(self::$CELL_WIDTH, 20, $meaning->name, 1, 0, "C");
+                $pdf->Cell(self::$CELL_WIDTH, 20, $meaning->like_rate, 1, 0, "C");
+                $pdf->Ln();
+            }
+            
+            return $pdf->Output("S");
+        }
     }
 
     public static function most_active_users($format): ?string

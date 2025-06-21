@@ -103,7 +103,7 @@ class StatisticsRepository
         $output = [];
         while ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
             $meaning = MeaningRepository::convert_row_to_object($row);
-            $meaning->like_rate = $row["RATE"];
+            $meaning->like_rate = round($row["RATE"], 2);
             $output[] = $meaning;
         }
 

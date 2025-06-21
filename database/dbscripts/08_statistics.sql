@@ -25,9 +25,9 @@ create or replace package body ama_statistics as
         v_cursor SYS_REFCURSOR;
     begin
         open v_cursor for
-        select m.id, m.abbr_id, m.name, m.short_expansion, m.uploader_id, m.approval_status, m.lang, m.domain, m.created_at, m.updated_at
+        select m.id, m.abbr_id, m.name, m.short_expansion, m.uploader_id, m.approval_status, m.lang, m.domain, m.created_at, m.updated_at, v.controversy
         from meanings m join 
-        (select meaning_id as id from votes group by meaning_id order by count(*) desc, abs(sum(vote)) asc) v 
+        (select meaning_id as id, count(*) as total_votes, abs(sum(vote)) as score, ((count(*)-abs(sum(vote)))/count(*)) as controversy from votes group by meaning_id order by controversy desc, total_votes asc) v 
         on m.id = v.id;
 
         return v_cursor;

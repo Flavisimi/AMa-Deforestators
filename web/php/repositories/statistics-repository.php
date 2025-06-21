@@ -71,6 +71,7 @@ class StatisticsRepository
         $output = [];
         while ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
             $meaning = MeaningRepository::convert_row_to_object($row);
+            $meaning->controversy = $row["CONTROVERSY"];
             $output[] = $meaning;
         }
 

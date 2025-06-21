@@ -68,6 +68,7 @@ function renderMostControversial(data) {
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.name}</span>
             </div>
+            <span class="stat-value controversial">${item.controversy || 0}</span>
         </li>
     `).join('');
 }

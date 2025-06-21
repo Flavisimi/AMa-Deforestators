@@ -5,6 +5,7 @@ ARG URL_INSTALL_CLIENT_BASIC_ARM='https://download.oracle.com/otn_software/linux
 ARG URL_INSTALL_CLIENT_SDK_ARM='https://download.oracle.com/otn_software/linux/instantclient/2380000/instantclient-sdk-linux.arm64-23.8.0.25.04.zip'
 ARG URL_INSTALL_CLIENT_BASIC_AMD='https://download.oracle.com/otn_software/linux/instantclient/2380000/instantclient-basic-linux.x64-23.8.0.25.04.zip'
 ARG URL_INSTALL_CLIENT_SDK_AMD='https://download.oracle.com/otn_software/linux/instantclient/2380000/instantclient-sdk-linux.x64-23.8.0.25.04.zip'
+ARG URL_TFPDF_LIB='https://www.fpdf.org/en/script/dl.php?id=92&f=zip'
 
 RUN apt-get update
 
@@ -27,6 +28,14 @@ RUN docker-php-ext-configure oci8 --with-oci8=instantclient,/opt/oracle/instantc
 
 RUN docker-php-ext-install oci8
 RUN echo /opt/oracle/instantclient/ > /etc/ld.so.conf.d/oracle-insantclient.conf
+
+RUN mkdir /tfpdf/
+RUN curl ${URL_TFPDF_LIB} --output /tfpdf/tfpdf.zip
+RUN unzip -o '/tfpdf/tfpdf.zip' -d /tfpdf/
+RUN rm /tfpdf/tfpdf.zip
+RUN chown -R www-data:www-data /tfpdf/ \
+ && chmod -R 755 /tfpdf/
+
 RUN ldconfig
 
 # Copy your PHP app

@@ -1,9 +1,9 @@
 declare
     v_id integer;
 begin
-    insert into users values(seq_user.nextval, 'admin', auth_package.hash_password('admin_test'), 'ADMIN', sysdate, sysdate, null, 'admin@ama.io');
+    insert into users values(seq_user.nextval, 'admin', auth_package.hash_password('admin_test'), 'ADMIN', sysdate, sysdate, null, 'admin@ama.io',null,null);
     for v_index in 1..100 loop
-        insert into users values(seq_user.nextval, 'user' || v_index, auth_package.hash_password('user' || v_index || '_test'), 'USER', sysdate, sysdate, null, 'user' || v_index || '@ama.io');
+        insert into users values(seq_user.nextval, 'user' || v_index, auth_package.hash_password('user' || v_index || '_test'), 'USER', sysdate, sysdate, null, 'user' || v_index || '@ama.io',null,null);
     end loop;
 
     insert into combined_view values('AMA', 'ask me anything', 'eng', 'internet', 2, null, null);

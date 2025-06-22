@@ -71,6 +71,36 @@ class UserRepository
 
         return $output;
     }
+    public static function update_profile($conn, int $user_id, array $data, ?string $profile_picture = null): bool
+    {
+        $sql = "update users set description = :description, date_of_birth = :date_of_birth, updated_at = sysdate";
+        $params = [
+            ':description' => $data['description'],
+            ':date_of_birth' => $data['date_of_birth']
+        ];
+        
+        if ($profile_picture !== null) {
+            $sql .= ", profile_picture = :profile_picture";
+            $params[':profile_picture'] = $profile_picture;
+        }
+        
+        $sql .= " where id = :user_id";
+        $params[':user_id'] = $user_id;
+        
+        $stmt = oci_parse($conn, $sql);
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        
+        foreach ($params as $key => $value) {
+            oci_bind_by_name($stmt, $key, $value);
+        }
+        
+        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+
+        oci_free_statement($stmt);
+        return true;
+    }
 }
 
 

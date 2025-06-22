@@ -20,7 +20,9 @@ create table users(
     created_at date not null,
     updated_at date not null,
     profile_picture blob,
-    email varchar2(50) unique not null
+    email varchar2(50) unique not null,
+    description  varchar(256),
+    date_of_birth date
 );
 
 -- "AMa" and "AMA" both are linked to an abbreviation with searchable_name "AMA"

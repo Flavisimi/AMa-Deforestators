@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Abbreviations Manager</title>
+    <link rel="stylesheet" href="../css/dashboard.css?t=<?= time() ?>">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/profile.css">
+    <link rel="stylesheet" href="../css/common.css">
+</head>
+<body>
+    <div class="user-profile">
+        <div class="avatar"></div>
+        <span class="username">Guest</span>
+        <div class="profile-menu">
+            <a href="profile.html">View Profile</a>
+            <a href="index.html">Logout</a>
+        </div>
+    </div>
+
+    <nav class="navigator">
+        <div class="nav-header">
+            <h2>Abbreviations</h2>
+        </div>
+        <ul class="nav-list">
+            <li><a href="main.html" class="nav-button">Dashboard</a></li>
+            <li><a href="vote.html" class="nav-button">Vote</a></li>
+            <li><a href="create-abbreviation.html" class="nav-button">Create an Abbreviation</a></li>
+            <li><a href="#top" class="nav-button">Top Abbreviations</a></li>
+            <li><a href="stats.html" class="nav-button">Statistics</a></li>
+            <li><a href="#feed" class="nav-button">Feed</a></li>
+            <li><a href="my_abbreviations.html" class="nav-button">Saved Abbreviations</a></li>
+            <li><a href="all_abbreviations.html" class="nav-button">Abbreviation Lists</a></li>
+        </ul>
+        <div class="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="profile-container">
+            <div class="profile-header">
+                <h1 id="profileTitle">My Profile</h1>
+                <div class="profile-actions-header">
+                    <button type="button" class="btn btn-primary" id="editProfileBtn" style="display: none;">
+                        Edit Profile
+                    </button>
+                </div>
+            </div>
+
+            <div id="success-message" class="alert alert-success" style="display: none;"></div>
+            <div id="error-message" class="alert alert-error" style="display: none;"></div>
+
+            <div class="profile-content">
+                <div class="profile-card">
+                    <div class="profile-avatar">
+                        <img src="../assets/default-avatar.png" 
+                             alt="Profile Picture" 
+                             class="avatar-img"
+                             id="avatarImg">
+                    </div>
+
+                    <div class="profile-info">
+                        <div class="profile-field">
+                            <label>Username:</label>
+                            <span id="usernameDisplay">Loading...</span>
+                        </div>
+
+                        <div class="profile-field">
+                            <label>Email:</label>
+                            <span id="emailDisplay">Loading...</span>
+                        </div>
+
+                        <div class="profile-field">
+                            <label>Role:</label>
+                            <span id="roleDisplay">Loading...</span>
+                        </div>
+
+                        <div class="profile-field">
+                            <label>Member Since:</label>
+                            <span id="memberSinceDisplay">Loading...</span>
+                        </div>
+
+                        <div class="profile-field" id="dobField" style="display: none;">
+                            <label>Date of Birth:</label>
+                            <span id="dobDisplay"></span>
+                        </div>
+
+                        <div class="profile-field description" id="descriptionField" style="display: none;">
+                            <label>Description:</label>
+                            <p id="descriptionDisplay"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="edit-form-container" id="editFormContainer" style="display: none;">
+                    <form id="profileForm" class="edit-form">
+                        <h3>Edit Profile</h3>
+
+                        <div class="form-group">
+                            <label for="profile_picture">Profile Picture:</label>
+                            <input type="file" 
+                                   id="profile_picture" 
+                                   name="profile_picture" 
+                                   accept="image/*"
+                                   class="form-input">
+                            <small class="form-help">JPG, PNG or GIF. Max 5MB.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description:</label>
+                            <textarea id="description" 
+                                      name="description" 
+                                      rows="4" 
+                                      class="form-input"
+                                      placeholder="Tell us about yourself..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date_of_birth">Date of Birth:</label>
+                            <input type="date" 
+                                   id="date_of_birth" 
+                                   name="date_of_birth" 
+                                   class="form-input">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Loading profile...</p>
+        </div>
+    </div>
+
+    <script src="../js/profile.js"></script>
+</body>
+</html>

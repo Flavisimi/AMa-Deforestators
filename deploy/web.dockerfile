@@ -25,7 +25,6 @@ RUN rm /opt/oracle/instantclient-*.zip
 RUN mv /opt/oracle/instantclient_* /opt/oracle/instantclient
 RUN docker-php-ext-configure oci8 --with-oci8=instantclient,/opt/oracle/instantclient
 
-
 RUN docker-php-ext-install oci8
 RUN echo /opt/oracle/instantclient/ > /etc/ld.so.conf.d/oracle-insantclient.conf
 
@@ -38,12 +37,8 @@ RUN chown -R www-data:www-data /tfpdf/ \
 
 RUN ldconfig
 
-# Copy your PHP app
-# COPY ./web /var/www/html
-
 RUN a2enmod rewrite
 
-# Set permissions
 RUN chown -R www-data:www-data /var/www/html \
  && chmod -R 755 /var/www/html
 
@@ -57,8 +52,9 @@ WORKDIR /tmp/php
 COPY ./deploy/php/initialize_meanings.php ./initialize_meanings.php
 COPY ./deploy/php/default_meanings.csv ./default_meanings.csv
 
-COPY ./deploy/php/ama-init /usr/bin/local/ama-init
+COPY ./deploy/php/ama-init /usr/local/bin/ama-init
+RUN chmod +x /usr/local/bin/ama-init
 
-WORKDIR /var/www/hml
-ENTRYPOINT [ "/usr/bin/local/ama-init" ]
+WORKDIR /var/www/html
+ENTRYPOINT [ "/usr/local/bin/ama-init" ]
 CMD ["apache2-foreground"]

@@ -2,6 +2,31 @@ Options +MultiViews
 RewriteEngine On
 DirectoryIndex html/index.html
 
+# API routes - MUST come before HTML routes
+RewriteRule ^api/abbreviations/search php/controllers/abbreviation-search-controller.php [L]
+RewriteRule ^api/abbreviations php/controllers/abbreviation-controller.php [L]
+RewriteRule ^api/meanings php/controllers/meaning-controller.php [L]
+RewriteRule ^api/users php/controllers/user-controller.php [L]
+RewriteRule ^api/abbr-lists php/controllers/abbreviation-list-controller.php [L]
+RewriteRule ^api/dashboard php/controllers/dashboard-controller.php [L]
+RewriteRule ^api/statistics php/controllers/statistics-controller.php [L]
+RewriteRule ^api/rss php/controllers/rss-controller.php [L]
+RewriteRule ^api/profile/picture php/controllers/profile-controller.php [L]
+RewriteRule ^api/profile/update php/controllers/profile-controller.php [L]
+RewriteRule ^api/profile php/controllers/profile-controller.php [L]
+RewriteRule ^api/test-picture test-picture.php [L]
+
+# Legacy API routes (without /api prefix) for backward compatibility
+RewriteRule ^abbreviations/search php/controllers/abbreviation-search-controller.php [L]
+RewriteRule ^abbreviations php/controllers/abbreviation-controller.php [L]
+RewriteRule ^meanings php/controllers/meaning-controller.php [L]
+RewriteRule ^users php/controllers/user-controller.php [L]
+RewriteRule ^abbr-lists php/controllers/abbreviation-list-controller.php [L]
+RewriteRule ^dashboard php/controllers/dashboard-controller.php [L]
+RewriteRule ^statistics php/controllers/statistics-controller.php [L]
+RewriteRule ^rss php/controllers/rss-controller.php [L]
+RewriteRule ^profile/update php/controllers/profile-controller.php [L]
+
 # HTML file redirects - handle both with and without .html extension
 RewriteRule ^register/?$ html/register.html [L]
 RewriteRule ^register\.html$ html/register.html [L]
@@ -21,15 +46,3 @@ RewriteRule ^mylist/?$ html/mylist.html [L]
 RewriteRule ^mylist\.html$ html/mylist.html [L]
 RewriteRule ^viewlist/?$ html/viewlist.html [L]
 RewriteRule ^viewlist\.html$ html/viewlist.html [L]
-
-# API routes
-RewriteRule ^abbreviations/search php/controllers/abbreviation-search-controller.php [L]
-RewriteRule ^abbreviations php/controllers/abbreviation-controller.php [L]
-RewriteRule ^meanings php/controllers/meaning-controller.php [L]
-RewriteRule ^users php/controllers/user-controller.php [L]
-RewriteRule ^abbr-lists php/controllers/abbreviation-list-controller.php [L]
-RewriteRule ^dashboard php/controllers/dashboard-controller.php [L]
-RewriteRule ^statistics php/controllers/statistics-controller.php [L]
-RewriteRule ^rss php/controllers/rss-controller.php [L]
-RewriteRule ^profile/update php/controllers/profile-controller.php [L]
-RewriteRule ^profile php/controllers/profile-controller.php [L]

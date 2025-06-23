@@ -329,25 +329,25 @@ function displaySearchResults(results) {
     });
 }
 
-function setupUserProfile() {
-    const userProfile = document.querySelector('.user-profile');
-    if (userProfile) {
-        userProfile.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const profileMenu = this.querySelector('.profile-menu');
-            if (profileMenu) {
-                profileMenu.classList.toggle('active');
-            }
-        });
-    }
+// function setupUserProfile() {
+//     const userProfile = document.querySelector('.user-profile');
+//     if (userProfile) {
+//         userProfile.addEventListener('click', function(e) {
+//             e.stopPropagation();
+//             const profileMenu = this.querySelector('.profile-menu');
+//             if (profileMenu) {
+//                 profileMenu.classList.toggle('active');
+//             }
+//         });
+//     }
 
-    document.addEventListener('click', function(e) {
-        const profileMenu = document.querySelector('.profile-menu');
-        if (profileMenu && !profileMenu.contains(e.target) && profileMenu.classList.contains('active')) {
-            profileMenu.classList.remove('active');
-        }
-    });
-}
+//     document.addEventListener('click', function(e) {
+//         const profileMenu = document.querySelector('.profile-menu');
+//         if (profileMenu && !profileMenu.contains(e.target) && profileMenu.classList.contains('active')) {
+//             profileMenu.classList.remove('active');
+//         }
+//     });
+// }
 
 function initializePage() {
     loadListDetails();
@@ -355,7 +355,7 @@ function initializePage() {
     setupSearch();
     setupAbbreviationSearch();
     
-    setupUserProfile();
+    //setupUserProfile();
 }
 
 document.addEventListener('DOMContentLoaded', initializePage);

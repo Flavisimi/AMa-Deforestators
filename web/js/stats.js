@@ -193,11 +193,40 @@ async function loadAllStatistics() {
     }
 }
 
+async function initialize()
+{
+    document.querySelectorAll('.stat-card').forEach((elem, key, parent) =>
+    {
+        const actions = document.createElement("div");
+        actions.setAttribute("class", "stat-actions");
+        actions.innerHTML = `
+            <button class="export-btn action-btn" onclick="handleExport(this, 'CSV')">
+                Export as CSV
+            </button>
+            <button class="export-btn action-btn" onclick="handleExport(this, 'PDF')">
+                Export as PDF
+            </button>
+            `;
+        elem.appendChild(actions);
+    });
+
+    loadAllStatistics();
+}
+
+function handleExport(element, type)
+{
+    if(type != "PDF" && type != "CSV")
+        return;
+
+    console.log(type);
+}
+
 document.querySelector('.hamburger').addEventListener('click', function() {
     document.querySelector('.navigator').classList.toggle('active');
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadAllStatistics();
+    initialize();
 });
+
 setInterval(loadAllStatistics, 300000);

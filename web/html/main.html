@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Abbreviations Manager</title>
-    <link rel="stylesheet" href="../css/dashboard.css?t=<?= time() ?>">
+    <link rel="stylesheet" href="../css/dashboard.css">
+    <link rel="stylesheet" href="../css/meaning.css">
+    <link rel="stylesheet" href="../css/vote.css">
     <link rel="stylesheet" href="../css/common.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="../js/dashboard.js?t=<?= time() ?>" defer></script>
+    <script src="../js/dashboard.js" defer></script>
 </head>
 <body>
     <div class="user-profile">
@@ -41,6 +43,7 @@
     </nav>
 
     <main class="main-content">
+        <div id="error-message" class="error-message"></div>
         <div class="search-container">
             <div class="search-wrapper">
                 <input type="search" id="search-bar" placeholder="Search abbreviations (leave empty for all)..." aria-label="Search abbreviations">

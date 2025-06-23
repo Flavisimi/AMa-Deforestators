@@ -96,7 +96,9 @@ function createAbbreviationCard(abbreviation) {
 
 function displayAbbreviations(data, isSearchResult = false) {
     const placeholder = document.querySelector('.content-placeholder');
+    //const errorMessage = document.getElementById('error-message');
     placeholder.innerHTML = '';
+    //errorMessage.innerHTML = '';
     
     const abbreviations = Object.values(data);
     
@@ -192,6 +194,64 @@ function fetchMeanings(abbrId) {
         });
 }
 
+function refreshMeaning(meaningCard, meaningId)
+{
+    const placeholder = document.querySelector('.content-placeholder');
+    fetch(`/meanings?id=${meaningId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(meaning => {
+            meaningCard.innerHTML = getMeaningCardHTML(meaning);
+        })
+        .catch(error => {
+            console.error('Error refreshing meaning:', error);
+            placeholder.innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Failed to refresh meaning</h3>
+                    <p>${error.message}</p>
+                    <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                </div>
+            `;
+        });
+}
+
+async function vote(event, meaningId, isUpvote) {
+    const errorMessage = document.getElementById('error-message');
+    const placeholder = document.querySelector('.content-placeholder');
+
+    try {
+        const endpoint = isUpvote ? '/meanings/upvote' : '/meanings/downvote';
+        const response = await fetch(`${endpoint}?id=${meaningId}`, {
+            method: 'POST'
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error('You need to be logged in to vote');
+            }
+            throw new Error('Failed to submit vote');
+        }
+        
+        refreshMeaning(event.srcElement.parentElement.parentElement.parentElement.parentElement, meaningId);
+        
+    } catch (error) {
+        //errorMessage.textContent = 'Error submitting vote: ' + error.message;
+            placeholder.innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Failed to vote meaning</h3>
+                    <p>${error.message}</p>
+                    <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                </div>
+            `;
+    }
+}
+
 function displayMeanings(data) {
     const placeholder = document.querySelector('.content-placeholder');
     placeholder.innerHTML = '';
@@ -229,7 +289,18 @@ function displayMeanings(data) {
         meaningCard.className = 'meaning-card';
         meaningCard.style.animationDelay = `${index * 0.1}s`;
         
-        meaningCard.innerHTML = `
+        meaningCard.innerHTML = getMeaningCardHTML(meaning);
+        
+        meaningsGrid.appendChild(meaningCard);
+    });
+    
+    meaningsContainer.appendChild(meaningsGrid);
+    placeholder.appendChild(meaningsContainer);
+}
+
+function getMeaningCardHTML(meaning)
+{
+    return `
             <div class="meaning-header">
                 <h4>${meaning.name}</h4>
                 <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
@@ -244,6 +315,15 @@ function displayMeanings(data) {
                     <span class="meta-item">
                         <strong>Domain:</strong> ${meaning.domain}
                     </span>
+                    <span class="meta-item">
+                        <strong>Score:</strong> ${meaning.score}
+                        <button class="vote-btn upvote-btn" onclick="vote(event, ${meaning.id}, true)">
+                            👍 Upvote
+                        </button>
+                        <button class="vote-btn downvote-btn" onclick="vote(event, ${meaning.id}, false)">
+                            👎 Downvote
+                        </button>
+                    </span>
                 </div>
                 <div class="meaning-actions">
                     <button class="add-to-list-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
@@ -252,12 +332,6 @@ function displayMeanings(data) {
                 </div>
             </div>
         `;
-        
-        meaningsGrid.appendChild(meaningCard);
-    });
-    
-    meaningsContainer.appendChild(meaningsGrid);
-    placeholder.appendChild(meaningsContainer);
 }
 
 function loadUserLists() {

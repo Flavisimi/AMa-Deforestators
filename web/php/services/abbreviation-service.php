@@ -18,7 +18,10 @@ class AbbreviationService
     {
         $meanings = MeaningRepository::load_meanings_by_abbr_id($conn, $abbreviation->id);
         foreach($meanings as $meaning)
+        {
             MeaningService::attach_description($meaning, $abbreviation->searchable_name);
+            MeaningService::attach_score($conn, $meaning);
+        }
         $abbreviation->meanings = $meanings;
     }
 }

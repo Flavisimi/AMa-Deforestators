@@ -52,7 +52,6 @@ function createMeaningCard(meaning, animationDelay) {
                 <p class="meaning-expansion">${meaning.short_expansion}</p>
             </div>
         </div>
-        <p class="meaning-description">${meaning.description}</p>
         <div class="meaning-meta">
             <div class="meta-item">
                 <span>Language: ${meaning.lang.toUpperCase()}</span>

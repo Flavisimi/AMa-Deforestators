@@ -25,12 +25,16 @@ class UserRepository
         $user->updated_at = new \DateTime();
         $user->updated_at->setTimestamp(strtotime($row["UPDATED_AT"]));
         
+        $user->description = isset($row["DESCRIPTION"]) ? (string)$row["DESCRIPTION"] : '';
+        $user->date_of_birth = isset($row["DATE_OF_BIRTH"]) ? (string)$row["DATE_OF_BIRTH"] : '';
+        $user->profile_picture = '';
+        
         return $user;
     }
 
     public static function load_user($conn, int $id): ?User
     {
-        $stmt = oci_parse($conn, "select id, name, role, email, created_at, updated_at from users where id = :id");
+        $stmt = oci_parse($conn, "select id, name, role, email, created_at, updated_at, NVL(description, '') as description, NVL(TO_CHAR(date_of_birth, 'YYYY-MM-DD'), '') as date_of_birth from users where id = :id");
         if(!$stmt) 
             throw new ApiException(500, "Failed to parse SQL statement");
         oci_bind_by_name($stmt, ":id", $id);
@@ -62,7 +66,18 @@ class UserRepository
         $output = array();
         while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)
         {
-            $user = UserRepository::convert_row_to_object($row);
+            $user = new User();
+            $user->id = $row["ID"];
+            $user->name = $row["NAME"];
+            $user->role = $row["ROLE"];
+            $user->email = $row["EMAIL"];
+            $user->created_at = new \DateTime();
+            $user->created_at->setTimestamp(strtotime($row["CREATED_AT"]));
+            $user->updated_at = new \DateTime();
+            $user->updated_at->setTimestamp(strtotime($row["UPDATED_AT"]));
+            $user->description = '';
+            $user->date_of_birth = '';
+            $user->profile_picture = '';
 
             $output[$row["ID"]] = $user;
         }
@@ -71,37 +86,42 @@ class UserRepository
 
         return $output;
     }
-    public static function update_profile($conn, int $user_id, array $data, ?string $profile_picture = null): bool
+    
+    public static function update_profile($conn, int $user_id, array $data): bool
     {
-        $sql = "update users set description = :description, date_of_birth = :date_of_birth, updated_at = sysdate";
-        $params = [
-            ':description' => $data['description'],
-            ':date_of_birth' => $data['date_of_birth']
-        ];
+        $sql = "UPDATE users SET updated_at = sysdate";
+        $bind_vars = [];
         
-        if ($profile_picture !== null) {
-            $sql .= ", profile_picture = :profile_picture";
-            $params[':profile_picture'] = $profile_picture;
+        if (isset($data['description'])) {
+            $sql .= ", description = :description";
+            $bind_vars['description'] = $data['description'];
         }
         
-        $sql .= " where id = :user_id";
-        $params[':user_id'] = $user_id;
+        if (isset($data['date_of_birth']) && $data['date_of_birth'] !== null) {
+            $sql .= ", date_of_birth = TO_DATE(:date_of_birth, 'YYYY-MM-DD')";
+            $bind_vars['date_of_birth'] = $data['date_of_birth'];
+        }
+        
+        $sql .= " WHERE id = :user_id";
+        $bind_vars['user_id'] = $user_id;
         
         $stmt = oci_parse($conn, $sql);
         if(!$stmt) 
             throw new ApiException(500, "Failed to parse SQL statement");
         
-        foreach ($params as $key => $value) {
-            oci_bind_by_name($stmt, $key, $value);
+        foreach ($bind_vars as $key => $value) {
+            if (!oci_bind_by_name($stmt, ":$key", $bind_vars[$key])) {
+                throw new ApiException(500, "Failed to bind parameter $key");
+            }
         }
         
-        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
+        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) {
             throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+        }
 
         oci_free_statement($stmt);
         return true;
     }
 }
-
 
 ?>

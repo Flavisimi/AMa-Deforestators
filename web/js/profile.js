@@ -58,8 +58,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const url = userId ? `/profile?id=${userId}` : '/profile';
             
             const response = await fetch(url);
+            
             if (!response.ok) {
-                throw new Error('Failed to load profile');
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const error = await response.json();
+                    throw new Error(error.err_msg || `HTTP ${response.status}: ${response.statusText}`);
+                } else {
+                    const text = await response.text();
+                    console.error('Server response:', text);
+                    throw new Error(`Server error (${response.status}): Expected JSON but got HTML. Check browser console for details.`);
+                }
             }
             
             const user = await response.json();
@@ -73,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
         } catch (error) {
+            console.error('Profile loading error:', error);
             showAlert('Error loading profile: ' + error.message, 'error');
         } finally {
             showLoading(false);
@@ -93,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        if (user.date_of_birth) {
+        if (user.date_of_birth && user.date_of_birth.trim() !== '') {
             const dobDate = new Date(user.date_of_birth);
             document.getElementById('dobDisplay').textContent = dobDate.toLocaleDateString('en-US', {
                 year: 'numeric',
@@ -101,19 +111,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 day: 'numeric'
             });
             document.getElementById('dobField').style.display = 'flex';
+        } else {
+            document.getElementById('dobField').style.display = 'none';
         }
         
-        if (user.description) {
+        if (user.description && user.description.trim() !== '') {
             document.getElementById('descriptionDisplay').textContent = user.description;
             document.getElementById('descriptionField').style.display = 'flex';
+        } else {
+            document.getElementById('descriptionField').style.display = 'none';
         }
         
-        if (user.profile_picture && user.profile_picture !== 'default-avatar.png') {
-            avatarImg.src = `/uploads/profiles/${user.profile_picture}`;
-        }
+        avatarImg.src = '../assets/default-avatar.png';
         
         document.getElementById('description').value = user.description || '';
-        document.getElementById('date_of_birth').value = user.date_of_birth || '';
+        
+        if (user.date_of_birth && user.date_of_birth.trim() !== '') {
+            const dobForInput = new Date(user.date_of_birth).toISOString().split('T')[0];
+            document.getElementById('date_of_birth').value = dobForInput;
+        } else {
+            document.getElementById('date_of_birth').value = '';
+        }
     }
     
     async function saveProfile() {
@@ -121,11 +139,14 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoading(true);
             
             const formData = new FormData();
-            formData.append('description', document.getElementById('description').value);
-            formData.append('date_of_birth', document.getElementById('date_of_birth').value);
+            const description = document.getElementById('description').value.trim();
+            const dateOfBirth = document.getElementById('date_of_birth').value;
             
-            if (profilePictureInput.files[0]) {
-                formData.append('profile_picture', profilePictureInput.files[0]);
+            console.log('Saving profile with:', { description, dateOfBirth }); // Debug log
+            
+            formData.append('description', description);
+            if (dateOfBirth) {
+                formData.append('date_of_birth', dateOfBirth);
             }
             
             const response = await fetch('/profile/update', {
@@ -134,29 +155,32 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.err_msg || 'Failed to update profile');
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const error = await response.json();
+                    throw new Error(error.err_msg || 'Failed to update profile');
+                } else {
+                    const text = await response.text();
+                    console.error('Server response:', text);
+                    throw new Error('Server error: Expected JSON but got HTML');
+                }
             }
             
             const user = await response.json();
+            console.log('Profile updated successfully:', user); // Debug log
             displayProfile(user);
             toggleEditForm(false);
             showAlert('Profile updated successfully!', 'success');
             
         } catch (error) {
+            console.error('Profile update error:', error);
             showAlert('Error updating profile: ' + error.message, 'error');
         } finally {
             showLoading(false);
         }
     }
     
-    function getCurrentUserId() {
-        return 1;
-    }
-    
-    function showLoading(show) {
-        const overlay = document.getElementById('loading-overlay');
-        overlay.style.display = show ? 'flex' : 'none';
+    function toggleEditForm(show) {
         if (show) {
             editFormContainer.style.display = 'block';
             setTimeout(() => {
@@ -175,6 +199,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 editBtn.style.display = 'inline-block';
             }, 300);
         }
+    }
+    
+    function getCurrentUserId() {
+        return 1;
+    }
+    
+    function showLoading(show) {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = show ? 'flex' : 'none';
     }
     
     function resetForm() {
@@ -211,21 +244,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function showAlert(message, type) {
-        const existingAlert = document.querySelector('.alert');
-        if (existingAlert) {
-            existingAlert.remove();
+        const successDiv = document.getElementById('success-message');
+        const errorDiv = document.getElementById('error-message');
+        
+        successDiv.style.display = 'none';
+        errorDiv.style.display = 'none';
+        
+        if (type === 'success') {
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        } else {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
         }
-        
-        const alert = document.createElement('div');
-        alert.className = `alert alert-${type}`;
-        alert.textContent = message;
-        
-        const profileHeader = document.querySelector('.profile-header');
-        profileHeader.insertAdjacentElement('afterend', alert);
-        
-        setTimeout(() => {
-            alert.remove();
-        }, 5000);
     }
     
     const form = document.querySelector('.edit-form');
@@ -271,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const avatarImgElement = document.getElementById('avatarImg');
     if (avatarImgElement) {
         avatarImgElement.addEventListener('error', function() {
-            this.src = 'assets/default-avatar.png';
+            this.src = '../assets/default-avatar.png';
         });
     }
 });

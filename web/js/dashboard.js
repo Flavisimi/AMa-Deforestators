@@ -290,7 +290,7 @@ function getMeaningCardHTML(meaning)
                 <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
             </div>
             <div class="meaning-body">
-                <h3 class="meaning-description">${meaning.short_expansion}</h3>
+                <h3 class="meaning-expansion">${meaning.short_expansion}</h3>
                 <p class="meaning-description">${meaning.description}</p>
                 <div class="meaning-meta">
                     <span class="meta-item">
@@ -309,17 +309,17 @@ function getMeaningCardHTML(meaning)
                         </button>
                     </span>
                 </div>
-                <div class="meaning-actions">
-                    <button class="add-to-list-btn action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
-                        ➕ Add to List
-                    </button>
-                    <button class="delete-btn action-btn" onclick="">
-                        Delete
-                    </button>
-                    <button class="edit-btn action-btn" onclick="">
-                        Edit
-                    </button>
-                </div>
+            </div>
+            <div class="meaning-actions">
+                <button class="add-to-list-btn action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
+                    ➕ Add to List
+                </button>
+                <button class="delete-btn action-btn" onclick="">
+                    Delete
+                </button>
+                <button class="edit-btn action-btn" onclick="">
+                    Edit
+                </button>
             </div>
         `;
 }

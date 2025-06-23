@@ -1,4 +1,3 @@
-
 .vote-container {
     max-width: 900px;
     margin: 0 auto;
@@ -43,7 +42,7 @@
 .vote-body {
     padding: 40px 30px 30px;
 }
-
+/* 
 .meaning-card {
     background: white;
     border: 2px solid #e9ecef;
@@ -99,7 +98,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-}
+} */
 
 .vote-actions {
     display: flex;
@@ -118,6 +117,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
+    margin: 5px;
 }
 
 .vote-btn:hover {
@@ -169,14 +169,14 @@
         padding: 30px 20px 20px;
     }
 
-    .meaning-card {
+    /* .meaning-card {
         padding: 20px;
     }
 
     .meaning-header {
         flex-direction: column;
         align-items: flex-start;
-    }
+    } */
 
     .vote-actions {
         margin-top: 15px;

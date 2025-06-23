@@ -25,7 +25,6 @@
         </div>
         <ul class="nav-list">
             <li><a href="main.html" class="nav-button">Dashboard</a></li>
-            <li><a href="vote.html" class="nav-button">Vote</a></li>
             <li><a href="create-abbreviation.html" class="nav-button active">Create an Abbreviation</a></li>
             <li><a href="#top" class="nav-button">Top Abbreviations</a></li>
             <li><a href="stats.html" class="nav-button">Statistics</a></li>
@@ -73,7 +72,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="language" class="form-label">Language*</label>
-                            <select id="language" name="lang" class="form-select" required>
+                            <!-- <select id="language" name="lang" class="form-select" required>
                                 <option value="">Select Language</option>
                                 <option value="en">English</option>
                                 <option value="es">Spanish</option>
@@ -83,12 +82,14 @@
                                 <option value="pt">Portuguese</option>
                                 <option value="ro">Romanian</option>
                                 <option value="other">Other</option>
-                            </select>
+                            </select> -->
+                            <input type="text" id="language" name="lang" class="form-input" required 
+                               placeholder="Language">
                         </div>
 
                         <div class="form-group">
                             <label for="domain" class="form-label">Domain/Category*</label>
-                            <select id="domain" name="domain" class="form-select" required>
+                            <!-- <select id="domain" name="domain" class="form-select" required>
                                 <option value="">Select Domain</option>
                                 <option value="Technology">Technology</option>
                                 <option value="Medicine">Medicine</option>
@@ -101,7 +102,9 @@
                                 <option value="Government">Government</option>
                                 <option value="General">General</option>
                                 <option value="Other">Other</option>
-                            </select>
+                            </select> -->
+                            <input type="text" id="domain" name="domain" class="form-input" required 
+                               placeholder="Domain">
                         </div>
                     </div>
 
@@ -120,6 +123,8 @@
             <p>Creating abbreviation...</p>
         </div>
     </div>
+
+    <script src="../js/common.js"></script>
     <script src="../js/create-abbreviation.js"></script>
 </body>
 </html>

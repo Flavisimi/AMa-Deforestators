@@ -4,22 +4,22 @@ document.querySelectorAll('.nav-button').forEach(button => {
         
         if (href === '#create') {
             e.preventDefault();
-            window.location.href = '../html/create-abbreviation.html';
+            window.location.href = 'create-abbreviation';
             return;
         }
         if (href === '#myabv') {
             e.preventDefault();
-            window.location.href = '../html/my_abbreviations.html';
+            window.location.href = 'my_abbreviations';
             return;
         }
         if (href === '#vote') {
             e.preventDefault();
-            window.location.href = '../html/vote.html';
+            window.location.href = 'vote';
             return;
         }
         if (href === '#stats') {
             e.preventDefault();
-            window.location.href = '../html/stats.html';
+            window.location.href = 'stats';
             return;
         }
         if (href.startsWith('#')) {
@@ -93,7 +93,7 @@ function displayAbbreviations(data, isSearchResult = false) {
                 <h3>No abbreviations found</h3>
                 <p>${isSearchResult ? 'Try adjusting your search terms' : 'No abbreviations available at the moment'}</p>
                 <div style="margin-top: 20px;">
-                    <a href="create-abbreviation.html" class="btn btn-primary" style="padding: 12px 24px; background: linear-gradient(135deg, #4caf50, #45a049); color: white; text-decoration: none; border-radius: 25px; font-weight: 500; transition: all 0.3s ease;">
+                    <a href="create-abbreviation" class="btn btn-primary" style="padding: 12px 24px; background: linear-gradient(135deg, #4caf50, #45a049); color: white; text-decoration: none; border-radius: 25px; font-weight: 500; transition: all 0.3s ease;">
                         Create First Abbreviation
                     </a>
                 </div>
@@ -402,7 +402,7 @@ function showListModal(meaningId, meaningName) {
                         <div class="empty-icon">📋</div>
                         <h4>No lists found</h4>
                         <p>You don't have any lists yet. Create one first!</p>
-                        <button class="btn btn-primary" onclick="window.location.href='../html/my_abbreviations.html'">
+                        <button class="btn btn-primary" onclick="window.location.href='my_abbreviations'">
                             Create List
                         </button>
                     </div>

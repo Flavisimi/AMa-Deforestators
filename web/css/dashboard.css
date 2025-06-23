@@ -179,36 +179,42 @@
     box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
 }
 
-/* Add to List Feature */
+/* Meaning buttons */
 .meaning-actions {
-    margin-top: 20px;
-    padding-top: 20px;
+    margin: 0px 10px 10px 10px;
+    padding: 20px;
     border-top: 1px solid #e9ecef;
 }
 
 .add-to-list-btn {
-    width: 100%;
-    padding: 12px 20px;
     background: linear-gradient(135deg, #17a2b8, #138496);
     color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
 }
 
 .add-to-list-btn:hover {
     background: linear-gradient(135deg, #138496, #117a8b);
-    transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3);
 }
 
+.delete-btn {
+    background: linear-gradient(135deg, #b81717, #961313);
+    color: white;
+}
+
+.delete-btn:hover {
+    background: linear-gradient(135deg, #961313, #8b1111);
+    box-shadow: 0 6px 20px rgba(184, 23, 23, 0.3);
+}
+
+.edit-btn {
+    background: #000000;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #000000;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
 
 .modal-overlay {
     position: fixed;

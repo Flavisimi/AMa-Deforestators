@@ -12,6 +12,13 @@ use ama\helpers\ConnectionHelper;
 use ama\repositories\UserRepository;
 use ama\exceptions\ApiException;
 
+// Session configuration
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_strict_mode', 1);
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('display_errors', 0);
+error_reporting(0);
+
 class ProfileController
 {
     public static function get_profile(int $user_id): ?User
@@ -32,7 +39,52 @@ class ProfileController
         return $user;
     }
 
-    public static function update_profile(int $user_id, $data): ?User
+    public static function get_profile_picture(int $user_id)
+    {
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $stmt = oci_parse($conn, "SELECT profile_picture FROM users WHERE id = :id");
+            if(!$stmt) 
+                throw new ApiException(500, "Failed to parse SQL statement");
+            
+            oci_bind_by_name($stmt, ":id", $user_id);
+            
+            if(!oci_execute($stmt)) 
+                throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+            
+            $row = oci_fetch_array($stmt, OCI_ASSOC + OCI_RETURN_LOBS);
+            if($row === false)
+            {
+                oci_free_statement($stmt);
+                oci_close($conn);
+                return null;
+            }
+
+            $image_data = $row['PROFILE_PICTURE'];
+            if ($image_data === null || $image_data === '') {
+                oci_free_statement($stmt);
+                oci_close($conn);
+                return null;
+            }
+            
+            oci_free_statement($stmt);
+            oci_close($conn);
+            
+            return $image_data;
+            
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        } catch(\Exception $e)
+        {
+            oci_close($conn);
+            throw new ApiException(500, "Error reading profile picture: " . $e->getMessage());
+        }
+    }
+
+    public static function update_profile(int $user_id, $data, $profile_picture = null): ?User
     {
         if(!isset($_SESSION["user_id"]) || $_SESSION["user_id"] !== $user_id) {
             throw new ApiException(403, "You can only edit your own profile");
@@ -41,6 +93,31 @@ class ProfileController
         $conn = ConnectionHelper::open_connection();
         try
         {
+            // Handle profile picture upload
+            if ($profile_picture && $profile_picture['error'] === UPLOAD_ERR_OK) {
+                // Validate file type
+                $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+                $file_type = $profile_picture['type'];
+                
+                if (!in_array($file_type, $allowed_types)) {
+                    throw new ApiException(400, "Invalid file type. Only JPG, PNG, and GIF are allowed.");
+                }
+                
+                // Validate file size (5MB max)
+                if ($profile_picture['size'] > 5 * 1024 * 1024) {
+                    throw new ApiException(400, "File too large. Maximum size is 5MB.");
+                }
+                
+                // Read file content
+                $image_data = file_get_contents($profile_picture['tmp_name']);
+                if ($image_data === false) {
+                    throw new ApiException(500, "Failed to read uploaded file.");
+                }
+                
+                // Add image data to update data
+                $data['profile_picture'] = $image_data;
+            }
+            
             UserRepository::update_profile($conn, $user_id, $data);
             $user = UserRepository::load_user($conn, $user_id);
             
@@ -60,27 +137,105 @@ class ProfileController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/profile")
+        if($url === "/api/profile")
         {
             if(isset($query_components["id"])) {
                 $user_id = (int)$query_components["id"];
+                $is_own_profile = isset($_SESSION["user_id"]) && $_SESSION["user_id"] == $user_id;
             } else {
                 if(!isset($_SESSION["user_id"])) {
-                    throw new ApiException(401, "You need to be logged in");
+                    // Return JSON error instead of throwing exception
+                    http_response_code(401);
+                    header("Content-Type: application/json");
+                    echo json_encode([
+                        'error' => 'You need to be logged in',
+                        'guest' => true,
+                        'redirect' => '/'
+                    ]);
+                    return;
                 }
                 $user_id = $_SESSION["user_id"];
+                $is_own_profile = true;
             }
             
-            if(!is_numeric($user_id) || $user_id <= 0)
-                throw new ApiException(400, "Invalid ID");
+            if(!is_numeric($user_id) || $user_id <= 0) {
+                http_response_code(400);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => 'Invalid user ID']);
+                return;
+            }
             
-            $user = ProfileController::get_profile($user_id);
-            header("Content-Type: application/json");
-            echo json_encode($user);
+            try {
+                $user = ProfileController::get_profile($user_id);
+                
+                $response_data = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'description' => $user->description,
+                    'date_of_birth' => $user->date_of_birth,
+                    'profile_picture' => $user->profile_picture ? "/api/profile/picture?id=" . $user->id : '',
+                    'created_at' => $user->created_at->format('Y-m-d H:i:s'),
+                    'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
+                    'is_own_profile' => $is_own_profile
+                ];
+                
+                header("Content-Type: application/json");
+                echo json_encode($response_data);
+            } catch (ApiException $e) {
+                http_response_code($e->status_code);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => $e->err_msg]);
+            }
+        }
+        else if($url === "/api/profile/picture")
+        {
+            // Serve profile picture
+            $query_components = array();
+            parse_str($_SERVER['QUERY_STRING'], $query_components);
+            
+            if(!isset($query_components["id"]) || !is_numeric($query_components["id"])) {
+                http_response_code(400);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => 'Invalid user ID']);
+                return;
+            }
+            
+            $user_id = (int)$query_components["id"];
+            
+            try {
+                $image_data = ProfileController::get_profile_picture($user_id);
+                
+                if ($image_data === null) {
+                    http_response_code(404);
+                    header("Content-Type: application/json");
+                    echo json_encode(['error' => 'Profile picture not found']);
+                    return;
+                }
+                
+                // Detect image type
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                $mime_type = $finfo->buffer($image_data);
+                
+                // Set appropriate headers
+                header("Content-Type: " . $mime_type);
+                header("Content-Length: " . strlen($image_data));
+                header("Cache-Control: public, max-age=3600");
+                
+                echo $image_data;
+                
+            } catch (ApiException $e) {
+                http_response_code($e->status_code);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => $e->err_msg]);
+            }
         }
         else
         {
-            http_response_code(400);
+            http_response_code(404);
+            header("Content-Type: application/json");
+            echo json_encode(['error' => 'Endpoint not found']);
         }
     }
 
@@ -88,59 +243,105 @@ class ProfileController
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        if($url === "/profile/update")
+        if($url === "/api/profile/update")
         {
             if(!isset($_SESSION["user_id"])) {
-                throw new ApiException(401, "You need to be logged in to update your profile");
+                http_response_code(401);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => 'You need to be logged in to update your profile']);
+                return;
             }
             
-            $description = isset($_POST['description']) ? trim($_POST['description']) : '';
-            $date_of_birth = isset($_POST['date_of_birth']) && !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
+            try {
+                // DEBUG: Log what we receive
+                $debug_info = [
+                    'post_data' => $_POST,
+                    'files_data' => $_FILES,
+                    'has_profile_picture_file' => isset($_FILES['profile_picture']),
+                    'profile_picture_error' => $_FILES['profile_picture']['error'] ?? 'no file'
+                ];
+                
+                $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+                $date_of_birth = isset($_POST['date_of_birth']) && !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
 
-            $data = [
-                'description' => $description,
-                'date_of_birth' => $date_of_birth
-            ];
-            
-            $user = ProfileController::update_profile($_SESSION["user_id"], $data);
-            header("Content-Type: application/json");
-            echo json_encode($user);
+                $data = [
+                    'description' => $description,
+                    'date_of_birth' => $date_of_birth
+                ];
+                
+                // Handle profile picture upload
+                $profile_picture = null;
+                if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
+                    $profile_picture = $_FILES['profile_picture'];
+                    $debug_info['profile_picture_processed'] = true;
+                    $debug_info['file_size'] = $profile_picture['size'];
+                    $debug_info['file_type'] = $profile_picture['type'];
+                } else {
+                    $debug_info['profile_picture_processed'] = false;
+                }
+                
+                $user = ProfileController::update_profile($_SESSION["user_id"], $data, $profile_picture);
+                
+                $response_data = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'description' => $user->description,
+                    'date_of_birth' => $user->date_of_birth,
+                    'profile_picture' => $user->profile_picture ? "/api/profile/picture?id=" . $user->id : '',
+                    'created_at' => $user->created_at->format('Y-m-d H:i:s'),
+                    'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
+                    'is_own_profile' => true,
+                    'debug' => $debug_info
+                ];
+                
+                header("Content-Type: application/json");
+                echo json_encode($response_data);
+            } catch (ApiException $e) {
+                http_response_code($e->status_code);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => $e->err_msg]);
+            }
         }
         else
         {
-            http_response_code(400);
+            http_response_code(404);
+            header("Content-Type: application/json");
+            echo json_encode(['error' => 'Endpoint not found']);
         }
     }
 
     public static function handle_request()
     {
-        session_start();
-        if($_SERVER['REQUEST_METHOD'] === 'GET')
-            ProfileController::handle_get();
-        else if($_SERVER['REQUEST_METHOD'] === 'POST')
-            ProfileController::handle_post();
-        else
-        {
-            http_response_code(400);
+        // Start session with proper error handling
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        try {
+            if($_SERVER['REQUEST_METHOD'] === 'GET')
+                ProfileController::handle_get();
+            else if($_SERVER['REQUEST_METHOD'] === 'POST')
+                ProfileController::handle_post();
+            else
+            {
+                http_response_code(405);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => 'Method not allowed']);
+            }
+        } catch(\Exception $e) {
+            http_response_code(500);
+            header("Content-Type: application/json");
+            echo json_encode([
+                'error' => 'Internal server error: ' . $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
         }
     }
 }
 
-try
-{
-    ProfileController::handle_request();
-} 
-catch(ApiException $e)
-{
-    http_response_code($e->status_code);
-    header("Content-Type: application/json");
-    echo json_encode($e);
-}
-catch(\Exception $e)
-{
-    http_response_code(500);
-    header("Content-Type: application/json");
-    echo json_encode($e);
-}
+ProfileController::handle_request();
 
 ?>

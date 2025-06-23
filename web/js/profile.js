@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showLoading(true);
             const urlParams = new URLSearchParams(window.location.search);
             const userId = urlParams.get('id');
-            const url = userId ? `/profile?id=${userId}` : '/profile';
+            const url = userId ? `/api/profile?id=${userId}` : '/api/profile';
             
             const response = await fetch(url);
             
@@ -63,21 +63,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     const error = await response.json();
-                    throw new Error(error.err_msg || `HTTP ${response.status}: ${response.statusText}`);
+                    
+                    // Handle not logged in case
+                    if (error.guest) {
+                        displayGuestMessage();
+                        return;
+                    }
+                    
+                    throw new Error(error.error || error.err_msg || `HTTP ${response.status}: ${response.statusText}`);
                 } else {
                     const text = await response.text();
                     console.error('Server response:', text);
-                    throw new Error(`Server error (${response.status}): Expected JSON but got HTML. Check browser console for details.`);
+                    throw new Error(`Server error (${response.status}): Expected JSON but got HTML. Check server logs for PHP errors.`);
                 }
             }
             
             const user = await response.json();
+            
+            // Handle guest response
+            if (user.guest) {
+                displayGuestMessage();
+                return;
+            }
+            
             displayProfile(user);
             
-            if (!userId || parseInt(userId) === getCurrentUserId()) {
+            if (user.is_own_profile) {
                 editBtn.style.display = 'block';
                 document.getElementById('profileTitle').textContent = 'My Profile';
             } else {
+                editBtn.style.display = 'none';
                 document.getElementById('profileTitle').textContent = `${user.name}'s Profile`;
             }
             
@@ -89,13 +104,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function displayGuestMessage() {
+        document.getElementById('profileTitle').textContent = 'Profile';
+        document.getElementById('usernameDisplay').textContent = 'Not logged in';
+        document.getElementById('emailDisplay').textContent = 'Please log in';
+        document.getElementById('roleDisplay').textContent = 'Guest';
+        document.getElementById('memberSinceDisplay').textContent = 'N/A';
+        document.getElementById('dobField').style.display = 'none';
+        document.getElementById('descriptionField').style.display = 'none';
+        editBtn.style.display = 'none';
+        
+        showAlert('You need to log in to view your profile. Redirecting to login...', 'error');
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 2000);
+    }
+    
     function displayProfile(user) {
         document.getElementById('usernameDisplay').textContent = user.name;
         document.getElementById('emailDisplay').textContent = user.email;
         document.getElementById('roleDisplay').textContent = user.role;
         
         if (user.created_at) {
-            const createdDate = new Date(user.created_at.date || user.created_at);
+            const createdDate = new Date(user.created_at);
             document.getElementById('memberSinceDisplay').textContent = createdDate.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
@@ -122,7 +153,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('descriptionField').style.display = 'none';
         }
         
-        avatarImg.src = '../assets/default-avatar.png';
+        if (user.profile_picture && user.profile_picture !== '') {
+            avatarImg.src = user.profile_picture;
+        } else {
+            avatarImg.src = '../assets/default-avatar.png';
+        }
         
         document.getElementById('description').value = user.description || '';
         
@@ -141,15 +176,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             const description = document.getElementById('description').value.trim();
             const dateOfBirth = document.getElementById('date_of_birth').value;
+            const profilePictureFile = document.getElementById('profile_picture').files[0];
             
-            console.log('Saving profile with:', { description, dateOfBirth }); // Debug log
+            console.log('Saving profile with:', { 
+                description, 
+                dateOfBirth, 
+                hasProfilePicture: !!profilePictureFile,
+                profilePictureSize: profilePictureFile?.size,
+                profilePictureType: profilePictureFile?.type
+            });
             
             formData.append('description', description);
             if (dateOfBirth) {
                 formData.append('date_of_birth', dateOfBirth);
             }
             
-            const response = await fetch('/profile/update', {
+            // Add profile picture file if selected
+            if (profilePictureFile) {
+                formData.append('profile_picture', profilePictureFile);
+            }
+            
+            const response = await fetch('/api/profile/update', {
                 method: 'POST',
                 body: formData
             });
@@ -158,16 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     const error = await response.json();
-                    throw new Error(error.err_msg || 'Failed to update profile');
+                    throw new Error(error.error || error.err_msg || 'Failed to update profile');
                 } else {
                     const text = await response.text();
                     console.error('Server response:', text);
-                    throw new Error('Server error: Expected JSON but got HTML');
+                    throw new Error('Server error: Expected JSON but got HTML. Check server logs for PHP errors.');
                 }
             }
             
             const user = await response.json();
-            console.log('Profile updated successfully:', user); // Debug log
+            console.log('Profile updated successfully:', user);
             displayProfile(user);
             toggleEditForm(false);
             showAlert('Profile updated successfully!', 'success');
@@ -199,10 +246,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 editBtn.style.display = 'inline-block';
             }, 300);
         }
-    }
-    
-    function getCurrentUserId() {
-        return 1;
     }
     
     function showLoading(show) {

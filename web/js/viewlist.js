@@ -133,7 +133,7 @@ function createAbbreviationCard(meaning, index) {
             <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
         </div>
         <div class="meaning-body">
-            <h3 class="meaning-description">${meaning.short_expansion}</h3>
+            <h3 class="meaning-expansion">${meaning.short_expansion}</h3>
             <p class="meaning-description">${meaning.description}</p>
             <div class="meaning-meta">
                 <span class="meta-item">

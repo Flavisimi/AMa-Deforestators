@@ -134,7 +134,7 @@ function createAbbreviationCard(meaning, index) {
             <button class="remove-btn" onclick="removeAbbreviation(${index})" title="Remove from list">×</button>
         </div>
         <div class="meaning-body">
-            <h3 class="meaning-description">${meaning.short_expansion}</h3>
+            <h3 class="meaning-expansion">${meaning.short_expansion}</h3>
             <p class="meaning-description">${meaning.description}</p>
             <div class="meaning-meta">
                 <span class="meta-item">

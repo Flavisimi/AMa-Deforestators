@@ -310,8 +310,14 @@ function getMeaningCardHTML(meaning)
                     </span>
                 </div>
                 <div class="meaning-actions">
-                    <button class="add-to-list-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
+                    <button class="add-to-list-btn meaning-action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
                         ➕ Add to List
+                    </button>
+                    <button class="delete-btn meaning-action-btn" onclick="">
+                        Delete
+                    </button>
+                    <button class="edit-btn meaning-action-btn" onclick="">
+                        Edit
                     </button>
                 </div>
             </div>

@@ -104,3 +104,20 @@
     color: #333;
     margin-right: 8px;
 }
+
+@media (max-width: 768px) {
+    .meanings-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .meanings-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .meanings-header h2 {
+        font-size: 1.6rem;
+    }
+}

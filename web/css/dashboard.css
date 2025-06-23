@@ -433,21 +433,6 @@
         gap: 20px;
     }
 
-    .meanings-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .meanings-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
-    }
-
-    .meanings-header h2 {
-        font-size: 1.6rem;
-    }
-
     .list-modal {
         width: 95%;
         max-height: 90vh;

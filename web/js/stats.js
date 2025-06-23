@@ -44,6 +44,8 @@ function renderMostVisited(data) {
         return;
     }
 
+    data = data.slice(0, 10);
+
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
@@ -62,13 +64,15 @@ function renderMostControversial(data) {
         return;
     }
 
+    data = data.slice(0, 10);
+
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.name}</span>
             </div>
-            <span class="stat-value controversial">${item.controversy || 0}</span>
+            <span class="stat-value controversial">${parseFloat(item.controversy).toFixed(2) || 0}</span>
         </li>
     `).join('');
 }
@@ -79,6 +83,8 @@ function renderHighestLikeRate(data) {
         container.innerHTML = '<li class="stat-item"><span class="stat-name">No data available</span></li>';
         return;
     }
+
+    data = data.slice(0, 10);
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
@@ -98,13 +104,15 @@ function renderMostActiveUsers(data) {
         return;
     }
 
+    data = data.slice(0, 10);
+
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
             <div style="display: flex; align-items: center;">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.name}</span>
             </div>
-            <span class="stat-value active">${item.activity || 0}</span>
+            <span class="stat-value active">${parseFloat(item.activity).toFixed(2) || 0}</span>
         </li>
     `).join('');
 }
@@ -115,6 +123,8 @@ function renderMedianAbbreviation(data) {
         container.innerHTML = '<li class="stat-item"><span class="stat-name">No data available</span></li>';
         return;
     }
+
+    data = data.slice(0, 10);
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">

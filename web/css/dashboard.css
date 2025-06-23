@@ -186,27 +186,6 @@
     border-top: 1px solid #e9ecef;
 }
 
-.meaning-action-btn
-{
-    width: 100%;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: 4px;
-}
-
-.meaning-action-btn:hover {
-    transform: translateY(-2px);
-}
-
 .add-to-list-btn {
     background: linear-gradient(135deg, #17a2b8, #138496);
     color: white;

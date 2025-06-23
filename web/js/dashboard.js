@@ -221,7 +221,7 @@ async function vote(event, meaningId, isUpvote) {
             throw new Error('Failed to submit vote');
         }
         
-        refreshMeaning(event.srcElement.parentElement.parentElement.parentElement.parentElement, meaningId);
+        refreshMeaning(event.srcElement.closest(".meaning-card"), meaningId);
         
     } catch (error) {
         //errorMessage.textContent = 'Error submitting vote: ' + error.message;

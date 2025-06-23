@@ -37,8 +37,8 @@ document.getElementById('abbreviation-form').addEventListener('submit', function
         document.getElementById('abbreviation-form').reset();
         
         setTimeout(() => {
-            window.location.href = '../html/main.html';
-        }, 1000);
+    window.location.href = 'main';
+}, 1000);
     })
     .catch(error => {
         document.getElementById('loading-overlay').style.display = 'none';

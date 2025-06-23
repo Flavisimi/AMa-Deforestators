@@ -2,6 +2,27 @@ Options +MultiViews
 RewriteEngine On
 DirectoryIndex html/index.html
 
+# HTML file redirects - handle both with and without .html extension
+RewriteRule ^register/?$ html/register.html [L]
+RewriteRule ^register\.html$ html/register.html [L]
+RewriteRule ^main/?$ html/main.html [L]
+RewriteRule ^main\.html$ html/main.html [L]
+RewriteRule ^create-abbreviation/?$ html/create-abbreviation.html [L]
+RewriteRule ^create-abbreviation\.html$ html/create-abbreviation.html [L]
+RewriteRule ^stats/?$ html/stats.html [L]
+RewriteRule ^stats\.html$ html/stats.html [L]
+RewriteRule ^my_abbreviations/?$ html/my_abbreviations.html [L]
+RewriteRule ^my_abbreviations\.html$ html/my_abbreviations.html [L]
+RewriteRule ^all_abbreviations/?$ html/all_abbreviations.html [L]
+RewriteRule ^all_abbreviations\.html$ html/all_abbreviations.html [L]
+RewriteRule ^profile/?$ html/profile.html [L]
+RewriteRule ^profile\.html$ html/profile.html [L]
+RewriteRule ^mylist/?$ html/mylist.html [L]
+RewriteRule ^mylist\.html$ html/mylist.html [L]
+RewriteRule ^viewlist/?$ html/viewlist.html [L]
+RewriteRule ^viewlist\.html$ html/viewlist.html [L]
+
+# API routes
 RewriteRule ^abbreviations/search php/controllers/abbreviation-search-controller.php [L]
 RewriteRule ^abbreviations php/controllers/abbreviation-controller.php [L]
 RewriteRule ^meanings php/controllers/meaning-controller.php [L]

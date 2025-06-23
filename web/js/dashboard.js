@@ -2,28 +2,33 @@ document.querySelectorAll('.nav-button').forEach(button => {
     button.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
         
-        if (href === '#create') {
+       if (href.startsWith('#')) {
             e.preventDefault();
-            window.location.href = 'create-abbreviation';
-            return;
-        }
-        if (href === '#myabv') {
-            e.preventDefault();
-            window.location.href = 'my_abbreviations';
-            return;
-        }
-        if (href === '#vote') {
-            e.preventDefault();
-            window.location.href = 'vote';
-            return;
-        }
-        if (href === '#stats') {
-            e.preventDefault();
-            window.location.href = 'stats';
-            return;
-        }
-        if (href.startsWith('#')) {
-            e.preventDefault();
+            
+            if (href === '#create') {
+                window.location.href = 'create-abbreviation';
+                return;
+            }
+            if (href === '#myabv') {
+                window.location.href = 'my_abbreviations';
+                return;
+            }
+            if (href === '#vote') {
+                window.location.href = 'vote';
+                return;
+            }
+            if (href === '#stats') {
+                window.location.href = 'stats';
+                return;
+            }
+            if (href === '#top') {
+                // Handle top abbreviations
+                return;
+            }
+            if (href === '#feed') {
+                // Handle feed
+                return;
+            }
         }
     });
 });

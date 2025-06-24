@@ -36,10 +36,10 @@ create table abbreviations(
 
 create table meanings(
     id integer primary key,
-    abbr_id integer references abbreviations(id) not null,
+    abbr_id integer references abbreviations(id) on delete cascade not null,
     name varchar2(30) not null,
     short_expansion varchar2(256) unique not null,
-    uploader_id integer references users(id) not null,
+    uploader_id integer references users(id) on delete cascade not null,
     approval_status varchar2(50) not null, -- pending, accepted, rejected, manual
     lang varchar2(3) not null,
     domain varchar2(30) not null,
@@ -48,8 +48,8 @@ create table meanings(
 );
 
 create table votes(
-    voter_id integer references users(id) not null,
-    meaning_id integer references meanings(id) not null,
+    voter_id integer references users(id) on delete cascade not null,
+    meaning_id integer references meanings(id) on delete cascade not null,
     vote number(1,0) not null, -- 1 sau -1
     vote_date date not null,
     constraint vote_uq_ids unique(voter_id, meaning_id)
@@ -57,7 +57,7 @@ create table votes(
 
 create table abbr_lists(
     id integer primary key,
-    creator_id integer references users(id) not null,
+    creator_id integer references users(id) on delete cascade not null,
     name varchar(50) unique not null,
     private number(1, 0) not null,
     created_at date not null,
@@ -72,8 +72,8 @@ create table abbr_list_contents(
 );
 
 create table visit_logs(
-    visitor_id integer references users(id), --if this column is null then a guest (not logged in user) visited the abbreviation
-    abbr_id integer references users(id) not null,
+    visitor_id integer references users(id) on delete set null, --if this column is null then a guest (not logged in user) visited the abbreviation
+    abbr_id integer references users(id) on delete cascade not null,
     visit_date date not null
 );
 

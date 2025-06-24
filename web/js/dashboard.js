@@ -1,3 +1,6 @@
+let availableLanguages = [];
+let availableDomains = [];
+
 document.querySelectorAll('.nav-button').forEach(button => {
     button.addEventListener('click', function(e) {
         const href = this.getAttribute('href');
@@ -32,6 +35,57 @@ document.querySelectorAll('.nav-button').forEach(button => {
         }
     });
 });
+
+function loadFilterOptions() {
+    fetch('/dashboard/filters')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                availableLanguages = data.languages || [];
+                availableDomains = data.domains || [];
+                
+                populateDatalist('language-options', availableLanguages);
+                populateDatalist('domain-options', availableDomains);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading filter options:', error);
+        });
+}
+
+function populateDatalist(datalistId, options) {
+    const datalist = document.getElementById(datalistId);
+    if (datalist) {
+        datalist.innerHTML = '';
+        
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            datalist.appendChild(optionElement);
+        });
+    }
+}
+
+function clearLanguageFilter() {
+    document.getElementById('language-filter').value = '';
+    const searchTerm = document.querySelector('#search-bar').value.trim();
+    if (searchTerm) {
+        performSearch();
+    }
+}
+
+function clearDomainFilter() {
+    document.getElementById('domain-filter').value = '';
+    const searchTerm = document.querySelector('#search-bar').value.trim();
+    if (searchTerm) {
+        performSearch();
+    }
+}
 
 function createAbbreviationCard(abbreviation) {
     const card = document.createElement('div');
@@ -85,9 +139,7 @@ function createAbbreviationCard(abbreviation) {
 
 function displayAbbreviations(data, isSearchResult = false) {
     const placeholder = document.querySelector('.content-placeholder');
-    //const errorMessage = document.getElementById('error-message');
     placeholder.innerHTML = '';
-    //errorMessage.innerHTML = '';
     
     const abbreviations = Object.values(data);
     
@@ -183,8 +235,7 @@ function fetchMeanings(abbrId) {
         });
 }
 
-function refreshMeaning(meaningCard, meaningId)
-{
+function refreshMeaning(meaningCard, meaningId) {
     const placeholder = document.querySelector('.content-placeholder');
     fetch(`/meanings?id=${meaningId}`)
         .then(response => {
@@ -229,15 +280,14 @@ async function vote(event, meaningId, isUpvote) {
         refreshMeaning(event.srcElement.closest(".meaning-card"), meaningId);
         
     } catch (error) {
-        //errorMessage.textContent = 'Error submitting vote: ' + error.message;
-            placeholder.innerHTML = `
-                <div class="error-state">
-                    <div class="error-icon">⚠️</div>
-                    <h3>Failed to vote meaning</h3>
-                    <p>${error.message}</p>
-                    <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
-                </div>
-            `;
+        placeholder.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h3>Failed to vote meaning</h3>
+                <p>${error.message}</p>
+                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+            </div>
+        `;
     }
 }
 
@@ -287,46 +337,45 @@ function displayMeanings(data) {
     placeholder.appendChild(meaningsContainer);
 }
 
-function getMeaningCardHTML(meaning)
-{
+function getMeaningCardHTML(meaning) {
     return `
-            <div class="meaning-header">
-                <h4>${meaning.name}</h4>
-                <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
+        <div class="meaning-header">
+            <h4>${meaning.name}</h4>
+            <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
+        </div>
+        <div class="meaning-body">
+            <h3 class="meaning-expansion">${meaning.short_expansion}</h3>
+            <p class="meaning-description">${meaning.description}</p>
+            <div class="meaning-meta">
+                <span class="meta-item">
+                    <strong>Language:</strong> ${meaning.lang}
+                </span>
+                <span class="meta-item">
+                    <strong>Domain:</strong> ${meaning.domain}
+                </span>
+                <span class="meta-item">
+                    <strong>Score:</strong> ${meaning.score}
+                    <button class="vote-btn upvote-btn" onclick="vote(event, ${meaning.id}, true)">
+                        👍 Upvote
+                    </button>
+                    <button class="vote-btn downvote-btn" onclick="vote(event, ${meaning.id}, false)">
+                        👎 Downvote
+                    </button>
+                </span>
             </div>
-            <div class="meaning-body">
-                <h3 class="meaning-expansion">${meaning.short_expansion}</h3>
-                <p class="meaning-description">${meaning.description}</p>
-                <div class="meaning-meta">
-                    <span class="meta-item">
-                        <strong>Language:</strong> ${meaning.lang}
-                    </span>
-                    <span class="meta-item">
-                        <strong>Domain:</strong> ${meaning.domain}
-                    </span>
-                    <span class="meta-item">
-                        <strong>Score:</strong> ${meaning.score}
-                        <button class="vote-btn upvote-btn" onclick="vote(event, ${meaning.id}, true)">
-                            👍 Upvote
-                        </button>
-                        <button class="vote-btn downvote-btn" onclick="vote(event, ${meaning.id}, false)">
-                            👎 Downvote
-                        </button>
-                    </span>
-                </div>
-            </div>
-            <div class="meaning-actions">
-                <button class="add-to-list-btn action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
-                    ➕ Add to List
-                </button>
-                <button class="delete-btn action-btn" onclick="">
-                    Delete
-                </button>
-                <button class="edit-btn action-btn" onclick="">
-                    Edit
-                </button>
-            </div>
-        `;
+        </div>
+        <div class="meaning-actions">
+            <button class="add-to-list-btn action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
+                ➕ Add to List
+            </button>
+            <button class="delete-btn action-btn" onclick="">
+                Delete
+            </button>
+            <button class="edit-btn action-btn" onclick="">
+                Edit
+            </button>
+        </div>
+    `;
 }
 
 function loadUserLists() {
@@ -338,7 +387,7 @@ function loadUserLists() {
             return response.json();
         })
         .then(data => {
-            console.log('Raw API response:', data); // Debug log
+            console.log('Raw API response:', data);
             
             let lists = [];
             
@@ -399,7 +448,7 @@ function showListModal(meaningId, meaningName) {
         .then(lists => {
             const modalBody = modal.querySelector('.modal-body');
             
-            console.log('Lists in modal:', lists, 'Type:', typeof lists, 'Is Array:', Array.isArray(lists)); // Debug log
+            console.log('Lists in modal:', lists, 'Type:', typeof lists, 'Is Array:', Array.isArray(lists));
             
             if (!lists || !Array.isArray(lists) || lists.length === 0) {
                 modalBody.innerHTML = `
@@ -538,9 +587,14 @@ function addMeaningToList(meaningId, listId, listName) {
     });
 }
 
-document.querySelector('.search-button').addEventListener('click', function() {
+function performSearch() {
     const searchTerm = document.querySelector('#search-bar').value.trim();
     const searchType = document.querySelector('#search-type').value;
+    const languageFilter = document.querySelector('#language-filter');
+    const domainFilter = document.querySelector('#domain-filter');
+    
+    const language = languageFilter ? languageFilter.value.trim() : '';
+    const domain = domainFilter ? domainFilter.value.trim() : '';
     
     if (!searchTerm) {
         loadAllAbbreviations();
@@ -555,10 +609,23 @@ document.querySelector('.search-button').addEventListener('click', function() {
         </div>
     `;
     
+    const searchData = {
+        search_term: searchTerm,
+        search_type: searchType
+    };
+    
+    if (language) {
+        searchData.language = language;
+    }
+    
+    if (domain) {
+        searchData.domain = domain;
+    }
+    
     fetch('/dashboard/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ search_term: searchTerm, search_type: searchType })
+        body: JSON.stringify(searchData)
     })
     .then(response => {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -578,18 +645,46 @@ document.querySelector('.search-button').addEventListener('click', function() {
                 <div class="error-icon">⚠️</div>
                 <h3>Search failed</h3>
                 <p>Please try again</p>
+                <button onclick="performSearch()" class="retry-btn">Retry</button>
                 <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
             </div>
         `;
     });
+}
+
+document.querySelector('.search-button').addEventListener('click', function() {
+    performSearch();
 });
 
 document.querySelector('#search-bar').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
-        document.querySelector('.search-button').click();
+        performSearch();
     }
 });
 
+// Add event listeners for filter inputs if they exist
 document.addEventListener('DOMContentLoaded', function() {
+    loadFilterOptions();
     loadAllAbbreviations();
+    
+    const languageFilter = document.querySelector('#language-filter');
+    const domainFilter = document.querySelector('#domain-filter');
+    
+    if (languageFilter) {
+        languageFilter.addEventListener('input', function() {
+            const searchTerm = document.querySelector('#search-bar').value.trim();
+            if (searchTerm) {
+                performSearch();
+            }
+        });
+    }
+    
+    if (domainFilter) {
+        domainFilter.addEventListener('input', function() {
+            const searchTerm = document.querySelector('#search-bar').value.trim();
+            if (searchTerm) {
+                performSearch();
+            }
+        });
+    }
 });

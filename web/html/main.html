@@ -55,6 +55,26 @@
                 </select>
                 <button class="search-button" aria-label="Search">Search</button>
             </div>
+            <div class="filter-wrapper">
+                <div class="filter-section">
+                    <label for="language-filter">Language:</label>
+                    <div class="filter-input-container">
+                        <input type="text" id="language-filter" placeholder="Type language or select..." list="language-options">
+                        <datalist id="language-options">
+                        </datalist>
+                        <button type="button" class="clear-filter" onclick="clearLanguageFilter()" title="Clear language filter">×</button>
+                    </div>
+                </div>
+                <div class="filter-section">
+                    <label for="domain-filter">Domain:</label>
+                    <div class="filter-input-container">
+                        <input type="text" id="domain-filter" placeholder="Type domain or select..." list="domain-options">
+                        <datalist id="domain-options">
+                        </datalist>
+                        <button type="button" class="clear-filter" onclick="clearDomainFilter()" title="Clear domain filter">×</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <section class="content-placeholder">
             <p>Search or view all abbreviations</p>

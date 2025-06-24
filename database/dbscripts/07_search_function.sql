@@ -140,3 +140,113 @@ exception
         raise_application_error(-20007, 'Error in search_abv');
 end search_abv;
 /
+create or replace function search_abv_enhanced(
+    p_search_term in varchar2,
+    p_search_type in varchar2,
+    p_language in varchar2 default null,
+    p_domain in varchar2 default null
+) return sys_refcursor is
+    v_cursor sys_refcursor;
+    v_search_term varchar2(256) := upper(trim(p_search_term));
+    v_language varchar2(30) := trim(p_language);
+    v_domain varchar2(30) := trim(p_domain);
+begin
+    if p_search_term is null or v_search_term = '' then
+        raise_application_error(-20005, 'Search term cannot be empty');
+    end if;
+
+    if p_search_type not in ('name', 'meaning') then
+        raise_application_error(-20006, 'Invalid search type');
+    end if;
+
+    if v_language = '' then
+        v_language := null;
+    end if;
+    
+    if v_domain = '' then
+        v_domain := null;
+    end if;
+
+    if p_search_type = 'name' then
+        if v_language is null and v_domain is null then
+            open v_cursor for
+                select 
+                    id,
+                    searchable_name,
+                    meaning_count,
+                    created_at,
+                    updated_at,
+                    distance
+                from (
+                    select 
+                        a.id,
+                        a.searchable_name,
+                        a.meaning_count,
+                        a.created_at,
+                        a.updated_at,
+                        levenshtein_distance(v_search_term, upper(a.searchable_name), 0) as distance
+                    from abbreviations a
+                )
+                where distance < 3
+                order by distance, searchable_name;
+        else
+            open v_cursor for
+                select distinct
+                    a.id,
+                    a.searchable_name,
+                    a.meaning_count,
+                    a.created_at,
+                    a.updated_at,
+                    levenshtein_distance(v_search_term, upper(a.searchable_name), 0) as distance
+                from abbreviations a
+                join meanings m on a.id = m.abbr_id
+                where levenshtein_distance(v_search_term, upper(a.searchable_name), 0) < 3
+                and (v_language is null or upper(m.lang) = upper(v_language))
+                and (v_domain is null or upper(m.domain) = upper(v_domain))
+                order by distance, searchable_name;
+        end if;
+    else 
+        open v_cursor for
+            select distinct
+                a.id,
+                a.searchable_name,
+                a.meaning_count,
+                a.created_at,
+                a.updated_at,
+                0 as distance 
+            from abbreviations a
+            join meanings m on a.id = m.abbr_id
+            where parse_words(upper(m.short_expansion)) like parse_words(v_search_term)
+            and (v_language is null or upper(m.lang) = upper(v_language))
+            and (v_domain is null or upper(m.domain) = upper(v_domain))
+            order by a.searchable_name;
+    end if;
+
+    return v_cursor;
+exception
+    when others then
+        raise_application_error(-20007, 'Error in search_abv_enhanced');
+end search_abv_enhanced;
+/
+
+create or replace function get_available_languages return sys_refcursor is
+    v_cursor sys_refcursor;
+begin
+    open v_cursor for
+        select lang as language_code
+        from languages
+        order by lang;
+    return v_cursor;
+end get_available_languages;
+/
+
+create or replace function get_available_domains return sys_refcursor is
+    v_cursor sys_refcursor;
+begin
+    open v_cursor for
+        select domain
+        from domains
+        order by domain;
+    return v_cursor;
+end get_available_domains;
+/

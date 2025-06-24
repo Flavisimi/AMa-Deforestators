@@ -23,7 +23,7 @@ class DashboardController
         echo json_encode(['success' => true, 'username' => $_SESSION['username']]);
     }
 
-    public static function search_abbreviations(string $search_term, string $search_type): ?array
+    public static function search_abbreviations(string $search_term, string $search_type, ?string $language = null, ?string $domain = null): ?array
     {
         if (empty($search_term) || !in_array($search_type, ['name', 'signification'])) {
             http_response_code(400);
@@ -34,10 +34,27 @@ class DashboardController
         $search_type = ($search_type === 'signification') ? 'meaning' : $search_type;
 
         $conn = ConnectionHelper::open_connection();
-        $abbreviations = DashboardRepository::search_abbreviations($conn, $search_term, $search_type);
+        $abbreviations = DashboardRepository::search_abbreviations($conn, $search_term, $search_type, $language, $domain);
         oci_close($conn);
 
         return $abbreviations;
+    }
+
+    public static function get_filter_data()
+    {
+        $conn = ConnectionHelper::open_connection();
+        
+        $languages = DashboardRepository::get_available_languages($conn);
+        $domains = DashboardRepository::get_available_domains($conn);
+        
+        oci_close($conn);
+
+        header("Content-Type: application/json");
+        echo json_encode([
+            'success' => true, 
+            'languages' => $languages, 
+            'domains' => $domains
+        ]);
     }
 
     public static function handle_get()
@@ -46,6 +63,8 @@ class DashboardController
 
         if ($url === "/dashboard/user") {
             self::get_user_info();
+        } elseif ($url === "/dashboard/filters") {
+            self::get_filter_data();
         } else {
             http_response_code(400);
         }
@@ -58,11 +77,17 @@ class DashboardController
         if ($url === "/dashboard/search") {
             $request_body = file_get_contents("php://input");
             $data = json_decode($request_body, true);
+            
             $search_term = trim($data['search_term'] ?? '');
             $search_type = $data['search_type'] ?? '';
+            $language = !empty($data['language']) ? trim($data['language']) : null;
+            $domain = !empty($data['domain']) ? trim($data['domain']) : null;
 
             header("Content-Type: application/json");
-            echo json_encode(['success' => true, 'results' => self::search_abbreviations($search_term, $search_type)]);
+            echo json_encode([
+                'success' => true, 
+                'results' => self::search_abbreviations($search_term, $search_type, $language, $domain)
+            ]);
         } else {
             http_response_code(400);
         }

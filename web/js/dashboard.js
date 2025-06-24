@@ -263,6 +263,12 @@ function refreshMeaning(meaningCard, meaningId) {
 async function vote(event, meaningId, isUpvote) {
     const errorMessage = document.getElementById('error-message');
     const placeholder = document.querySelector('.content-placeholder');
+    const meaningCard = event.target.closest('.meaning-card');
+    const upvoteBtn = meaningCard.querySelector('.upvote-btn');
+    const downvoteBtn = meaningCard.querySelector('.downvote-btn');
+
+    const wasUpvoteActive = upvoteBtn.classList.contains('active');
+    const wasDownvoteActive = downvoteBtn.classList.contains('active');
 
     try {
         const endpoint = isUpvote ? '/meanings/upvote' : '/meanings/downvote';
@@ -277,9 +283,23 @@ async function vote(event, meaningId, isUpvote) {
             throw new Error('Failed to submit vote');
         }
         
-        refreshMeaning(event.srcElement.closest(".meaning-card"), meaningId);
+        upvoteBtn.classList.remove('active');
+        downvoteBtn.classList.remove('active');
+        
+        if (isUpvote) {
+            if (!wasUpvoteActive) {
+                upvoteBtn.classList.add('active');
+            }
+        } else {
+            if (!wasDownvoteActive) {
+                downvoteBtn.classList.add('active');
+            }
+        }
+        
+        refreshMeaning(meaningCard, meaningId);
         
     } catch (error) {
+        console.error('Error voting:', error);
         placeholder.innerHTML = `
             <div class="error-state">
                 <div class="error-icon">⚠️</div>
@@ -338,6 +358,9 @@ function displayMeanings(data) {
 }
 
 function getMeaningCardHTML(meaning) {
+    const upvoteClass = meaning.user_vote === 1 ? 'upvote-btn active' : 'upvote-btn';
+    const downvoteClass = meaning.user_vote === -1 ? 'downvote-btn active' : 'downvote-btn';
+    
     return `
         <div class="meaning-header">
             <h4>${meaning.name}</h4>
@@ -355,10 +378,10 @@ function getMeaningCardHTML(meaning) {
                 </span>
                 <span class="meta-item">
                     <strong>Score:</strong> ${meaning.score}
-                    <button class="vote-btn upvote-btn" onclick="vote(event, ${meaning.id}, true)">
+                    <button class="vote-btn ${upvoteClass}" onclick="vote(event, ${meaning.id}, true)">
                         👍 Upvote
                     </button>
-                    <button class="vote-btn downvote-btn" onclick="vote(event, ${meaning.id}, false)">
+                    <button class="vote-btn ${downvoteClass}" onclick="vote(event, ${meaning.id}, false)">
                         👎 Downvote
                     </button>
                 </span>

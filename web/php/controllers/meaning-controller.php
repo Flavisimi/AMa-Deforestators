@@ -34,6 +34,13 @@ class MeaningController
             $abbreviation = AbbreviationRepository::load_abbreviation($conn, $meaning->abbr_id);
             MeaningService::attach_score($conn, $meaning);
             MeaningService::attach_description($meaning, $abbreviation->searchable_name);
+            
+            if(isset($_SESSION["user_id"])) {
+                $user_vote = VoteRepository::load_vote($conn, $_SESSION["user_id"], $meaning->id);
+                $meaning->user_vote = $user_vote ? $user_vote->vote : null;
+            } else {
+                $meaning->user_vote = null;
+            }
         } catch(ApiException $e)
         {
             oci_close($conn);
@@ -53,6 +60,13 @@ class MeaningController
             if($meanings !== null) {
                 foreach($meanings as &$meaning) {
                     MeaningService::attach_score($conn, $meaning);
+                    
+                    if(isset($_SESSION["user_id"])) {
+                        $user_vote = VoteRepository::load_vote($conn, $_SESSION["user_id"], $meaning->id);
+                        $meaning->user_vote = $user_vote ? $user_vote->vote : null;
+                    } else {
+                        $meaning->user_vote = null;
+                    }
                 }
             }
         } catch(ApiException $e)

@@ -152,6 +152,69 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             document.getElementById('date_of_birth').value = '';
         }
+        
+        // Handle edit button visibility
+        const editBtn = document.getElementById('editProfileBtn');
+        if (editBtn) {
+            if (user.can_edit) {
+                editBtn.style.display = 'block';
+                if (user.is_own_profile) {
+                    editBtn.textContent = 'Edit Profile';
+                } else {
+                    editBtn.textContent = `Edit ${user.name}'s Profile`;
+                }
+            } else {
+                editBtn.style.display = 'none';
+            }
+        }
+        
+        // Update page title
+        const titleElement = document.getElementById('profileTitle');
+        if (titleElement) {
+            if (user.is_own_profile) {
+                titleElement.textContent = 'My Profile';
+            } else {
+                titleElement.textContent = `${user.name}'s Profile`;
+            }
+        }
+        
+        // Add admin actions if applicable
+        addAdminActions(user);
+    }
+    
+    function addAdminActions(user) {
+        // Remove existing admin actions
+        const existingActions = document.querySelector('.admin-profile-actions');
+        if (existingActions) {
+            existingActions.remove();
+        }
+        
+        // Only add admin actions if current user is admin and viewing someone else's profile
+        if (user.current_user_role === 'ADMIN' && !user.is_own_profile) {
+            const profileActions = document.querySelector('.profile-actions');
+            if (profileActions) {
+                const adminActionsDiv = document.createElement('div');
+                adminActionsDiv.className = 'admin-profile-actions';
+                adminActionsDiv.style.marginTop = '20px';
+                adminActionsDiv.innerHTML = `
+                    <div style="border-top: 1px solid #e9ecef; padding-top: 20px;">
+                        <h4 style="color: #dc3545; margin-bottom: 15px; font-size: 1.1rem;">Admin Actions</h4>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-warning" onclick="showRoleChangeModal('${user.id}', '${user.role}', '${user.name}')">
+                                Change Role
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="confirmDeleteUser('${user.id}', '${user.name}')">
+                                Delete User
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${user.name}')">
+                                Remove Picture
+                            </button>
+                        </div>
+                    </div>
+                `;
+                profileActions.appendChild(adminActionsDiv);
+            }
+        }
     }
     
     async function saveProfile() {

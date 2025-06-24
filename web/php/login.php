@@ -1,5 +1,4 @@
 <?php
-// Session configuration - MUST be before session_start()
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_strict_mode', 1);
 ini_set('session.cookie_samesite', 'Lax');
@@ -56,12 +55,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         {
             if ($result > 0) 
             {
+                // Get user role from database
+                $role_stmt = oci_parse($conn, "SELECT role FROM users WHERE id = :user_id");
+                oci_bind_by_name($role_stmt, ':user_id', $result);
+                
+                if (oci_execute($role_stmt)) {
+                    $role_row = oci_fetch_array($role_stmt, OCI_ASSOC);
+                    $user_role = $role_row ? $role_row['ROLE'] : 'USER';
+                } else {
+                    $user_role = 'USER';
+                }
+                oci_free_statement($role_stmt);
+                
                 // Regenerate session ID for security
                 session_regenerate_id(true);
                 
                 // Set session variables
                 $_SESSION['user_id'] = (int)$result;
                 $_SESSION['username'] = $username;
+                $_SESSION['user_role'] = $user_role;
                 $_SESSION['login_time'] = time();
                 
                 // Force session write
@@ -71,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'success' => true, 
                     'user_id' => (int)$result,
                     'username' => $username,
+                    'role' => $user_role,
                     'session_id' => session_id()
                 ]);
             } 

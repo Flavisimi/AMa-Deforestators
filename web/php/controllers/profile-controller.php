@@ -81,11 +81,41 @@ class ProfileController
             throw new ApiException(500, "Error reading profile picture: " . $e->getMessage());
         }
     }
-
     public static function update_profile(int $user_id, $data, $profile_picture = null): ?User
     {
-        if(!isset($_SESSION["user_id"]) || $_SESSION["user_id"] !== $user_id) {
-            throw new ApiException(403, "You can only edit your own profile");
+        if(!isset($_SESSION["user_id"])) {
+            throw new ApiException(401, "You need to be logged in to update a profile");
+        }
+
+        $current_user_id = $_SESSION["user_id"];
+        $current_user_role = $_SESSION["user_role"] ?? 'USER';
+        
+        $is_own_profile = ($current_user_id === $user_id);
+        $can_edit = false;
+        
+        if ($is_own_profile) {
+            $can_edit = true;
+        } else {
+            if ($current_user_role === 'ADMIN') {
+                $can_edit = true;
+            } elseif ($current_user_role === 'MOD') {
+                $conn = ConnectionHelper::open_connection();
+                try {
+                    $target_user = UserRepository::load_user($conn, $user_id);
+                    if ($target_user && $target_user->role === 'USER') {
+                        $can_edit = true;
+                    }
+                } catch(ApiException $e) {
+                    oci_close($conn);
+                    throw $e;
+                } finally {
+                    oci_close($conn);
+                }
+            }
+        }
+        
+        if (!$can_edit) {
+            throw new ApiException(403, "You don't have permission to edit this profile");
         }
 
         $conn = ConnectionHelper::open_connection();

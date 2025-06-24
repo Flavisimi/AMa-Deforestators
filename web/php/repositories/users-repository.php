@@ -83,6 +83,37 @@ class UsersRepository
         oci_free_statement($stmt);
         return $count;
     }
+
+    public static function update_user_role($conn, int $user_id, string $new_role): bool
+    {
+        $stmt = oci_parse($conn, "UPDATE users SET role = :role, updated_at = sysdate WHERE id = :user_id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        
+        oci_bind_by_name($stmt, ":role", $new_role);
+        oci_bind_by_name($stmt, ":user_id", $user_id);
+        
+        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "Failed to update user role");
+        
+        oci_free_statement($stmt);
+        return true;
+    }
+
+    public static function delete_user($conn, int $user_id): bool
+    {
+        $stmt = oci_parse($conn, "DELETE FROM users WHERE id = :user_id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        
+        oci_bind_by_name($stmt, ":user_id", $user_id);
+        
+        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "Failed to delete user");
+        
+        oci_free_statement($stmt);
+        return true;
+    }
 }
 
 ?>

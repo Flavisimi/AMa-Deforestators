@@ -91,54 +91,89 @@ class UserRepository
     public static function update_profile($conn, int $user_id, array $data): bool
     {
         if (isset($data['profile_picture'])) {
-            $sql = "UPDATE users SET updated_at = sysdate";
-            $bind_vars = ['user_id' => $user_id];
-            
-            if (isset($data['description'])) {
-                $sql .= ", description = :description";
-                $bind_vars['description'] = $data['description'];
-            }
-            
-            if (isset($data['date_of_birth']) && $data['date_of_birth'] !== null) {
-                $sql .= ", date_of_birth = TO_DATE(:date_of_birth, 'YYYY-MM-DD')";
-                $bind_vars['date_of_birth'] = $data['date_of_birth'];
-            }
-            
-            $sql .= ", profile_picture = EMPTY_BLOB() WHERE id = :user_id RETURNING profile_picture INTO :picture";
-            
-            $stmt = oci_parse($conn, $sql);
-            if (!$stmt) {
-                throw new ApiException(500, "Failed to parse SQL statement");
-            }
-            
-            $blob = oci_new_descriptor($conn, OCI_D_LOB);
-            
-            foreach ($bind_vars as $key => $value) {
-                if ($key !== 'user_id') {
+            if ($data['profile_picture'] === '') {
+                // Clear profile picture
+                $sql = "UPDATE users SET updated_at = sysdate, profile_picture = NULL";
+                $bind_vars = ['user_id' => $user_id];
+                
+                if (isset($data['description'])) {
+                    $sql .= ", description = :description";
+                    $bind_vars['description'] = $data['description'];
+                }
+                
+                if (isset($data['date_of_birth']) && $data['date_of_birth'] !== null) {
+                    $sql .= ", date_of_birth = TO_DATE(:date_of_birth, 'YYYY-MM-DD')";
+                    $bind_vars['date_of_birth'] = $data['date_of_birth'];
+                }
+                
+                $sql .= " WHERE id = :user_id";
+                
+                $stmt = oci_parse($conn, $sql);
+                if (!$stmt) {
+                    throw new ApiException(500, "Failed to parse SQL statement");
+                }
+                
+                foreach ($bind_vars as $key => $value) {
                     oci_bind_by_name($stmt, ":$key", $bind_vars[$key]);
                 }
-            }
-            oci_bind_by_name($stmt, ":user_id", $bind_vars['user_id']);
-            oci_bind_by_name($stmt, ":picture", $blob, -1, OCI_B_BLOB);
-            
-            if (!oci_execute($stmt, OCI_NO_AUTO_COMMIT)) {
-                $error = oci_error($stmt);
+                
+                if (!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) {
+                    $error = oci_error($stmt);
+                    oci_free_statement($stmt);
+                    throw new ApiException(500, "Failed to clear profile picture: " . ($error['message'] ?? 'unknown'));
+                }
+                
+                oci_free_statement($stmt);
+            } else {
+                // Set new profile picture
+                $sql = "UPDATE users SET updated_at = sysdate";
+                $bind_vars = ['user_id' => $user_id];
+                
+                if (isset($data['description'])) {
+                    $sql .= ", description = :description";
+                    $bind_vars['description'] = $data['description'];
+                }
+                
+                if (isset($data['date_of_birth']) && $data['date_of_birth'] !== null) {
+                    $sql .= ", date_of_birth = TO_DATE(:date_of_birth, 'YYYY-MM-DD')";
+                    $bind_vars['date_of_birth'] = $data['date_of_birth'];
+                }
+                
+                $sql .= ", profile_picture = EMPTY_BLOB() WHERE id = :user_id RETURNING profile_picture INTO :picture";
+                
+                $stmt = oci_parse($conn, $sql);
+                if (!$stmt) {
+                    throw new ApiException(500, "Failed to parse SQL statement");
+                }
+                
+                $blob = oci_new_descriptor($conn, OCI_D_LOB);
+                
+                foreach ($bind_vars as $key => $value) {
+                    if ($key !== 'user_id') {
+                        oci_bind_by_name($stmt, ":$key", $bind_vars[$key]);
+                    }
+                }
+                oci_bind_by_name($stmt, ":user_id", $bind_vars['user_id']);
+                oci_bind_by_name($stmt, ":picture", $blob, -1, OCI_B_BLOB);
+                
+                if (!oci_execute($stmt, OCI_NO_AUTO_COMMIT)) {
+                    $error = oci_error($stmt);
+                    $blob->free();
+                    oci_free_statement($stmt);
+                    throw new ApiException(500, "Failed to update profile: " . ($error['message'] ?? 'unknown'));
+                }
+                
+                if (!$blob->save($data['profile_picture'])) {
+                    $blob->free();
+                    oci_free_statement($stmt);
+                    oci_rollback($conn);
+                    throw new ApiException(500, "Failed to save profile picture");
+                }
+                
+                oci_commit($conn);
                 $blob->free();
                 oci_free_statement($stmt);
-                throw new ApiException(500, "Failed to update profile: " . ($error['message'] ?? 'unknown'));
             }
-            
-            if (!$blob->save($data['profile_picture'])) {
-                $blob->free();
-                oci_free_statement($stmt);
-                oci_rollback($conn);
-                throw new ApiException(500, "Failed to save profile picture");
-            }
-            
-            oci_commit($conn);
-            $blob->free();
-            oci_free_statement($stmt);
-            
         } else {
             $sql_parts = ["updated_at = sysdate"];
             $bind_vars = ['user_id' => $user_id];
@@ -153,8 +188,8 @@ class UserRepository
                 $bind_vars['date_of_birth'] = $data['date_of_birth'];
             }
             
-            if (empty($sql_parts)) {
-                return true;
+            if (count($sql_parts) === 1) {
+                return true; // Only updated_at, nothing else to update
             }
             
             $sql = "UPDATE users SET " . implode(", ", $sql_parts) . " WHERE id = :user_id";

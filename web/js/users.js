@@ -1,10 +1,163 @@
-let currentPage = 1;
+function setupLoadMoreButton() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    
+    loadMoreBtn.addEventListener('click', function() {
+        loadMoreUsers();
+    });
+}
+
+function toggleAdminMenu(userId) {
+    const menu = document.getElementById(`admin-menu-${userId}`);
+    const allMenus = document.querySelectorAll('.admin-menu');
+    
+    // Close all other menus first
+    allMenus.forEach(m => {
+        if (m !== menu) {
+            m.style.display = 'none';
+        }
+    });
+    
+    // Toggle current menu
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        menu.style.display = 'block';
+        // Force reflow to ensure the element is rendered
+        menu.offsetHeight;
+        // Add a small delay to ensure visibility
+        setTimeout(() => {
+            menu.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 10);
+    } else {
+        menu.style.display = 'none';
+    }
+}
+
+function showRoleChangeModal(userId, currentRole, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+        <div class="role-modal">
+            <div class="modal-header">
+                <h3>Change Role for ${userName}</h3>
+                <button class="modal-close" onclick="closeModal(this)">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Current role: <strong>${currentRole}</strong></p>
+                <div class="role-options">
+                    <button class="role-btn ${currentRole === 'USER' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'USER', this)">
+                        👤 USER
+                    </button>
+                    <button class="role-btn ${currentRole === 'MOD' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'MOD', this)">
+                        🛡️ MODERATOR
+                    </button>
+                    <button class="role-btn ${currentRole === 'ADMIN' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'ADMIN', this)">
+                        👑 ADMIN
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function confirmDeleteUser(userId, userName) {
+    if (confirm(`Are you sure you want to permanently delete the user "${userName}"? This action cannot be undone.`)) {
+        deleteUser(userId);
+    }
+}
+
+async function changeUserRole(userId, newRole, buttonElement) {
+    try {
+        const response = await fetch('/api/all-users/change-role', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                new_role: newRole
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to change user role');
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+            closeModal(buttonElement);
+            showSuccessMessage('User role updated successfully');
+            currentPage = 1;
+            allUsers = [];
+            await loadUsers(1, false);
+        }
+    } catch (error) {
+        console.error('Error changing user role:', error);
+        showError('Failed to change user role: ' + error.message);
+    }
+}
+
+async function deleteUser(userId) {
+    try {
+        const response = await fetch(`/api/all-users/delete?user_id=${userId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to delete user');
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+            showSuccessMessage('User deleted successfully');
+            currentPage = 1;
+            allUsers = [];
+            await loadUsers(1, false);
+        }
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        showError('Failed to delete user: ' + error.message);
+    }
+}
+
+function closeModal(element) {
+    const modal = element.closest('.modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function showSuccessMessage(message) {
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.textContent = message;
+    successDiv.style.display = 'block';
+    
+    const container = document.querySelector('.main-content');
+    container.insertBefore(successDiv, container.firstChild);
+    
+    setTimeout(() => {
+        successDiv.remove();
+    }, 3000);
+}
+
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.admin-controls')) {
+        document.querySelectorAll('.admin-menu').forEach(menu => {
+            menu.style.display = 'none';
+        });
+    }
+});let currentPage = 1;
 let isLoading = false;
 let hasMoreUsers = true;
 let allUsers = [];
 let filteredUsers = [];
 let isSearchMode = false;
 let searchQuery = '';
+let currentUserRole = 'GUEST';
+let currentUserId = null;
 
 const USERS_PER_PAGE = 20;
 
@@ -51,12 +204,32 @@ function createUserCard(user, index = 0) {
         `<img src="/api/profile/picture?id=${user.id}&v=${Date.now()}" alt="${user.name}" onerror="this.style.display='none'; this.parentElement.classList.add('no-image'); this.parentElement.setAttribute('data-initial', '${userInitial}');">` :
         '';
     
+    const isCurrentUser = user.id === currentUserId;
+    const showAdminControls = currentUserRole === 'ADMIN' && !isCurrentUser;
+    
+    const adminControlsHtml = showAdminControls ? `
+        <div class="admin-controls">
+            <button class="admin-menu-btn" onclick="toggleAdminMenu(${user.id})" title="Admin Actions">
+                ⚙️
+            </button>
+            <div class="admin-menu" id="admin-menu-${user.id}">
+                <button class="admin-action-btn change-role-btn" onclick="showRoleChangeModal(${user.id}, '${user.role}', '${escapeHtml(user.name)}')">
+                    👑 Change Role
+                </button>
+                <button class="admin-action-btn delete-user-btn" onclick="confirmDeleteUser(${user.id}, '${escapeHtml(user.name)}')">
+                    🗑️ Delete User
+                </button>
+            </div>
+        </div>
+    ` : '';
+    
     card.innerHTML = `
         <div class="user-card-header">
             <div class="user-avatar ${!user.profile_picture ? 'no-image' : ''}" ${!user.profile_picture ? `data-initial="${userInitial}"` : ''}>
                 ${avatarContent}
             </div>
             <h3 class="user-name">${escapeHtml(user.name)}</h3>
+            ${isCurrentUser ? '<span class="current-user-badge">You</span>' : ''}
         </div>
         <div class="user-card-body">
             <span class="user-role role-${user.role.toLowerCase()}">${user.role}</span>
@@ -70,11 +243,14 @@ function createUserCard(user, index = 0) {
                     <span class="user-info-value">${memberSince}</span>
                 </div>
             </div>
+            ${adminControlsHtml}
         </div>
     `;
     
-    card.addEventListener('click', () => {
-        window.location.href = `profile?id=${user.id}`;
+    card.addEventListener('click', (e) => {
+        if (!e.target.closest('.admin-controls')) {
+            window.location.href = `profile?id=${user.id}`;
+        }
     });
     
     return card;
@@ -117,7 +293,14 @@ async function loadUsers(page = 1, append = false) {
         }
         
         const data = await response.json();
-        const users = Object.values(data || {});
+        const users = Object.values(data.users || {});
+        
+        if (data.current_user_role) {
+            currentUserRole = data.current_user_role;
+        }
+        if (data.current_user_id) {
+            currentUserId = data.current_user_id;
+        }
         
         if (page === 1 && !append) {
             allUsers = users;

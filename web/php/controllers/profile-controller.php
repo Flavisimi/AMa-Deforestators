@@ -12,7 +12,6 @@ use ama\helpers\ConnectionHelper;
 use ama\repositories\UserRepository;
 use ama\exceptions\ApiException;
 
-// Session configuration
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_strict_mode', 1);
 ini_set('session.cookie_samesite', 'Lax');
@@ -62,14 +61,13 @@ class ProfileController
             }
 
             $image_data = $row['PROFILE_PICTURE'];
-            if ($image_data === null || $image_data === '') {
-                oci_free_statement($stmt);
-                oci_close($conn);
-                return null;
-            }
             
             oci_free_statement($stmt);
             oci_close($conn);
+            
+            if ($image_data === null || $image_data === '') {
+                return null;
+            }
             
             return $image_data;
             
@@ -93,9 +91,7 @@ class ProfileController
         $conn = ConnectionHelper::open_connection();
         try
         {
-            // Handle profile picture upload
             if ($profile_picture && $profile_picture['error'] === UPLOAD_ERR_OK) {
-                // Validate file type
                 $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
                 $file_type = $profile_picture['type'];
                 
@@ -103,18 +99,15 @@ class ProfileController
                     throw new ApiException(400, "Invalid file type. Only JPG, PNG, and GIF are allowed.");
                 }
                 
-                // Validate file size (5MB max)
                 if ($profile_picture['size'] > 5 * 1024 * 1024) {
                     throw new ApiException(400, "File too large. Maximum size is 5MB.");
                 }
                 
-                // Read file content
                 $image_data = file_get_contents($profile_picture['tmp_name']);
                 if ($image_data === false) {
                     throw new ApiException(500, "Failed to read uploaded file.");
                 }
                 
-                // Add image data to update data
                 $data['profile_picture'] = $image_data;
             }
             
@@ -144,7 +137,6 @@ class ProfileController
                 $is_own_profile = isset($_SESSION["user_id"]) && $_SESSION["user_id"] == $user_id;
             } else {
                 if(!isset($_SESSION["user_id"])) {
-                    // Return JSON error instead of throwing exception
                     http_response_code(401);
                     header("Content-Type: application/json");
                     echo json_encode([
@@ -175,7 +167,7 @@ class ProfileController
                     'role' => $user->role,
                     'description' => $user->description,
                     'date_of_birth' => $user->date_of_birth,
-                    'profile_picture' => $user->profile_picture ? "/api/profile/picture?id=" . $user->id : '',
+                    'profile_picture' => $user->profile_picture ? "/api/profile/picture?id=" . $user->id . "&v=" . time() : '',
                     'created_at' => $user->created_at->format('Y-m-d H:i:s'),
                     'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
                     'is_own_profile' => $is_own_profile
@@ -191,45 +183,35 @@ class ProfileController
         }
         else if($url === "/api/profile/picture")
         {
-            // Serve profile picture
-            $query_components = array();
-            parse_str($_SERVER['QUERY_STRING'], $query_components);
+            $user_id = isset($query_components["id"]) ? (int)$query_components["id"] : 0;
             
-            if(!isset($query_components["id"]) || !is_numeric($query_components["id"])) {
+            if ($user_id <= 0) {
                 http_response_code(400);
-                header("Content-Type: application/json");
-                echo json_encode(['error' => 'Invalid user ID']);
-                return;
+                exit;
             }
             
-            $user_id = (int)$query_components["id"];
+            $conn = ConnectionHelper::open_connection();
+            $stmt = oci_parse($conn, "SELECT profile_picture FROM users WHERE id = :id");
+            oci_bind_by_name($stmt, ":id", $user_id);
+            oci_execute($stmt);
             
-            try {
-                $image_data = ProfileController::get_profile_picture($user_id);
-                
-                if ($image_data === null) {
-                    http_response_code(404);
-                    header("Content-Type: application/json");
-                    echo json_encode(['error' => 'Profile picture not found']);
-                    return;
-                }
-                
-                // Detect image type
-                $finfo = new finfo(FILEINFO_MIME_TYPE);
-                $mime_type = $finfo->buffer($image_data);
-                
-                // Set appropriate headers
-                header("Content-Type: " . $mime_type);
-                header("Content-Length: " . strlen($image_data));
-                header("Cache-Control: public, max-age=3600");
-                
-                echo $image_data;
-                
-            } catch (ApiException $e) {
-                http_response_code($e->status_code);
-                header("Content-Type: application/json");
-                echo json_encode(['error' => $e->err_msg]);
+            $row = oci_fetch_array($stmt, OCI_ASSOC + OCI_RETURN_LOBS);
+            oci_free_statement($stmt);
+            oci_close($conn);
+            
+            if (!$row || !$row['PROFILE_PICTURE']) {
+                http_response_code(404);
+                exit;
             }
+            
+            header("Content-Type: image/jpeg");
+            header("Content-Length: " . strlen($row['PROFILE_PICTURE']));
+            header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+            header("Pragma: no-cache");
+            header("Expires: Thu, 01 Jan 1970 00:00:00 GMT");
+            
+            echo $row['PROFILE_PICTURE'];
+            exit;
         }
         else
         {
@@ -253,7 +235,6 @@ class ProfileController
             }
             
             try {
-                // DEBUG: Log what we receive
                 $debug_info = [
                     'post_data' => $_POST,
                     'files_data' => $_FILES,
@@ -269,7 +250,6 @@ class ProfileController
                     'date_of_birth' => $date_of_birth
                 ];
                 
-                // Handle profile picture upload
                 $profile_picture = null;
                 if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
                     $profile_picture = $_FILES['profile_picture'];
@@ -289,7 +269,7 @@ class ProfileController
                     'role' => $user->role,
                     'description' => $user->description,
                     'date_of_birth' => $user->date_of_birth,
-                    'profile_picture' => $user->profile_picture ? "/api/profile/picture?id=" . $user->id : '',
+                    'profile_picture' => $user->profile_picture ? "/api/profile/picture?id=" . $user->id . "&v=" . time() : '',
                     'created_at' => $user->created_at->format('Y-m-d H:i:s'),
                     'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
                     'is_own_profile' => true,
@@ -314,7 +294,6 @@ class ProfileController
 
     public static function handle_request()
     {
-        // Start session with proper error handling
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }

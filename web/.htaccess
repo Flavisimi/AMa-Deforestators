@@ -18,7 +18,7 @@ RewriteRule ^api/dashboard php/controllers/dashboard-controller.php [L]
 RewriteRule ^api/statistics php/controllers/statistics-controller.php [L]
 RewriteRule ^api/rss php/controllers/rss-controller.php [L]
 RewriteRule ^api/logout php/logout.php [L]
-
+RewriteRule ^api/profile/update-credentials$ php/controllers/profile-controller.php [L]
 RewriteRule ^api/profile/picture$ php/controllers/profile-controller.php [L]
 RewriteRule ^api/profile/update$ php/controllers/profile-controller.php [L]
 RewriteRule ^api/profile$ php/controllers/profile-controller.php [L]

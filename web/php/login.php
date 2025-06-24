@@ -1,4 +1,9 @@
 <?php
+// Session configuration - MUST be before session_start()
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_strict_mode', 1);
+ini_set('session.cookie_samesite', 'Lax');
+
 session_start();
 header('Content-Type: application/json');
 ini_set('display_errors', 0);
@@ -13,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'error' => 'Please fill in both username and password.']);
         exit;
     }
+    
     $conn = oci_connect(
         getenv('ORACLE_USER'),
         getenv('ORACLE_PASSWORD'),
@@ -24,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         echo json_encode(['success' => false, 'error' => 'Database connection failed']);
         exit;
     }
+    
     $stmt = null;
     try {
         $sql = 'BEGIN :result := auth_package.validate_login(:username, :password); END;';
@@ -31,9 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$stmt) {
             throw new Exception('Failed to parse SQL statement');
         }
+        
         oci_bind_by_name($stmt, ':username', $username);
         oci_bind_by_name($stmt, ':password', $password);
         oci_bind_by_name($stmt, ':result', $result, -1, SQLT_INT);
+        
         if (!@oci_execute($stmt)) 
         {
             $e = oci_error($stmt);
@@ -47,11 +56,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         {
             if ($result > 0) 
             {
-                $_SESSION['user_id'] = $result;
+                // Regenerate session ID for security
+                session_regenerate_id(true);
+                
+                // Set session variables
+                $_SESSION['user_id'] = (int)$result;
                 $_SESSION['username'] = $username;
-                echo json_encode(['success' => true]);
+                $_SESSION['login_time'] = time();
+                
+                // Force session write
+                session_write_close();
+                
+                echo json_encode([
+                    'success' => true, 
+                    'user_id' => (int)$result,
+                    'username' => $username,
+                    'session_id' => session_id()
+                ]);
             } 
-            else echo json_encode(['success' => false, 'error' => 'Invalid username or password']);
+            else {
+                echo json_encode(['success' => false, 'error' => 'Invalid username or password']);
+            }
         }
     } 
     catch (Exception $e) 
@@ -62,8 +87,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         else $error = 'Login failed: ' . $error;
         echo json_encode(['success' => false, 'error' => $error]);
     }
+    
     if ($stmt) oci_free_statement($stmt);
     oci_close($conn);
 }
- else echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+else {
+    echo json_encode(['success' => false, 'error' => 'Invalid request method']);
+}
 ?>

@@ -81,6 +81,7 @@ class ProfileController
             throw new ApiException(500, "Error reading profile picture: " . $e->getMessage());
         }
     }
+
     public static function update_profile(int $user_id, $data, $profile_picture = null): ?User
     {
         if(!isset($_SESSION["user_id"])) {
@@ -121,7 +122,9 @@ class ProfileController
         $conn = ConnectionHelper::open_connection();
         try
         {
-            if ($profile_picture && $profile_picture['error'] === UPLOAD_ERR_OK) {
+            if (isset($data['clear_picture']) && $data['clear_picture'] === 'true') {
+                $data['profile_picture'] = '';
+            } elseif ($profile_picture && $profile_picture['error'] === UPLOAD_ERR_OK) {
                 $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
                 $file_type = $profile_picture['type'];
                 
@@ -152,6 +155,105 @@ class ProfileController
         
         oci_close($conn);
         return $user;
+    }
+
+    public static function update_credentials(int $user_id, array $data): bool
+    {
+        if(!isset($_SESSION["user_id"])) {
+            throw new ApiException(401, "You need to be logged in");
+        }
+
+        $current_user_role = $_SESSION["user_role"] ?? 'USER';
+        
+        if ($current_user_role !== 'ADMIN') {
+            throw new ApiException(403, "Only administrators can update user credentials");
+        }
+
+        if ($user_id === $_SESSION["user_id"]) {
+            throw new ApiException(400, "You cannot change your own credentials through this method");
+        }
+
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $sql_parts = ["updated_at = sysdate"];
+            $bind_vars = ['user_id' => $user_id];
+            
+            if (isset($data['username']) && !empty($data['username'])) {
+                $stmt_check = oci_parse($conn, "SELECT COUNT(*) as count FROM users WHERE name = :username AND id != :user_id");
+                oci_bind_by_name($stmt_check, ":username", $data['username']);
+                oci_bind_by_name($stmt_check, ":user_id", $user_id);
+                oci_execute($stmt_check);
+                $row = oci_fetch_array($stmt_check, OCI_ASSOC);
+                if ($row['COUNT'] > 0) {
+                    oci_free_statement($stmt_check);
+                    throw new ApiException(400, "Username already exists");
+                }
+                oci_free_statement($stmt_check);
+                
+                $sql_parts[] = "name = :username";
+                $bind_vars['username'] = $data['username'];
+            }
+            
+            if (isset($data['email']) && !empty($data['email'])) {
+                $stmt_check = oci_parse($conn, "SELECT COUNT(*) as count FROM users WHERE email = :email AND id != :user_id");
+                oci_bind_by_name($stmt_check, ":email", $data['email']);
+                oci_bind_by_name($stmt_check, ":user_id", $user_id);
+                oci_execute($stmt_check);
+                $row = oci_fetch_array($stmt_check, OCI_ASSOC);
+                if ($row['COUNT'] > 0) {
+                    oci_free_statement($stmt_check);
+                    throw new ApiException(400, "Email already exists");
+                }
+                oci_free_statement($stmt_check);
+                
+                $sql_parts[] = "email = :email";
+                $bind_vars['email'] = $data['email'];
+            }
+            
+            if (isset($data['password']) && !empty($data['password'])) {
+                $hashed_password = '';
+                $stmt_hash = oci_parse($conn, "BEGIN :hashed := auth_package.hash_password(:password); END;");
+                oci_bind_by_name($stmt_hash, ":password", $data['password']);
+                oci_bind_by_name($stmt_hash, ":hashed", $hashed_password, 255);
+                oci_execute($stmt_hash);
+                oci_free_statement($stmt_hash);
+                
+                $sql_parts[] = "user_password = :password";
+                $bind_vars['password'] = $hashed_password;
+            }
+            
+            if (count($sql_parts) === 1) {
+                return true;
+            }
+            
+            $sql = "UPDATE users SET " . implode(", ", $sql_parts) . " WHERE id = :user_id";
+            
+            $stmt = oci_parse($conn, $sql);
+            if (!$stmt) {
+                throw new ApiException(500, "Failed to parse SQL statement");
+            }
+            
+            foreach ($bind_vars as $key => $value) {
+                oci_bind_by_name($stmt, ":$key", $bind_vars[$key]);
+            }
+            
+            if (!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) {
+                $error = oci_error($stmt);
+                oci_free_statement($stmt);
+                throw new ApiException(500, "Failed to update credentials: " . ($error['message'] ?? 'unknown'));
+            }
+            
+            oci_free_statement($stmt);
+            
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+        
+        oci_close($conn);
+        return true;
     }
 
     public static function handle_get()
@@ -190,6 +292,20 @@ class ProfileController
             try {
                 $user = ProfileController::get_profile($user_id);
                 
+                $current_user_role = $_SESSION['user_role'] ?? 'GUEST';
+                $current_user_id = $_SESSION['user_id'] ?? null;
+
+                $can_edit = false;
+                if ($is_own_profile) {
+                    $can_edit = true;
+                } else {
+                    if ($current_user_role === 'ADMIN') {
+                        $can_edit = true;
+                    } elseif ($current_user_role === 'MOD' && $user->role === 'USER') {
+                        $can_edit = true;
+                    }
+                }
+
                 $response_data = [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -200,7 +316,10 @@ class ProfileController
                     'profile_picture' => $user->profile_picture ? "/api/profile/picture?id=" . $user->id . "&v=" . time() : '',
                     'created_at' => $user->created_at->format('Y-m-d H:i:s'),
                     'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
-                    'is_own_profile' => $is_own_profile
+                    'is_own_profile' => $is_own_profile,
+                    'can_edit' => $can_edit,
+                    'current_user_role' => $current_user_role,
+                    'current_user_id' => $current_user_id
                 ];
                 
                 header("Content-Type: application/json");
@@ -255,7 +374,52 @@ class ProfileController
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        if($url === "/api/profile/update")
+        if($url === "/api/profile/update-credentials")
+        {
+            if(!isset($_SESSION["user_id"])) {
+                http_response_code(401);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => 'You need to be logged in']);
+                return;
+            }
+            
+            try {
+                $request_body = file_get_contents("php://input");
+                $data = json_decode($request_body, true);
+                
+                if (!$data) {
+                    throw new ApiException(400, "Invalid JSON data");
+                }
+                
+                $user_id = isset($data['user_id']) ? (int)$data['user_id'] : 0;
+                
+                if ($user_id <= 0) {
+                    throw new ApiException(400, "Invalid user ID");
+                }
+                
+                $update_data = [];
+                if (isset($data['username'])) {
+                    $update_data['username'] = trim($data['username']);
+                }
+                if (isset($data['email'])) {
+                    $update_data['email'] = trim($data['email']);
+                }
+                if (isset($data['password']) && !empty($data['password'])) {
+                    $update_data['password'] = $data['password'];
+                }
+                
+                ProfileController::update_credentials($user_id, $update_data);
+                
+                header("Content-Type: application/json");
+                echo json_encode(['success' => true, 'message' => 'Credentials updated successfully']);
+                
+            } catch (ApiException $e) {
+                http_response_code($e->status_code);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => $e->err_msg]);
+            }
+        }
+        else if($url === "/api/profile/update")
         {
             if(!isset($_SESSION["user_id"])) {
                 http_response_code(401);
@@ -274,11 +438,17 @@ class ProfileController
                 
                 $description = isset($_POST['description']) ? trim($_POST['description']) : '';
                 $date_of_birth = isset($_POST['date_of_birth']) && !empty($_POST['date_of_birth']) ? $_POST['date_of_birth'] : null;
+                $clear_picture = isset($_POST['clear_picture']) && $_POST['clear_picture'] === 'true';
+                $target_user_id = isset($_POST['user_id']) ? (int)$_POST['user_id'] : $_SESSION["user_id"];
 
                 $data = [
                     'description' => $description,
                     'date_of_birth' => $date_of_birth
                 ];
+
+                if ($clear_picture) {
+                    $data['clear_picture'] = 'true';
+                }
                 
                 $profile_picture = null;
                 if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
@@ -290,7 +460,22 @@ class ProfileController
                     $debug_info['profile_picture_processed'] = false;
                 }
                 
-                $user = ProfileController::update_profile($_SESSION["user_id"], $data, $profile_picture);
+                $user = ProfileController::update_profile($target_user_id, $data, $profile_picture);
+                
+                $current_user_role = $_SESSION['user_role'] ?? 'GUEST';
+                $current_user_id = $_SESSION['user_id'] ?? null;
+                $is_own_profile = ($current_user_id === $target_user_id);
+
+                $can_edit = false;
+                if ($is_own_profile) {
+                    $can_edit = true;
+                } else {
+                    if ($current_user_role === 'ADMIN') {
+                        $can_edit = true;
+                    } elseif ($current_user_role === 'MOD' && $user->role === 'USER') {
+                        $can_edit = true;
+                    }
+                }
                 
                 $response_data = [
                     'id' => $user->id,
@@ -302,7 +487,10 @@ class ProfileController
                     'profile_picture' => $user->profile_picture ? "/api/profile/picture?id=" . $user->id . "&v=" . time() : '',
                     'created_at' => $user->created_at->format('Y-m-d H:i:s'),
                     'updated_at' => $user->updated_at->format('Y-m-d H:i:s'),
-                    'is_own_profile' => true,
+                    'is_own_profile' => $is_own_profile,
+                    'can_edit' => $can_edit,
+                    'current_user_role' => $current_user_role,
+                    'current_user_id' => $current_user_id,
                     'debug' => $debug_info
                 ];
                 

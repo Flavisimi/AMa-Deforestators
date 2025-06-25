@@ -10,6 +10,7 @@ require_once( __DIR__ . "/../repositories/abbreviation-repository.php");
 require_once( __DIR__ . "/../services/abbreviation-service.php");
 require_once( __DIR__ . "/../dtos/abbreviation-insert-dto.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
+require_once( __DIR__ . "/../dtos/abbr-multiple-insert-dto.php");
 
 use ama\models\Abbreviation;
 use ama\models\Meaning;
@@ -19,6 +20,7 @@ use ama\repositories\AbbreviationRepository;
 use ama\services\AbbreviationService;
 use ama\dtos\AbbrInsertDTO;
 use ama\exceptions\ApiException;
+use ama\dtos\AbbrMultipleInsertDTO;
 
 class AbbreviationController
 {
@@ -56,12 +58,18 @@ class AbbreviationController
         return $abbreviations;
     }
 
-    public static function create_abbreviation($dto) : Abbreviation
+    public static function create_abbreviation($dto, $conn = null) : Abbreviation
     {
         if(!isset($_SESSION["user_id"]))
             throw new ApiException(401, "You need to be logged in to create an abbreviation");
 
-        $conn = ConnectionHelper::open_connection();
+        $opened_here = false;
+        if($conn == null)
+        {
+            $conn = ConnectionHelper::open_connection();
+            $opened_here = true;
+        }
+
         try
         {
             AbbreviationRepository::insert_abbreviation($conn, $dto, false);
@@ -91,13 +99,63 @@ class AbbreviationController
             AbbreviationService::attach_meanings($conn, $abbreviation);
         } catch(ApiException $e)
         {
-            oci_close($conn);
+            if($opened_here)
+                oci_close($conn);
             throw $e;
         }
         
-        oci_close($conn);
+        if($opened_here)
+            oci_close($conn);
         return $abbreviation;
     }
+
+    public static function create_abbreviations_from_csv($csv_stream) : AbbrMultipleInsertDTO
+    {
+        if(!isset($_SESSION["user_id"]))
+            throw new ApiException(401, "You need to be logged in to create an abbreviation");
+
+        $output = new AbbrMultipleInsertDTO;
+        $output->count = 0;
+        $output->errors = array();
+
+        $conn = ConnectionHelper::open_connection();
+        while(1)
+        {
+            try
+            {
+                $line = fgetcsv($csv_stream);
+                if($line === false)
+                    break;
+                $dto = AbbrInsertDTO::from_csv_line($line);
+            } catch(\Exception $e)
+            {
+                $output->errors[] = $e->getMessage();
+                continue;
+            } catch(\Error $e)
+            {
+                $output->errors[] = $e->getMessage();
+                continue;
+            }
+
+            try
+            {
+                self::create_abbreviation($dto, $conn);
+                $output->count++;
+            }
+            catch(ApiException $e)
+            {
+                //do nothing if cause is unauthorized
+                if($e->status_code != 401)
+                {
+                    $output->errors[] = $e;
+                }
+            }
+        }
+
+        oci_close($conn);
+        return $output;
+    }
+
     public static function handle_get()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -134,11 +192,24 @@ class AbbreviationController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/abbreviations")
+        if($url === "/api/abbreviations")
         {
             $request_body = file_get_contents("php://input");
             $dto = AbbrInsertDTO::from_json($request_body);
             $rez = AbbreviationController::create_abbreviation($dto);
+
+            header("Content-Type: application/json");
+            echo json_encode($rez);
+        }
+        else if($url === "/api/abbreviations/csv")
+        {
+            $headers = apache_request_headers();
+            $content_type = $headers["Content-Type"];
+            if($content_type != "text/csv")
+                throw new ApiException(400, "Invalid content type!");
+            $request_body = fopen("php://input", "r");
+            
+            $rez = self::create_abbreviations_from_csv($request_body);
 
             header("Content-Type: application/json");
             echo json_encode($rez);

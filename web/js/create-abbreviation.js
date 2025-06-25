@@ -18,7 +18,7 @@ document.getElementById('abbreviation-form').addEventListener('submit', function
     document.getElementById('loading-overlay').style.display = 'flex';
     hideMessages();
 
-    fetch('/abbreviations', {
+    fetch('/api/abbreviations', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -37,8 +37,8 @@ document.getElementById('abbreviation-form').addEventListener('submit', function
         document.getElementById('abbreviation-form').reset();
         
         setTimeout(() => {
-    window.location.href = 'main';
-}, 1000);
+            window.location.href = 'main';
+        }, 1000);
     })
     .catch(error => {
         document.getElementById('loading-overlay').style.display = 'none';
@@ -83,3 +83,57 @@ document.querySelectorAll('.form-input, .form-textarea, .form-select').forEach(i
         this.parentElement.style.transform = 'scale(1)';
     });
 });
+
+document.querySelector(".extra-actions > button").onclick = (ev) =>
+{
+    const fileInput = document.createElement("input");
+    fileInput.setAttribute("type", "file");
+    
+    fileInput.addEventListener("change", async ev => {
+        hideMessages();
+        const file = fileInput.files[0];
+        if(file.type != "text/csv")
+        {
+            showError("Invalid file type!");
+            return;
+        }
+
+        const data = await file.text();
+
+        fetch("/api/abbreviations/csv", {
+            method: "POST",
+            headers: {"Content-Type": "text/csv"},
+            body: data
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => Promise.reject(err));
+            }
+            return response.json();
+        })
+        .then(result => {
+            document.getElementById('loading-overlay').style.display = 'none';
+            showSuccess(`Created ${result.count} abbreviations successfully! Redirecting to dashboard...`);
+            document.getElementById('abbreviation-form').reset();
+            
+            setTimeout(() => {
+                window.location.href = 'main';
+            }, 1000);
+        })
+        .catch(error => {
+            document.getElementById('loading-overlay').style.display = 'none';
+            console.error('Error:', error);
+            
+            let errorMessage = 'Failed to submit CSV file. Please try again.';
+            if (error && error.message) {
+                errorMessage = error.message;
+            } else if (error && typeof error === 'string') {
+                errorMessage = error;
+            }
+            
+            showError(errorMessage);
+        });
+    });
+
+    fileInput.click();
+}

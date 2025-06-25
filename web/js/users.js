@@ -1,226 +1,185 @@
-function setupLoadMoreButton() {
-    const loadMoreBtn = document.getElementById('load-more-btn');
-    
-    loadMoreBtn.addEventListener('click', function() {
-        loadMoreUsers();
-    });
+let allUsers = [];
+let filteredUsers = [];
+let currentPage = 1;
+let hasMoreUsers = true;
+let isLoading = false;
+let currentUserRole = 'GUEST';
+let currentUserId = null;
+let isSearchMode = false;
+let searchQuery = '';
+
+const USERS_PER_PAGE = 20;
+
+function showError(message) {
+    const errorDiv = document.getElementById('error-message');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+    setTimeout(() => {
+        errorDiv.style.display = 'none';
+    }, 5000);
 }
 
-function toggleAdminMenu(userId) {
-    const menu = document.getElementById(`admin-menu-${userId}`);
-    const allMenus = document.querySelectorAll('.admin-menu');
-    
-    // Close all other menus first
-    allMenus.forEach(m => {
-        if (m !== menu) {
-            m.style.display = 'none';
-        }
-    });
-    
-    // Toggle current menu
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-        // Force reflow to ensure the element is rendered
-        menu.offsetHeight;
-        setTimeout(() => {
-            menu.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 10);
-    } else {
-        menu.style.display = 'none';
-    }
-}
-
-function showRoleChangeModal(userId, currentRole, userName) {
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.innerHTML = `
-        <div class="role-modal">
-            <div class="modal-header">
-                <h3>Change Role for ${userName}</h3>
-                <button class="modal-close" onclick="closeModal(this)">×</button>
-            </div>
-            <div class="modal-body">
-                <p>Current role: <strong>${currentRole}</strong></p>
-                <div class="role-options">
-                    <button class="role-btn ${currentRole === 'USER' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'USER', this)">
-                        👤 USER
-                    </button>
-                    <button class="role-btn ${currentRole === 'MOD' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'MOD', this)">
-                        🛡️ MODERATOR
-                    </button>
-                    <button class="role-btn ${currentRole === 'ADMIN' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'ADMIN', this)">
-                        👑 ADMIN
-                    </button>
-                </div>
+function showLoading() {
+    const container = document.getElementById('users-grid');
+    container.innerHTML = `
+        <div class="loading-container" style="grid-column: 1 / -1;">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading users...</p>
             </div>
         </div>
     `;
-    
-    document.body.appendChild(modal);
 }
 
-function confirmDeleteUser(userId, userName) {
-    if (confirm(`Are you sure you want to permanently delete the user "${userName}"? This action cannot be undone.`)) {
-        deleteUser(userId);
+function showLoadingMore() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const loadingText = document.getElementById('loading-text');
+    
+    if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+    if (loadingText) loadingText.style.display = 'block';
+}
+
+function hideLoading() {
+    const loadingContainer = document.querySelector('.loading-container');
+    if (loadingContainer) {
+        loadingContainer.remove();
     }
 }
 
-async function changeUserRole(userId, newRole, buttonElement) {
-    try {
-        const response = await fetch('/api/all-users/change-role', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user_id: userId,
-                new_role: newRole
-            })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to change user role');
-        }
-        
-        const result = await response.json();
-        if (result.success) {
-            closeModal(buttonElement);
-            showSuccessMessage('User role updated successfully');
-            currentPage = 1;
-            allUsers = [];
-            await loadUsers(1, false);
-        }
-    } catch (error) {
-        console.error('Error changing user role:', error);
-        showError('Failed to change user role: ' + error.message);
+function hideLoadingMore() {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const loadingText = document.getElementById('loading-text');
+    
+    if (loadingText) loadingText.style.display = 'none';
+    if (loadMoreBtn && hasMoreUsers && !isSearchMode) {
+        loadMoreBtn.style.display = 'block';
     }
 }
 
 async function deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        return;
+    }
+
     try {
-        const response = await fetch(`/api/all-users/delete?user_id=${userId}`, {
-            method: 'DELETE'
+        const response = await fetch('/api/all-users/delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ user_id: userId })
         });
-        
+
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to delete user');
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
+
+        allUsers = allUsers.filter(user => user.id !== userId);
         
-        const result = await response.json();
-        if (result.success) {
-            showSuccessMessage('User deleted successfully');
-            currentPage = 1;
-            allUsers = [];
-            await loadUsers(1, false);
+        if (isSearchMode) {
+            filteredUsers = filteredUsers.filter(user => user.id !== userId);
+            displaySearchResults(filteredUsers, searchQuery);
+        } else {
+            displayUsers(allUsers, false);
         }
+
+        showError('User deleted successfully');
+        
     } catch (error) {
         console.error('Error deleting user:', error);
         showError('Failed to delete user: ' + error.message);
     }
 }
 
-function closeModal(element) {
-    const modal = element.closest('.modal-overlay');
-    if (modal) {
-        modal.remove();
-    }
-}
-
-function showSuccessMessage(message) {
-    const successDiv = document.createElement('div');
-    successDiv.className = 'success-message';
-    successDiv.textContent = message;
-    successDiv.style.display = 'block';
-    
-    const container = document.querySelector('.main-content');
-    container.insertBefore(successDiv, container.firstChild);
-    
-    setTimeout(() => {
-        successDiv.remove();
-    }, 3000);
-}
-
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.admin-controls')) {
-        document.querySelectorAll('.admin-menu').forEach(menu => {
-            menu.style.display = 'none';
+async function changeUserRole(userId, newRole) {
+    try {
+        const response = await fetch('/api/all-users/change-role', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ 
+                user_id: userId, 
+                new_role: newRole 
+            })
         });
-    }
-});let currentPage = 1;
-let isLoading = false;
-let hasMoreUsers = true;
-let allUsers = [];
-let filteredUsers = [];
-let isSearchMode = false;
-let searchQuery = '';
-let currentUserRole = 'GUEST';
-let currentUserId = null;
 
-const USERS_PER_PAGE = 20;
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
 
-function showLoading() {
-    document.getElementById('loading-overlay').style.display = 'flex';
-}
+        const userIndex = allUsers.findIndex(user => user.id === userId);
+        if (userIndex !== -1) {
+            allUsers[userIndex].role = newRole;
+        }
 
-function hideLoading() {
-    document.getElementById('loading-overlay').style.display = 'none';
-}
+        if (isSearchMode) {
+            const filteredIndex = filteredUsers.findIndex(user => user.id === userId);
+            if (filteredIndex !== -1) {
+                filteredUsers[filteredIndex].role = newRole;
+            }
+            displaySearchResults(filteredUsers, searchQuery);
+        } else {
+            displayUsers(allUsers, false);
+        }
 
-function showError(message) {
-    const errorElement = document.getElementById('error-message');
-    errorElement.textContent = message;
-    errorElement.style.display = 'block';
-    setTimeout(() => {
-        errorElement.style.display = 'none';
-    }, 5000);
-}
-
-function showLoadingMore() {
-    document.getElementById('loading-more').style.display = 'block';
-    document.getElementById('load-more-container').style.display = 'none';
-}
-
-function hideLoadingMore() {
-    document.getElementById('loading-more').style.display = 'none';
-    if (hasMoreUsers && !isSearchMode) {
-        document.getElementById('load-more-container').style.display = 'block';
+        showError('User role updated successfully');
+        
+    } catch (error) {
+        console.error('Error changing user role:', error);
+        showError('Failed to change user role: ' + error.message);
     }
 }
 
-function createUserCard(user, index = 0) {
+function createUserCard(user, index) {
     const card = document.createElement('div');
     card.className = 'user-card';
     card.style.animationDelay = `${index * 0.1}s`;
     
-    const memberSince = user.created_at ? 
-        new Date(user.created_at.date || user.created_at).toLocaleDateString() : 'N/A';
+    const isCurrentUser = currentUserId && user.id === currentUserId;
+    const canModify = currentUserRole === 'ADMIN' && !isCurrentUser;
     
-    const userInitial = user.name ? user.name.charAt(0).toUpperCase() : '?';
-    
-    const avatarContent = user.profile_picture ? 
-        `<img src="/api/profile/picture?id=${user.id}&v=${Date.now()}" alt="${user.name}" onerror="this.style.display='none'; this.parentElement.classList.add('no-image'); this.parentElement.setAttribute('data-initial', '${userInitial}');">` :
-        '';
-    
-    const isCurrentUser = user.id === currentUserId;
-    const showAdminControls = currentUserRole === 'ADMIN' && !isCurrentUser;
-    
-    const adminControlsHtml = showAdminControls ? `
-        <div class="admin-controls">
-            <button class="admin-menu-btn" onclick="toggleAdminMenu(${user.id})" title="Admin Actions">
-                ⚙️
-            </button>
-            <div class="admin-menu" id="admin-menu-${user.id}">
-                <button class="admin-action-btn change-role-btn" onclick="showRoleChangeModal(${user.id}, '${user.role}', '${escapeHtml(user.name)}')">
-                    👑 Change Role
-                </button>
-                <button class="admin-action-btn delete-user-btn" onclick="confirmDeleteUser(${user.id}, '${escapeHtml(user.name)}')">
-                    🗑️ Delete User
-                </button>
+    let adminControlsHtml = '';
+    if (canModify) {
+        adminControlsHtml = `
+            <div class="admin-controls">
+                <div class="role-controls">
+                    <label for="role-select-${user.id}">Change Role:</label>
+                    <select id="role-select-${user.id}" onchange="changeUserRole(${user.id}, this.value)">
+                        <option value="USER" ${user.role === 'USER' ? 'selected' : ''}>User</option>
+                        <option value="MOD" ${user.role === 'MOD' ? 'selected' : ''}>Moderator</option>
+                        <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>Admin</option>
+                    </select>
+                </div>
+                <button class="delete-user-btn" onclick="deleteUser(${user.id})">Delete User</button>
             </div>
-        </div>
-    ` : '';
+        `;
+    }
+    
+    const userInitial = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+    
+    let avatarContent = '';
+    if (user.profile_picture) {
+        avatarContent = `<img src="/api/profile/picture?id=${user.id}" alt="${escapeHtml(user.name)}" onerror="this.style.display='none'; this.parentElement.setAttribute('data-initial', '${userInitial}'); this.parentElement.classList.add('no-image');">`;
+    }
+    
+    let memberSince = 'Unknown';
+    if (user.created_at) {
+        try {
+            const date = new Date(user.created_at);
+            memberSince = date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long',
+                day: 'numeric'
+            });
+        } catch (e) {
+            memberSince = 'Unknown';
+        }
+    }
     
     card.innerHTML = `
         <div class="user-card-header">
@@ -329,6 +288,47 @@ async function loadUsers(page = 1, append = false) {
     }
 }
 
+async function searchUsers(query, page = 1) {
+    if (isLoading) return;
+    
+    try {
+        isLoading = true;
+        showLoading();
+        
+        const response = await fetch(`/api/all-users/search?query=${encodeURIComponent(query)}&page=${page}&limit=1000`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const users = Object.values(data.users || {});
+        
+        filteredUsers = users;
+        displaySearchResults(users, query);
+        
+    } catch (error) {
+        console.error('Error searching users:', error);
+        
+        filteredUsers = allUsers.filter(user => 
+            user.name.toLowerCase().includes(query.toLowerCase()) ||
+            user.email.toLowerCase().includes(query.toLowerCase()) ||
+            user.role.toLowerCase().includes(query.toLowerCase())
+        );
+        
+        displaySearchResults(filteredUsers, query);
+    } finally {
+        isLoading = false;
+        hideLoading();
+    }
+}
+
 function displayUsers(users, append = false) {
     const container = document.getElementById('users-grid');
     
@@ -387,7 +387,7 @@ function setupSearch() {
     
     let searchTimeout;
     
-    function performSearch() {
+    async function performSearch() {
         const query = searchInput.value.trim().toLowerCase();
         searchQuery = query;
         
@@ -400,13 +400,7 @@ function setupSearch() {
         }
         
         isSearchMode = true;
-        filteredUsers = allUsers.filter(user => 
-            user.name.toLowerCase().includes(query) ||
-            user.email.toLowerCase().includes(query) ||
-            user.role.toLowerCase().includes(query)
-        );
-        
-        displaySearchResults(filteredUsers, query);
+        await searchUsers(query);
     }
     
     searchInput.addEventListener('input', function() {

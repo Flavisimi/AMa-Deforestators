@@ -38,12 +38,49 @@ class UsersController
         return $users;
     }
 
+    public static function search_users(string $query, int $page = 1, int $limit = 20): ?array
+    {
+        if ($page < 1) $page = 1;
+        if ($limit < 1 || $limit > 1000) $limit = 1000;
+        
+        $offset = ($page - 1) * $limit;
+        
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $users = UsersRepository::search_users($conn, $query, $limit, $offset);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+        
+        oci_close($conn);
+        return $users;
+    }
+
     public static function get_users_count(): int
     {
         $conn = ConnectionHelper::open_connection();
         try
         {
             $count = UsersRepository::get_users_count($conn);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+        
+        oci_close($conn);
+        return $count;
+    }
+
+    public static function get_search_users_count(string $query): int
+    {
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $count = UsersRepository::get_search_users_count($conn, $query);
         } catch(ApiException $e)
         {
             oci_close($conn);
@@ -130,8 +167,8 @@ class UsersController
                             'email' => $user->email,
                             'role' => $user->role,
                             'profile_picture' => $user->profile_picture ? true : false,
-                            'created_at' => $user->created_at,
-                            'updated_at' => $user->updated_at
+                            'created_at' => $user->created_at ? $user->created_at->format('Y-m-d H:i:s') : null,
+                            'updated_at' => $user->updated_at ? $user->updated_at->format('Y-m-d H:i:s') : null
                         );
                     }
                 }
@@ -147,120 +184,157 @@ class UsersController
                 header("X-Page: " . $page);
                 header("X-Per-Page: " . $limit);
                 echo json_encode($response_data);
+                
             } catch (ApiException $e) {
                 http_response_code($e->status_code);
                 header("Content-Type: application/json");
-                echo json_encode(['error' => $e->err_msg]);
+                echo json_encode(['error' => $e->getMessage()]);
+            }
+        }
+        elseif($url === "/api/all-users/search")
+        {
+            if (!isset($query_components["query"])) {
+                http_response_code(400);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => 'Missing search query parameter']);
+                return;
+            }
+            
+            $query = trim($query_components["query"]);
+            if (empty($query)) {
+                http_response_code(400);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => 'Search query cannot be empty']);
+                return;
+            }
+            
+            $page = isset($query_components["page"]) ? (int)$query_components["page"] : 1;
+            $limit = isset($query_components["limit"]) ? (int)$query_components["limit"] : 1000;
+            
+            try {
+                $users = UsersController::search_users($query, $page, $limit);
+                $total_count = UsersController::get_search_users_count($query);
+                
+                $response = array();
+                if ($users) {
+                    foreach ($users as $user) {
+                        $response[$user->id] = array(
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'email' => $user->email,
+                            'role' => $user->role,
+                            'profile_picture' => $user->profile_picture ? true : false,
+                            'created_at' => $user->created_at ? $user->created_at->format('Y-m-d H:i:s') : null,
+                            'updated_at' => $user->updated_at ? $user->updated_at->format('Y-m-d H:i:s') : null
+                        );
+                    }
+                }
+                
+                $response_data = array(
+                    'users' => $response,
+                    'current_user_role' => isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'GUEST',
+                    'current_user_id' => isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null
+                );
+                
+                header("Content-Type: application/json");
+                header("X-Total-Count: " . $total_count);
+                header("X-Page: " . $page);
+                header("X-Per-Page: " . $limit);
+                echo json_encode($response_data);
+                
+            } catch (ApiException $e) {
+                http_response_code($e->status_code);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => $e->getMessage()]);
             }
         }
         else
         {
             http_response_code(404);
-            header("Content-Type: application/json");
-            echo json_encode(['error' => 'Endpoint not found']);
         }
     }
 
-    public static function handle_post()
+    public static function handle_put()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         
         if($url === "/api/all-users/change-role")
         {
-            $request_body = file_get_contents("php://input");
-            $data = json_decode($request_body, true);
+            $input = json_decode(file_get_contents('php://input'), true);
             
-            $user_id = isset($data['user_id']) ? (int)$data['user_id'] : 0;
-            $new_role = isset($data['new_role']) ? trim($data['new_role']) : '';
-            
-            if ($user_id <= 0 || empty($new_role)) {
+            if (!isset($input['user_id']) || !isset($input['new_role'])) {
                 http_response_code(400);
                 header("Content-Type: application/json");
-                echo json_encode(['error' => 'Invalid user ID or role']);
+                echo json_encode(['error' => 'Missing required parameters']);
                 return;
             }
             
             try {
-                UsersController::change_user_role($user_id, $new_role);
+                UsersController::change_user_role((int)$input['user_id'], $input['new_role']);
                 header("Content-Type: application/json");
-                echo json_encode(['success' => true, 'message' => 'User role updated successfully']);
+                echo json_encode(['success' => true]);
+                
             } catch (ApiException $e) {
                 http_response_code($e->status_code);
                 header("Content-Type: application/json");
-                echo json_encode(['error' => $e->err_msg]);
+                echo json_encode(['error' => $e->getMessage()]);
             }
-        }
-        else if($url === "/api/all-users") 
-        {
-            // Handle other POST requests to /api/all-users if needed
-            http_response_code(404);
-            header("Content-Type: application/json");
-            echo json_encode(['error' => 'POST method not supported for this endpoint']);
         }
         else
         {
             http_response_code(404);
-            header("Content-Type: application/json");
-            echo json_encode(['error' => 'Endpoint not found']);
         }
     }
 
     public static function handle_delete()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $query_components = array();
-        parse_str($_SERVER['QUERY_STRING'], $query_components);
         
         if($url === "/api/all-users/delete")
         {
-            $user_id = isset($query_components['user_id']) ? (int)$query_components['user_id'] : 0;
+            $input = json_decode(file_get_contents('php://input'), true);
             
-            if ($user_id <= 0) {
+            if (!isset($input['user_id'])) {
                 http_response_code(400);
                 header("Content-Type: application/json");
-                echo json_encode(['error' => 'Invalid user ID']);
+                echo json_encode(['error' => 'Missing user_id parameter']);
                 return;
             }
             
             try {
-                UsersController::delete_user($user_id);
+                UsersController::delete_user((int)$input['user_id']);
                 header("Content-Type: application/json");
-                echo json_encode(['success' => true, 'message' => 'User deleted successfully']);
+                echo json_encode(['success' => true]);
+                
             } catch (ApiException $e) {
                 http_response_code($e->status_code);
                 header("Content-Type: application/json");
-                echo json_encode(['error' => $e->err_msg]);
+                echo json_encode(['error' => $e->getMessage()]);
             }
-        }
-        else if($url === "/api/all-users")
-        {
-            // Handle other DELETE requests to /api/all-users if needed  
-            http_response_code(404);
-            header("Content-Type: application/json");
-            echo json_encode(['error' => 'DELETE method not supported for this endpoint']);
         }
         else
         {
             http_response_code(404);
-            header("Content-Type: application/json");
-            echo json_encode(['error' => 'Endpoint not found']);
         }
     }
 
     public static function handle_request()
     {
         session_start();
-        if($_SERVER['REQUEST_METHOD'] === 'GET')
-            UsersController::handle_get();
-        else if($_SERVER['REQUEST_METHOD'] === 'POST')
-            UsersController::handle_post();
-        else if($_SERVER['REQUEST_METHOD'] === 'DELETE')
-            UsersController::handle_delete();
-        else
-        {
-            http_response_code(405);
-            header("Content-Type: application/json");
-            echo json_encode(['error' => 'Method not allowed']);
+        
+        switch($_SERVER['REQUEST_METHOD']) {
+            case 'GET':
+                self::handle_get();
+                break;
+            case 'PUT':
+                self::handle_put();
+                break;
+            case 'DELETE':
+                self::handle_delete();
+                break;
+            default:
+                http_response_code(405);
+                break;
         }
     }
 }
@@ -273,7 +347,7 @@ catch(ApiException $e)
 {
     http_response_code($e->status_code);
     header("Content-Type: application/json");
-    echo json_encode($e);
+    echo json_encode(['error' => $e->getMessage()]);
 }
 catch(\Exception $e)
 {

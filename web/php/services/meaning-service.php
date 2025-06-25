@@ -32,7 +32,7 @@ class MeaningService
         
         foreach($document->variablelist->varlistentry as $entry)
         {
-            if((string)$entry->term->abbrev == $meaning->name)
+            if((string)$entry->listitem->formalpara[0]->para == $meaning->short_expansion)
             {
                 $meaning->description = (string)$entry->listitem->formalpara[1]->para;
                 return;

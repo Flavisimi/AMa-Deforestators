@@ -37,7 +37,7 @@ class DocbookHelper
             if($child->getName() != "varlistentry")
                 continue;
 
-            if($child->term->abbrev == $meaning->name)
+            if($child->listitem->formalpara[0]->para == $meaning->short_expansion)
                 return false;
         }
 
@@ -78,10 +78,10 @@ class DocbookHelper
             if($child->listitem->formalpara[0]->para != $short_expansion)
                 continue;
 
-            unset($child);
+            unset($child[0]);
             return true;
         }
-        
+
         return false;
     }
 

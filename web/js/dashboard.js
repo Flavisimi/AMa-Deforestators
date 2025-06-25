@@ -1,5 +1,10 @@
 let availableLanguages = [];
 let availableDomains = [];
+let currentPage = 1;
+let isLoading = false;
+let hasMore = true;
+let currentAbbreviations = [];
+let isSearchMode = false;
 
 document.querySelectorAll('.nav-button').forEach(button => {
     button.addEventListener('click', function(e) {
@@ -63,8 +68,6 @@ function populateDatalist(datalistId, options) {
     }
 }
 
-
-
 function createAbbreviationCard(abbreviation) {
     const card = document.createElement('div');
     card.className = 'abbreviation-card';
@@ -115,13 +118,16 @@ function createAbbreviationCard(abbreviation) {
     return card;
 }
 
-function displayAbbreviations(data, isSearchResult = false) {
+function displayAbbreviations(data, isSearchResult = false, append = false) {
     const placeholder = document.querySelector('.content-placeholder');
-    placeholder.innerHTML = '';
     
-    const abbreviations = Object.values(data);
+    if (!append) {
+        placeholder.innerHTML = '';
+    }
     
-    if (abbreviations.length === 0) {
+    const abbreviations = Array.isArray(data) ? data : Object.values(data);
+    
+    if (!append && abbreviations.length === 0) {
         placeholder.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📝</div>
@@ -137,28 +143,70 @@ function displayAbbreviations(data, isSearchResult = false) {
         return;
     }
     
-    const gridContainer = document.createElement('div');
-    gridContainer.className = 'abbreviation-grid';
+    let gridContainer = placeholder.querySelector('.abbreviation-grid');
+    if (!gridContainer) {
+        gridContainer = document.createElement('div');
+        gridContainer.className = 'abbreviation-grid';
+        placeholder.appendChild(gridContainer);
+    }
+    
+    const startIndex = append ? currentAbbreviations.length : 0;
     
     abbreviations.forEach((abbreviation, index) => {
         const card = createAbbreviationCard(abbreviation);
-        card.style.animationDelay = `${index * 0.1}s`;
+        card.style.animationDelay = `${(startIndex + index) * 0.1}s`;
         gridContainer.appendChild(card);
     });
     
-    placeholder.appendChild(gridContainer);
+    if (append) {
+        currentAbbreviations = currentAbbreviations.concat(abbreviations);
+    } else {
+        currentAbbreviations = abbreviations;
+    }
 }
 
-function loadAllAbbreviations() {
+function showLoadingIndicator(append = false) {
     const placeholder = document.querySelector('.content-placeholder');
-    placeholder.innerHTML = `
-        <div class="loading-spinner">
-            <div class="spinner"></div>
-            <p>Loading abbreviations...</p>
-        </div>
-    `;
     
-    fetch('/abbreviations')
+    if (append) {
+        let loadingDiv = document.querySelector('.loading-more');
+        if (!loadingDiv) {
+            loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading-more';
+            loadingDiv.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading more abbreviations...</p>
+                </div>
+            `;
+            placeholder.appendChild(loadingDiv);
+        }
+    } else {
+        placeholder.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading abbreviations...</p>
+            </div>
+        `;
+    }
+}
+
+function hideLoadingIndicator() {
+    const loadingMore = document.querySelector('.loading-more');
+    if (loadingMore) {
+        loadingMore.remove();
+    }
+}
+
+function loadAbbreviations(page = 1, append = false) {
+    if (isLoading) return;
+    
+    isLoading = true;
+    isSearchMode = false;
+    
+    showLoadingIndicator(append);
+    
+    fetch(`/abbreviations?page=${page}&limit=20`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -166,19 +214,72 @@ function loadAllAbbreviations() {
             return response.json();
         })
         .then(data => {
-            displayAbbreviations(data);
+            hideLoadingIndicator();
+            
+            if (data.abbreviations) {
+                displayAbbreviations(data.abbreviations, false, append);
+                hasMore = data.pagination.has_more;
+                currentPage = data.pagination.current_page;
+            } else {
+                displayAbbreviations(data, false, append);
+                hasMore = false;
+            }
+            
+            isLoading = false;
         })
         .catch(error => {
             console.error('Error loading abbreviations:', error);
-            placeholder.innerHTML = `
-                <div class="error-state">
-                    <div class="error-icon">⚠️</div>
-                    <h3>Failed to load abbreviations</h3>
-                    <p>${error.message}</p>
-                    <button onclick="loadAllAbbreviations()" class="retry-btn">Retry</button>
-                </div>
-            `;
+            hideLoadingIndicator();
+            isLoading = false;
+            
+            const placeholder = document.querySelector('.content-placeholder');
+            if (!append) {
+                placeholder.innerHTML = `
+                    <div class="error-state">
+                        <div class="error-icon">⚠️</div>
+                        <h3>Failed to load abbreviations</h3>
+                        <p>${error.message}</p>
+                        <button onclick="loadAllAbbreviations()" class="retry-btn">Retry</button>
+                    </div>
+                `;
+            }
         });
+}
+
+function loadAllAbbreviations() {
+    currentPage = 1;
+    hasMore = true;
+    currentAbbreviations = [];
+    isSearchMode = false;
+    loadAbbreviations(1, false);
+}
+
+function loadMoreAbbreviations() {
+    if (hasMore && !isLoading && !isSearchMode) {
+        loadAbbreviations(currentPage + 1, true);
+    }
+}
+
+function setupInfiniteScroll() {
+    let isScrolling = false;
+    
+    window.addEventListener('scroll', function() {
+        if (isScrolling) return;
+        
+        isScrolling = true;
+        
+        requestAnimationFrame(function() {
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const documentHeight = document.documentElement.offsetHeight;
+            const threshold = 300;
+            
+            if (scrollPosition >= documentHeight - threshold) {
+                loadMoreAbbreviations();
+            }
+            
+            isScrolling = false;
+        });
+    });
 }
 
 function fetchMeanings(abbrId) {
@@ -384,8 +485,7 @@ function getMeaningCardHTML(meaning) {
     `;
 }
 
-async function removeModControls(element)
-{
+async function removeModControls(element) {
     const user = await GLOBAL_USER;
     if(user == null || user.current_user_role == "USER")
         element.querySelectorAll(".edit-btn, .delete-btn").forEach(btn => btn.parentElement.removeChild(btn));
@@ -614,6 +714,11 @@ function performSearch() {
         return;
     }
     
+    isSearchMode = true;
+    currentPage = 1;
+    hasMore = false;
+    currentAbbreviations = [];
+    
     const placeholder = document.querySelector('.content-placeholder');
     placeholder.innerHTML = `
         <div class="loading-spinner">
@@ -689,42 +794,7 @@ function clearDomainFilter() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    loadFilterOptions();
-    loadAllAbbreviations();
-    
-    const languageFilter = document.querySelector('#language-filter');
-    const domainFilter = document.querySelector('#domain-filter');
-    
-    if (languageFilter) {
-        languageFilter.addEventListener('input', function() {
-            const searchTerm = document.querySelector('#search-bar').value.trim();
-            const domain = document.querySelector('#domain-filter').value.trim();
-            
-            if (searchTerm || this.value.trim() || domain) {
-                performSearch();
-            } else {
-                loadAllAbbreviations();
-            }
-        });
-    }
-    
-    if (domainFilter) {
-        domainFilter.addEventListener('input', function() {
-            const searchTerm = document.querySelector('#search-bar').value.trim();
-            const language = document.querySelector('#language-filter').value.trim();
-            
-            if (searchTerm || this.value.trim() || language) {
-                performSearch();
-            } else {
-                loadAllAbbreviations();
-            }
-        });
-    }
-});
-
-function deleteMeaning(btn, id)
-{
+function deleteMeaning(btn, id) {
     fetch(`/api/meanings?id=${id}`, {
         method: "DELETE"
     })
@@ -753,7 +823,6 @@ function deleteMeaning(btn, id)
     });
 }
 
-
 document.querySelector('.search-button').addEventListener('click', function() {
     performSearch();
 });
@@ -764,10 +833,10 @@ document.querySelector('#search-bar').addEventListener('keypress', function(e) {
     }
 });
 
-// Add event listeners for filter inputs if they exist
 document.addEventListener('DOMContentLoaded', function() {
     loadFilterOptions();
     loadAllAbbreviations();
+    setupInfiniteScroll();
     
     const languageFilter = document.querySelector('#language-filter');
     const domainFilter = document.querySelector('#domain-filter');
@@ -775,8 +844,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (languageFilter) {
         languageFilter.addEventListener('input', function() {
             const searchTerm = document.querySelector('#search-bar').value.trim();
-            if (searchTerm) {
+            const domain = document.querySelector('#domain-filter').value.trim();
+            
+            if (searchTerm || this.value.trim() || domain) {
                 performSearch();
+            } else {
+                loadAllAbbreviations();
             }
         });
     }
@@ -784,8 +857,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (domainFilter) {
         domainFilter.addEventListener('input', function() {
             const searchTerm = document.querySelector('#search-bar').value.trim();
-            if (searchTerm) {
+            const language = document.querySelector('#language-filter').value.trim();
+            
+            if (searchTerm || this.value.trim() || language) {
                 performSearch();
+            } else {
+                loadAllAbbreviations();
             }
         });
     }

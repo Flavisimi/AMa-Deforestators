@@ -76,6 +76,54 @@ class AbbreviationRepository
         return $output;
     }
 
+    public static function load_abbreviations_paginated($conn, int $limit = 20, int $offset = 0): ?array
+    {
+        $sql = "SELECT * FROM (
+                    SELECT ROW_NUMBER() OVER (ORDER BY id) as rn, 
+                           id, searchable_name, meaning_count, created_at, updated_at 
+                    FROM abbreviations
+                ) WHERE rn > :offset AND rn <= :end_row";
+        
+        $stmt = oci_parse($conn, $sql);
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+
+        $end_row = $offset + $limit;
+        oci_bind_by_name($stmt, ":offset", $offset);
+        oci_bind_by_name($stmt, ":end_row", $end_row);
+
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+        
+        $output = array();
+        while(($row = oci_fetch_array($stmt, OCI_ASSOC)) != false)
+        {
+            $abbreviation = AbbreviationRepository::convert_row_to_object($row);
+            $output[$row["ID"]] = $abbreviation;
+        }
+
+        oci_free_statement($stmt);
+
+        return $output;
+    }
+
+    public static function get_total_abbreviations_count($conn): int
+    {
+        $stmt = oci_parse($conn, "SELECT COUNT(*) as total FROM abbreviations");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+
+        if(!oci_execute($stmt)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+
+        $row = oci_fetch_array($stmt, OCI_ASSOC);
+        $total = $row ? (int)$row["TOTAL"] : 0;
+
+        oci_free_statement($stmt);
+
+        return $total;
+    }
+
     public static function load_abbreviation_by_name($conn, string $name): ?Abbreviation
     {
         $stmt = oci_parse($conn, "select id, searchable_name, meaning_count, created_at, updated_at from abbreviations where searchable_name = ama_helper.get_searchable_name(:name)");
@@ -136,6 +184,5 @@ class AbbreviationRepository
         oci_free_statement($stmt);
     }
 }
-
 
 ?>

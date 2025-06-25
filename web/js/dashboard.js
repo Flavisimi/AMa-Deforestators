@@ -695,6 +695,7 @@ function deleteMeaning(btn, id)
             loadAllAbbreviations();
     })
     .catch(error => {
+        const placeholder = document.querySelector('.content-placeholder');
         console.error('Error:', error);
         placeholder.innerHTML = `
             <div class="error-state">

@@ -29,9 +29,17 @@ class DocbookHelper
         return null;
     }
 
-    public static function add_meaning_to_abbr_document($document, $meaning, $description)
+    public static function add_meaning_to_abbr_document($document, $meaning, $description): bool
     {
         $meanings = $document->variablelist;
+        foreach($meanings->children() as $child)
+        {
+            if($child->getName() != "varlistentry")
+                continue;
+
+            if($child->term->abbrev == $meaning->name)
+                return false;
+        }
 
         $entry = $meanings->addChild("varlistentry");
 
@@ -55,6 +63,8 @@ class DocbookHelper
         $domain_para = $item->addChild("formalpara");
         $domain_para->addChild("title", "Domain");
         $domain_para->addChild("para", $meaning->domain);
+
+        return true;
     }
 
     public static function save_document($document)

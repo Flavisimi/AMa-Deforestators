@@ -468,22 +468,24 @@ function enableProfileEdit() {
 function showRoleChangeModal(userId, currentRole, userName) {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
+    modal.id = 'role-modal';
+    
     modal.innerHTML = `
         <div class="role-modal">
             <div class="modal-header">
                 <h3>Change Role for ${userName}</h3>
-                <button class="modal-close" onclick="closeModal(this)">×</button>
+                <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Current role: <strong>${currentRole}</strong></p>
+                <p>Select a new role for this user:</p>
                 <div class="role-options">
-                    <button class="role-btn ${currentRole === 'USER' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'USER', this)">
+                    <button class="role-btn ${currentRole === 'USER' ? 'active' : ''}">
                         👤 USER
                     </button>
-                    <button class="role-btn ${currentRole === 'MOD' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'MOD', this)">
+                    <button class="role-btn ${currentRole === 'MOD' ? 'active' : ''}">
                         🛡️ MODERATOR
                     </button>
-                    <button class="role-btn ${currentRole === 'ADMIN' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'ADMIN', this)">
+                    <button class="role-btn ${currentRole === 'ADMIN' ? 'active' : ''}">
                         👑 ADMIN
                     </button>
                 </div>
@@ -492,6 +494,27 @@ function showRoleChangeModal(userId, currentRole, userName) {
     `;
     
     document.body.appendChild(modal);
+    
+    const closeBtn = modal.querySelector('.modal-close');
+    closeBtn.addEventListener('click', function() {
+        closeModal();
+    });
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    const roleBtns = modal.querySelectorAll('.role-btn');
+    roleBtns.forEach((btn, index) => {
+        const roles = ['USER', 'MOD', 'ADMIN'];
+        const newRole = roles[index];
+        
+        btn.addEventListener('click', function() {
+            changeUserRole(userId, newRole);
+        });
+    });
 }
 
 function confirmDeleteUser(userId, userName) {
@@ -506,16 +529,21 @@ function clearProfilePicture(userId, userName) {
     }
 }
 
-async function changeUserRole(userId, newRole, buttonElement) {
+function closeModal() {
+    const modal = document.getElementById('role-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+async function changeUserRole(userId, newRole) {
     try {
-        const overlay = document.getElementById('loading-overlay');
-        overlay.style.display = 'flex';
-        
         const response = await fetch('/api/all-users/change-role', {
-            method: 'POST',
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'same-origin',
             body: JSON.stringify({
                 user_id: userId,
                 new_role: newRole
@@ -523,64 +551,128 @@ async function changeUserRole(userId, newRole, buttonElement) {
         });
         
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to change user role');
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         
-        const result = await response.json();
-        if (result.success) {
-            closeModal(buttonElement);
-            const successDiv = document.getElementById('success-message');
+        closeModal();
+        
+        const successDiv = document.getElementById('success-message');
+        if (successDiv) {
             successDiv.textContent = 'User role updated successfully';
             successDiv.style.display = 'block';
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
         }
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+        
     } catch (error) {
         console.error('Error changing user role:', error);
         const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = 'Failed to change user role: ' + error.message;
-        errorDiv.style.display = 'block';
-    } finally {
-        const overlay = document.getElementById('loading-overlay');
-        overlay.style.display = 'none';
+        if (errorDiv) {
+            errorDiv.textContent = 'Failed to change user role: ' + error.message;
+            errorDiv.style.display = 'block';
+        }
     }
 }
 
 async function deleteUser(userId) {
     try {
-        const overlay = document.getElementById('loading-overlay');
-        overlay.style.display = 'flex';
-        
-        const response = await fetch(`/api/all-users/delete?user_id=${userId}`, {
-            method: 'DELETE'
+        const response = await fetch('/api/all-users/delete', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ user_id: userId })
         });
         
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to delete user');
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         
-        const result = await response.json();
-        if (result.success) {
-            const successDiv = document.getElementById('success-message');
+        const successDiv = document.getElementById('success-message');
+        if (successDiv) {
             successDiv.textContent = 'User deleted successfully';
             successDiv.style.display = 'block';
-            setTimeout(() => {
-                window.location.href = 'users-page';
-            }, 1500);
         }
+        
+        setTimeout(() => {
+            window.location.href = '/users-page';
+        }, 1500);
+        
     } catch (error) {
         console.error('Error deleting user:', error);
         const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = 'Failed to delete user: ' + error.message;
-        errorDiv.style.display = 'block';
-    } finally {
-        const overlay = document.getElementById('loading-overlay');
-        overlay.style.display = 'none';
+        if (errorDiv) {
+            errorDiv.textContent = 'Failed to delete user: ' + error.message;
+            errorDiv.style.display = 'block';
+        }
     }
 }
+function setupAdminButtons() {
+    const adminActions = document.querySelector('.admin-profile-actions');
+    if (!adminActions) return;
+    
+    const changeRoleBtn = adminActions.querySelector('.btn-warning');
+    const deleteBtn = adminActions.querySelector('.btn-danger');
+    
+    if (changeRoleBtn) {
+        const onclickAttr = changeRoleBtn.getAttribute('onclick');
+        if (onclickAttr) {
+            const match = onclickAttr.match(/showRoleChangeModal\('([^']+)', '([^']+)', '([^']+)'\)/);
+            if (match) {
+                const userId = match[1];
+                const userRole = match[2]; 
+                const userName = match[3];
+                
+                changeRoleBtn.removeAttribute('onclick');
+                changeRoleBtn.addEventListener('click', function() {
+                    showRoleChangeModal(userId, userRole, userName);
+                });
+            }
+        }
+    }
+    
+    if (deleteBtn) {
+        const onclickAttr = deleteBtn.getAttribute('onclick');
+        if (onclickAttr) {
+            const match = onclickAttr.match(/confirmDeleteUser\('([^']+)', '([^']+)'\)/);
+            if (match) {
+                const userId = match[1];
+                const userName = match[2];
+                
+                deleteBtn.removeAttribute('onclick');
+                deleteBtn.addEventListener('click', function() {
+                    confirmDeleteUser(userId, userName);
+                });
+            }
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(setupAdminButtons, 100);
+    
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1 && node.classList && node.classList.contains('admin-profile-actions')) {
+                        setupAdminButtons();
+                    }
+                });
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});
 
 async function removePicture(userId) {
     try {
@@ -731,7 +823,15 @@ async function updateUserCredentials(userId, modal) {
 }
 
 function closeModal(element) {
-    const modal = element.closest('.modal-overlay');
+    if (element) {
+        const modal = element.closest('.modal-overlay');
+        if (modal) {
+            modal.remove();
+            return;
+        }
+    }
+    
+    const modal = document.getElementById('role-modal');
     if (modal) {
         modal.remove();
     }

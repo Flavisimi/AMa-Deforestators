@@ -79,16 +79,20 @@ function displayListDetails(list) {
         </p>
         <div class="list-stats">
             <div class="stat-item">
-                <span class="stat-number">${(list.meanings || []).length}</span>
+                <span class="stat-data">${(list.meanings || []).length}</span>
                 <span class="stat-label">Abbreviations</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">${createdDate}</span>
+                <span class="stat-data">${createdDate}</span>
                 <span class="stat-label">Created</span>
             </div>
             <div class="stat-item">
-                <span class="stat-number">${updatedDate}</span>
+                <span class="stat-data">${updatedDate}</span>
                 <span class="stat-label">Last Updated</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-data">${list.creator_name}</span>
+                <span class="stat-label">Creator</span>
             </div>
         </div>
     `;

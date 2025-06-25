@@ -11,5 +11,6 @@ class AbbreviationList
     public \DateTime $updated_at;
 
     public ?array $meanings;
+    public ?string $creator_name;
 }
 ?>

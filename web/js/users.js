@@ -22,7 +22,6 @@ function toggleAdminMenu(userId) {
         menu.style.display = 'block';
         // Force reflow to ensure the element is rendered
         menu.offsetHeight;
-        // Add a small delay to ensure visibility
         setTimeout(() => {
             menu.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 10);

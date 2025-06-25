@@ -173,67 +173,70 @@ document.addEventListener('DOMContentLoaded', function() {
                 titleElement.textContent = `${user.name}'s Profile`;
             }
         }
+        if (user.is_own_profile) {
+        addChangeCredentialsButton();
+        }
         
         addAdminActions(user);
     }
     
     function addAdminActions(user) {
-        const existingActions = document.querySelector('.admin-profile-actions');
-        if (existingActions) {
-            existingActions.remove();
+    const existingActions = document.querySelector('.admin-profile-actions');
+    if (existingActions) {
+        existingActions.remove();
+    }
+    
+    if (user.current_user_role === 'ADMIN' && !user.is_own_profile) {
+        const profileCard = document.querySelector('.profile-card');
+        if (profileCard) {
+            const adminActionsDiv = document.createElement('div');
+            adminActionsDiv.className = 'admin-profile-actions';
+            adminActionsDiv.innerHTML = `
+                <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
+                    <h4 style="color: #dc3545; margin-bottom: 15px; font-size: 1.1rem;">Admin Actions</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-primary" onclick="enableProfileEdit()">
+                            Edit Profile
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="showAdminEditModal('${user.id}', '${escapeHtml(user.name)}', '${escapeHtml(user.email)}')">
+                            Edit Credentials
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="showRoleChangeModal('${user.id}', '${user.role}', '${escapeHtml(user.name)}')">
+                            Change Role
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="confirmDeleteUser('${user.id}', '${escapeHtml(user.name)}')">
+                            Delete User
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${escapeHtml(user.name)}')">
+                            Remove Picture
+                        </button>
+                    </div>
+                </div>
+            `;
+            profileCard.appendChild(adminActionsDiv);
         }
-        
-        if (user.current_user_role === 'ADMIN' && !user.is_own_profile) {
-            const profileCard = document.querySelector('.profile-card');
-            if (profileCard) {
-                const adminActionsDiv = document.createElement('div');
-                adminActionsDiv.className = 'admin-profile-actions';
-                adminActionsDiv.innerHTML = `
-                    <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
-                        <h4 style="color: #dc3545; margin-bottom: 15px; font-size: 1.1rem;">Admin Actions</h4>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-primary" onclick="enableProfileEdit()">
-                                Edit Profile
-                            </button>
-                            <button type="button" class="btn btn-info" onclick="showAdminEditModal('${user.id}', '${escapeHtml(user.name)}', '${escapeHtml(user.email)}')">
-                                Edit Credentials
-                            </button>
-                            <button type="button" class="btn btn-warning" onclick="showRoleChangeModal('${user.id}', '${user.role}', '${escapeHtml(user.name)}')">
-                                Change Role
-                            </button>
-                            <button type="button" class="btn btn-danger" onclick="confirmDeleteUser('${user.id}', '${escapeHtml(user.name)}')">
-                                Delete User
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${escapeHtml(user.name)}')">
-                                Remove Picture
-                            </button>
-                        </div>
+    } else if (user.current_user_role === 'MOD' && !user.is_own_profile && user.role === 'USER') {
+        const profileCard = document.querySelector('.profile-card');
+        if (profileCard) {
+            const modActionsDiv = document.createElement('div');
+            modActionsDiv.className = 'admin-profile-actions';
+            modActionsDiv.innerHTML = `
+                <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
+                    <h4 style="color: #ffc107; margin-bottom: 15px; font-size: 1.1rem;">Moderator Actions</h4>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-primary" onclick="enableProfileEdit()">
+                            Edit Profile
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${escapeHtml(user.name)}')">
+                            Remove Picture
+                        </button>
                     </div>
-                `;
-                profileCard.appendChild(adminActionsDiv);
-            }
-        } else if (user.current_user_role === 'MOD' && !user.is_own_profile && user.role === 'USER') {
-            const profileCard = document.querySelector('.profile-card');
-            if (profileCard) {
-                const adminActionsDiv = document.createElement('div');
-                adminActionsDiv.className = 'admin-profile-actions';
-                adminActionsDiv.innerHTML = `
-                    <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
-                        <h4 style="color: #fd7e14; margin-bottom: 15px; font-size: 1.1rem;">Moderator Actions</h4>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button type="button" class="btn btn-primary" onclick="enableProfileEdit()">
-                                Edit Description
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${escapeHtml(user.name)}')">
-                                Remove Picture
-                            </button>
-                        </div>
-                    </div>
-                `;
-                profileCard.appendChild(adminActionsDiv);
-            }
+                </div>
+            `;
+            profileCard.appendChild(modActionsDiv);
         }
     }
+}
     
     async function saveProfile() {
         try {
@@ -731,4 +734,257 @@ function closeModal(element) {
     if (modal) {
         modal.remove();
     }
+}
+// Add this to your existing profile.js file
+
+function initializeCredentialChange() {
+    const changePasswordCheckbox = document.getElementById('change-password-checkbox');
+    const passwordFields = document.getElementById('password-fields');
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    
+    if (changePasswordCheckbox) {
+        changePasswordCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                passwordFields.style.display = 'block';
+                newPasswordInput.required = true;
+                confirmPasswordInput.required = true;
+            } else {
+                passwordFields.style.display = 'none';
+                newPasswordInput.required = false;
+                confirmPasswordInput.required = false;
+                newPasswordInput.value = '';
+                confirmPasswordInput.value = '';
+            }
+        });
+    }
+    
+    const closeModalBtn = document.getElementById('closeCredentialsModal');
+    const cancelBtn = document.getElementById('cancelCredentials');
+    const modal = document.getElementById('credentialsModal');
+    
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeCredentialsModal);
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeCredentialsModal);
+    }
+    
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeCredentialsModal();
+            }
+        });
+    }
+    
+    const credentialsForm = document.getElementById('credentialsForm');
+    if (credentialsForm) {
+        credentialsForm.addEventListener('submit', handleCredentialsSubmit);
+    }
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal && modal.style.display !== 'none') {
+            closeCredentialsModal();
+        }
+    });
+}
+
+function showChangeCredentialsModal(currentUsername, currentEmail) {
+    const modal = document.getElementById('credentialsModal');
+    const usernameInput = document.getElementById('new-username');
+    const emailInput = document.getElementById('new-email');
+    const currentPasswordInput = document.getElementById('current-password');
+    const changePasswordCheckbox = document.getElementById('change-password-checkbox');
+    const passwordFields = document.getElementById('password-fields');
+    
+    if (usernameInput) usernameInput.value = currentUsername || '';
+    if (emailInput) emailInput.value = currentEmail || '';
+    if (currentPasswordInput) currentPasswordInput.value = '';
+    if (changePasswordCheckbox) changePasswordCheckbox.checked = false;
+    if (passwordFields) passwordFields.style.display = 'none';
+    
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    if (newPasswordInput) {
+        newPasswordInput.value = '';
+        newPasswordInput.required = false;
+    }
+    if (confirmPasswordInput) {
+        confirmPasswordInput.value = '';
+        confirmPasswordInput.required = false;
+    }
+    
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            if (usernameInput) usernameInput.focus();
+        }, 100);
+    }
+}
+
+function closeCredentialsModal() {
+    const modal = document.getElementById('credentialsModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+async function handleCredentialsSubmit(e) {
+    e.preventDefault();
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    
+    try {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+        submitBtn.textContent = 'Updating...';
+        
+        const formData = {
+            username: document.getElementById('new-username').value.trim(),
+            email: document.getElementById('new-email').value.trim(),
+            current_password: document.getElementById('current-password').value
+        };
+        
+        if (!formData.username || !formData.email || !formData.current_password) {
+            throw new Error('All fields are required');
+        }
+        
+        if (formData.username.length < 3) {
+            throw new Error('Username must be at least 3 characters long');
+        }
+        
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            throw new Error('Please enter a valid email address');
+        }
+        
+        const changePasswordCheckbox = document.getElementById('change-password-checkbox');
+        if (changePasswordCheckbox && changePasswordCheckbox.checked) {
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (!newPassword || !confirmPassword) {
+                throw new Error('Please fill in both password fields');
+            }
+            
+            if (newPassword.length < 6) {
+                throw new Error('New password must be at least 6 characters long');
+            }
+            
+            if (newPassword !== confirmPassword) {
+                throw new Error('New passwords do not match');
+            }
+            
+            formData.new_password = newPassword;
+        }
+        
+        const response = await fetch('/api/profile/update-own-credentials', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server error: Invalid response format');
+        }
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to update credentials');
+        }
+        
+        if (result.success) {
+            closeCredentialsModal();
+            showAlert('Credentials updated successfully!', 'success');
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Failed to update credentials');
+        }
+        
+    } catch (error) {
+        console.error('Error updating credentials:', error);
+        showAlert('Error: ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+        submitBtn.textContent = originalText;
+    }
+}
+
+function addChangeCredentialsButton() {
+    const editBtn = document.getElementById('editProfileBtn');
+    
+    if (editBtn && editBtn.style.display !== 'none') {
+        const existingBtn = document.getElementById('changeCredentialsBtn');
+        if (!existingBtn) {
+            const changeCredentialsBtn = document.createElement('button');
+            changeCredentialsBtn.type = 'button';
+            changeCredentialsBtn.className = 'btn change-credentials-btn';
+            changeCredentialsBtn.id = 'changeCredentialsBtn';
+            changeCredentialsBtn.textContent = 'Change Credentials';
+            
+            const currentUsername = document.getElementById('usernameDisplay').textContent;
+            const currentEmail = document.getElementById('emailDisplay').textContent;
+            
+            changeCredentialsBtn.addEventListener('click', function() {
+                showChangeCredentialsModal(currentUsername, currentEmail);
+            });
+            
+            editBtn.parentNode.appendChild(changeCredentialsBtn);
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCredentialChange();
+});
+
+function showAlert(message, type) {
+    const existingAlert = document.querySelector('.temp-alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} temp-alert`;
+    alert.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1001;
+        min-width: 300px;
+        padding: 12px 16px;
+        border-radius: 6px;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    if (type === 'success') {
+        alert.style.background = '#d4edda';
+        alert.style.color = '#155724';
+        alert.style.border = '1px solid #c3e6cb';
+    } else if (type === 'error') {
+        alert.style.background = '#f8d7da';
+        alert.style.color = '#721c24';
+        alert.style.border = '1px solid #f5c6cb';
+    }
+    
+    alert.textContent = message;
+    document.body.appendChild(alert);
+    
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
 }

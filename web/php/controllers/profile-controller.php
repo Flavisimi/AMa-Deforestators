@@ -163,69 +163,56 @@ class ProfileController
             throw new ApiException(401, "You need to be logged in");
         }
 
-        $current_user_role = $_SESSION["user_role"] ?? 'USER';
+        $current_user_role = $_SESSION["user_role"] ?? 'GUEST';
+        $current_user_id = $_SESSION["user_id"];
         
-        if ($current_user_role !== 'ADMIN') {
-            throw new ApiException(403, "Only administrators can update user credentials");
-        }
-
-        if ($user_id === $_SESSION["user_id"]) {
-            throw new ApiException(400, "You cannot change your own credentials through this method");
+        if ($current_user_role !== 'ADMIN' && $current_user_id !== $user_id) {
+            throw new ApiException(403, "You don't have permission to update these credentials");
         }
 
         $conn = ConnectionHelper::open_connection();
-        try
-        {
-            $sql_parts = ["updated_at = sysdate"];
-            $bind_vars = ['user_id' => $user_id];
+        
+        try {
+            $sql_parts = [];
+            $bind_vars = [];
             
-            if (isset($data['username']) && !empty($data['username'])) {
-                $stmt_check = oci_parse($conn, "SELECT COUNT(*) as count FROM users WHERE name = :username AND id != :user_id");
-                oci_bind_by_name($stmt_check, ":username", $data['username']);
-                oci_bind_by_name($stmt_check, ":user_id", $user_id);
-                oci_execute($stmt_check);
-                $row = oci_fetch_array($stmt_check, OCI_ASSOC);
-                if ($row['COUNT'] > 0) {
-                    oci_free_statement($stmt_check);
-                    throw new ApiException(400, "Username already exists");
-                }
-                oci_free_statement($stmt_check);
-                
+            if (isset($data['username'])) {
                 $sql_parts[] = "name = :username";
                 $bind_vars['username'] = $data['username'];
             }
             
-            if (isset($data['email']) && !empty($data['email'])) {
-                $stmt_check = oci_parse($conn, "SELECT COUNT(*) as count FROM users WHERE email = :email AND id != :user_id");
-                oci_bind_by_name($stmt_check, ":email", $data['email']);
-                oci_bind_by_name($stmt_check, ":user_id", $user_id);
-                oci_execute($stmt_check);
-                $row = oci_fetch_array($stmt_check, OCI_ASSOC);
-                if ($row['COUNT'] > 0) {
-                    oci_free_statement($stmt_check);
-                    throw new ApiException(400, "Email already exists");
-                }
-                oci_free_statement($stmt_check);
-                
+            if (isset($data['email'])) {
                 $sql_parts[] = "email = :email";
                 $bind_vars['email'] = $data['email'];
             }
             
-            if (isset($data['password']) && !empty($data['password'])) {
-                $hashed_password = '';
-                $stmt_hash = oci_parse($conn, "BEGIN :hashed := auth_package.hash_password(:password); END;");
-                oci_bind_by_name($stmt_hash, ":password", $data['password']);
-                oci_bind_by_name($stmt_hash, ":hashed", $hashed_password, 255);
-                oci_execute($stmt_hash);
-                oci_free_statement($stmt_hash);
+            if (isset($data['password'])) {
+                $stmt = oci_parse($conn, "SELECT auth_package.hash_password(:password) as hashed FROM dual");
+                if (!$stmt) {
+                    throw new ApiException(500, "Failed to prepare hash statement");
+                }
+                
+                oci_bind_by_name($stmt, ":password", $data['password']);
+                
+                if (!oci_execute($stmt)) {
+                    $error = oci_error($stmt);
+                    oci_free_statement($stmt);
+                    throw new ApiException(500, "Failed to hash password: " . ($error['message'] ?? 'unknown'));
+                }
+                
+                $hash_row = oci_fetch_array($stmt, OCI_ASSOC);
+                oci_free_statement($stmt);
+                
+                if (!$hash_row) {
+                    throw new ApiException(500, "Failed to generate password hash");
+                }
                 
                 $sql_parts[] = "user_password = :password";
-                $bind_vars['password'] = $hashed_password;
+                $bind_vars['password'] = $hash_row['HASHED'];
             }
             
-            if (count($sql_parts) === 1) {
-                return true;
-            }
+            $sql_parts[] = "updated_at = CURRENT_DATE";
+            $bind_vars['user_id'] = $user_id;
             
             $sql = "UPDATE users SET " . implode(", ", $sql_parts) . " WHERE id = :user_id";
             
@@ -248,6 +235,202 @@ class ProfileController
             
         } catch(ApiException $e)
         {
+            oci_close($conn);
+            throw $e;
+        }
+        
+        oci_close($conn);
+        return true;
+    }
+
+    public static function update_own_credentials(array $data): bool
+    {
+        if(!isset($_SESSION["user_id"])) {
+            throw new ApiException(401, "You need to be logged in");
+        }
+
+        $user_id = $_SESSION["user_id"];
+        
+        if (!isset($data['username']) || !isset($data['email']) || !isset($data['current_password'])) {
+            throw new ApiException(400, "Username, email and current password are required");
+        }
+
+        $username = trim($data['username']);
+        $email = trim($data['email']);
+        $current_password = $data['current_password'];
+        $new_password = isset($data['new_password']) ? $data['new_password'] : null;
+
+        if (empty($username) || empty($email) || empty($current_password)) {
+            throw new ApiException(400, "All fields must be filled");
+        }
+
+        if (strlen($username) < 3) {
+            throw new ApiException(400, "Username must be at least 3 characters long");
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new ApiException(400, "Invalid email format");
+        }
+
+        if ($new_password !== null && strlen($new_password) < 6) {
+            throw new ApiException(400, "New password must be at least 6 characters long");
+        }
+
+        $conn = ConnectionHelper::open_connection();
+        
+        try {
+            // First verify current password
+            $verify_stmt = oci_parse($conn, "SELECT name, user_password FROM users WHERE id = :user_id");
+            if (!$verify_stmt) {
+                throw new ApiException(500, "Failed to prepare verification statement");
+            }
+            
+            oci_bind_by_name($verify_stmt, ":user_id", $user_id);
+            
+            if (!oci_execute($verify_stmt)) {
+                $error = oci_error($verify_stmt);
+                oci_free_statement($verify_stmt);
+                throw new ApiException(500, "Failed to verify user: " . ($error['message'] ?? 'unknown'));
+            }
+            
+            $user_row = oci_fetch_array($verify_stmt, OCI_ASSOC);
+            oci_free_statement($verify_stmt);
+            
+            if (!$user_row) {
+                throw new ApiException(404, "User not found");
+            }
+            
+            // Verify current password using the same hashing method as login
+            $hash_stmt = oci_parse($conn, "SELECT auth_package.hash_password(:password) as hashed FROM dual");
+            if (!$hash_stmt) {
+                throw new ApiException(500, "Failed to prepare hash statement");
+            }
+            
+            oci_bind_by_name($hash_stmt, ":password", $current_password);
+            
+            if (!oci_execute($hash_stmt)) {
+                $error = oci_error($hash_stmt);
+                oci_free_statement($hash_stmt);
+                throw new ApiException(500, "Failed to hash password: " . ($error['message'] ?? 'unknown'));
+            }
+            
+            $hash_row = oci_fetch_array($hash_stmt, OCI_ASSOC);
+            oci_free_statement($hash_stmt);
+            
+            if (!$hash_row || $hash_row['HASHED'] !== $user_row['USER_PASSWORD']) {
+                throw new ApiException(400, "Current password is incorrect");
+            }
+            
+            // Check if username already exists (excluding current user)
+            $check_username_stmt = oci_parse($conn, "SELECT COUNT(*) as count FROM users WHERE LOWER(name) = LOWER(:username) AND id != :user_id");
+            if (!$check_username_stmt) {
+                throw new ApiException(500, "Failed to prepare username check statement");
+            }
+            
+            oci_bind_by_name($check_username_stmt, ":username", $username);
+            oci_bind_by_name($check_username_stmt, ":user_id", $user_id);
+            
+            if (!oci_execute($check_username_stmt)) {
+                $error = oci_error($check_username_stmt);
+                oci_free_statement($check_username_stmt);
+                throw new ApiException(500, "Failed to check username: " . ($error['message'] ?? 'unknown'));
+            }
+            
+            $username_row = oci_fetch_array($check_username_stmt, OCI_ASSOC);
+            oci_free_statement($check_username_stmt);
+            
+            if ($username_row['COUNT'] > 0) {
+                throw new ApiException(400, "Username already exists");
+            }
+            
+            // Check if email already exists (excluding current user)
+            $check_email_stmt = oci_parse($conn, "SELECT COUNT(*) as count FROM users WHERE LOWER(email) = LOWER(:email) AND id != :user_id");
+            if (!$check_email_stmt) {
+                throw new ApiException(500, "Failed to prepare email check statement");
+            }
+            
+            oci_bind_by_name($check_email_stmt, ":email", $email);
+            oci_bind_by_name($check_email_stmt, ":user_id", $user_id);
+            
+            if (!oci_execute($check_email_stmt)) {
+                $error = oci_error($check_email_stmt);
+                oci_free_statement($check_email_stmt);
+                throw new ApiException(500, "Failed to check email: " . ($error['message'] ?? 'unknown'));
+            }
+            
+            $email_row = oci_fetch_array($check_email_stmt, OCI_ASSOC);
+            oci_free_statement($check_email_stmt);
+            
+            if ($email_row['COUNT'] > 0) {
+                throw new ApiException(400, "Email already exists");
+            }
+            
+            // Build update query
+            $sql_parts = [];
+            $bind_vars = [];
+            
+            $sql_parts[] = "name = :username";
+            $bind_vars['username'] = $username;
+            
+            $sql_parts[] = "email = :email";
+            $bind_vars['email'] = $email;
+            
+            $sql_parts[] = "updated_at = CURRENT_DATE";
+            
+            if ($new_password !== null) {
+                // Hash the new password
+                $hash_new_stmt = oci_parse($conn, "SELECT auth_package.hash_password(:password) as hashed FROM dual");
+                if (!$hash_new_stmt) {
+                    throw new ApiException(500, "Failed to prepare new password hash statement");
+                }
+                
+                oci_bind_by_name($hash_new_stmt, ":password", $new_password);
+                
+                if (!oci_execute($hash_new_stmt)) {
+                    $error = oci_error($hash_new_stmt);
+                    oci_free_statement($hash_new_stmt);
+                    throw new ApiException(500, "Failed to hash new password: " . ($error['message'] ?? 'unknown'));
+                }
+                
+                $new_hash_row = oci_fetch_array($hash_new_stmt, OCI_ASSOC);
+                oci_free_statement($hash_new_stmt);
+                
+                if (!$new_hash_row) {
+                    throw new ApiException(500, "Failed to generate password hash");
+                }
+                
+                $sql_parts[] = "user_password = :password";
+                $bind_vars['password'] = $new_hash_row['HASHED'];
+            }
+            
+            $bind_vars['user_id'] = $user_id;
+            
+            // Update user credentials
+            $sql = "UPDATE users SET " . implode(", ", $sql_parts) . " WHERE id = :user_id";
+            
+            $update_stmt = oci_parse($conn, $sql);
+            if (!$update_stmt) {
+                throw new ApiException(500, "Failed to prepare update statement");
+            }
+            
+            foreach ($bind_vars as $key => $value) {
+                oci_bind_by_name($update_stmt, ":$key", $bind_vars[$key]);
+            }
+            
+            if (!oci_execute($update_stmt, OCI_COMMIT_ON_SUCCESS)) {
+                $error = oci_error($update_stmt);
+                oci_free_statement($update_stmt);
+                throw new ApiException(500, "Failed to update credentials: " . ($error['message'] ?? 'unknown'));
+            }
+            
+            oci_free_statement($update_stmt);
+            
+            // Update session username if it changed
+            if ($_SESSION['username'] !== $username) {
+                $_SESSION['username'] = $username;
+            }
+            
+        } catch(ApiException $e) {
             oci_close($conn);
             throw $e;
         }
@@ -409,6 +592,34 @@ class ProfileController
                 }
                 
                 ProfileController::update_credentials($user_id, $update_data);
+                
+                header("Content-Type: application/json");
+                echo json_encode(['success' => true, 'message' => 'Credentials updated successfully']);
+                
+            } catch (ApiException $e) {
+                http_response_code($e->status_code);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => $e->err_msg]);
+            }
+        }
+        else if($url === "/api/profile/update-own-credentials")
+        {
+            if(!isset($_SESSION["user_id"])) {
+                http_response_code(401);
+                header("Content-Type: application/json");
+                echo json_encode(['error' => 'You need to be logged in']);
+                return;
+            }
+            
+            try {
+                $request_body = file_get_contents("php://input");
+                $data = json_decode($request_body, true);
+                
+                if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+                    throw new ApiException(400, "Invalid JSON data");
+                }
+                
+                ProfileController::update_own_credentials($data);
                 
                 header("Content-Type: application/json");
                 echo json_encode(['success' => true, 'message' => 'Credentials updated successfully']);

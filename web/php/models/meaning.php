@@ -15,7 +15,10 @@ class Meaning
     public \DateTime $created_at;
     public \DateTime $updated_at;
 
-    public int $score;
+    public ?int $score;
+    public ?float $controversy;
+    public ?float $like_rate;
+    public ?int $user_vote;
 }
 
 ?>

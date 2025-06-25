@@ -9,7 +9,7 @@ begin
 
     insert into combined_view values('AMA', 'ask me anything', 'eng', 'internet', 2, null, null);
     insert into combined_view values('AMa', 'abbreviation management', 'eng', 'web', 1, null, null);
-    insert into combined_view values('Îma--ș!!', 'nonsens', 'ro', 'random', 3, null, null);
+    insert into combined_view values('Îma--ș!!', 'intalnirea martorilor americani -- serpii !!', 'ro', 'random', 3, null, null);
     insert into combined_view values('NP', 'no problem', 'eng', 'speech', 1, null, null);
     insert into combined_view values('NP', 'nondeterministic polynomial', 'eng', 'computer science', 1, null, null);
     insert into combined_view values('TY', 'thank you', 'eng', 'speech', 23, null, null);

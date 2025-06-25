@@ -95,9 +95,3 @@ function viewList(listId) {
 document.addEventListener('DOMContentLoaded', function() {
     loadAbbreviationLists();
 });
-
-document.getElementById('createModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeCreateModal();
-    }
-});

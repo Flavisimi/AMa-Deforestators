@@ -688,7 +688,11 @@ function deleteMeaning(btn, id)
     })
     .then(() => {
         const card = btn.closest(".meaning-card");
-        card.parentElement.removeChild(card);
+        const grid = card.parentElement;
+        grid.removeChild(card);
+
+        if(grid.childElementCount == 0)
+            loadAllAbbreviations();
     })
     .catch(error => {
         console.error('Error:', error);

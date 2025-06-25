@@ -25,6 +25,10 @@ RewriteRule ^api/profile/update-credentials$ php/controllers/profile-controller.
 RewriteRule ^api/profile/picture$ php/controllers/profile-controller.php [L]
 RewriteRule ^api/profile/update$ php/controllers/profile-controller.php [L]
 RewriteRule ^api/profile$ php/controllers/profile-controller.php [L]
+RewriteRule ^api/contributions/update/?$ php/controllers/contributions-controller.php [L]
+RewriteRule ^api/contributions/delete/?$ php/controllers/contributions-controller.php [L]
+RewriteRule ^api/contributions/?$ php/controllers/contributions-controller.php [L]
+RewriteRule ^api/contributions-debug/?$ php/controllers/contributions-debug.php [L]
 
 
 # Legacy API routes (without /api prefix) for backward compatibility
@@ -61,3 +65,4 @@ RewriteRule ^mylist/?$ html/mylist.html [L]
 RewriteRule ^mylist\.html$ html/mylist.html [L]
 RewriteRule ^viewlist/?$ html/viewlist.html [L]
 RewriteRule ^viewlist\.html$ html/viewlist.html [L]
+RewriteRule ^contributions/?$ html/contributions.html [L]

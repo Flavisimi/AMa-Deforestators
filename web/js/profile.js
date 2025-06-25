@@ -141,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             avatarImg.src = '../assets/default-avatar.png';
         }
+        addContributionButton(user);
         
         document.getElementById('description').value = user.description || '';
         
@@ -735,7 +736,6 @@ function closeModal(element) {
         modal.remove();
     }
 }
-// Add this to your existing profile.js file
 
 function initializeCredentialChange() {
     const changePasswordCheckbox = document.getElementById('change-password-checkbox');
@@ -987,4 +987,29 @@ function showAlert(message, type) {
             alert.remove();
         }
     }, 5000);
+}
+function addContributionButton(user) {
+    const profileActionsHeader = document.querySelector('.profile-actions-header');
+    
+    if (!profileActionsHeader) {
+        const profileHeader = document.querySelector('.profile-header');
+        if (profileHeader) {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'profile-actions-header';
+            profileHeader.appendChild(actionsDiv);
+        }
+    }
+    
+    const actionsHeader = document.querySelector('.profile-actions-header');
+    if (actionsHeader) {
+        const contributionBtn = document.createElement('button');
+        contributionBtn.type = 'button';
+        contributionBtn.className = 'btn btn-secondary';
+        contributionBtn.textContent = 'Contributions';
+        contributionBtn.addEventListener('click', function() {
+            window.location.href = `contributions?user_id=${user.id}`;
+        });
+        
+        actionsHeader.appendChild(contributionBtn);
+    }
 }

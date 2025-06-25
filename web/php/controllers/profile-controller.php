@@ -473,7 +473,7 @@ class ProfileController
                 $is_own_profile = true;
             }
             
-            if(!is_numeric($user_id) || $user_id <= 0) {
+            if(!is_numeric($user_id) || $user_id < 0) {
                 http_response_code(400);
                 header("Content-Type: application/json");
                 echo json_encode(['error' => 'Invalid user ID']);
@@ -584,7 +584,7 @@ class ProfileController
                 
                 $user_id = isset($data['user_id']) ? (int)$data['user_id'] : 0;
                 
-                if ($user_id <= 0) {
+                if ($user_id < 0) {
                     throw new ApiException(400, "Invalid user ID");
                 }
                 

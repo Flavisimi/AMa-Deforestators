@@ -104,11 +104,19 @@
     margin-top: 30px;
 }
 
-.form-actions .btn {
+.form-actions .btn, .extra-actions .btn {
     padding: 16px 32px;
     font-size: 1.1rem;
     font-weight: 600;
     min-width: 140px;
+}
+
+.extra-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    padding-top: 20px;
+    margin-top: 30px;
 }
 
 /* Responsive Design for Form */

@@ -22,6 +22,18 @@ class AbbrInsertDTO
 
         return $output;
     }
+
+    public static function from_csv_line(array $line): AbbrInsertDTO
+    {
+        $output = new AbbrInsertDTO;
+        $output->name = $line[0];
+        $output->short_expansion = $line[1];
+        $output->description = $line[2];
+        $output->lang = $line[3];
+        $output->domain = $line[4];
+
+        return $output;
+    }
 }
 
 ?>

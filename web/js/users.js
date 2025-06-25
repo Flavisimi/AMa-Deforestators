@@ -93,6 +93,50 @@ async function deleteUser(userId) {
     }
 }
 
+function openRoleModal(userId, currentRole, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'role-modal';
+    
+    modal.innerHTML = `
+        <div class="role-modal">
+            <div class="modal-header">
+                <h3>Change Role for ${userName}</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Select a new role for this user:</p>
+                <div class="role-options">
+                    <button class="role-btn ${currentRole === 'USER' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'USER')">
+                        👤 USER
+                    </button>
+                    <button class="role-btn ${currentRole === 'MOD' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'MOD')">
+                        🛡️ MODERATOR
+                    </button>
+                    <button class="role-btn ${currentRole === 'ADMIN' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'ADMIN')">
+                        👑 ADMIN
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+}
+
+function closeModal() {
+    const modal = document.getElementById('role-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
 async function changeUserRole(userId, newRole) {
     try {
         const response = await fetch('/api/all-users/change-role', {
@@ -127,6 +171,7 @@ async function changeUserRole(userId, newRole) {
             displayUsers(allUsers, false);
         }
 
+        closeModal();
         showError('User role updated successfully');
         
     } catch (error) {
@@ -147,15 +192,12 @@ function createUserCard(user, index) {
     if (canModify) {
         adminControlsHtml = `
             <div class="admin-controls">
-                <div class="role-controls">
-                    <label for="role-select-${user.id}">Change Role:</label>
-                    <select id="role-select-${user.id}" onchange="changeUserRole(${user.id}, this.value)">
-                        <option value="USER" ${user.role === 'USER' ? 'selected' : ''}>User</option>
-                        <option value="MOD" ${user.role === 'MOD' ? 'selected' : ''}>Moderator</option>
-                        <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>Admin</option>
-                    </select>
-                </div>
-                <button class="delete-user-btn" onclick="deleteUser(${user.id})">Delete User</button>
+                <button class="change-role-btn" onclick="openRoleModal(${user.id}, '${user.role}', '${escapeHtml(user.name)}'); event.stopPropagation();">
+                    Change Role
+                </button>
+                <button class="delete-user-btn" onclick="deleteUser(${user.id}); event.stopPropagation();">
+                    Delete User
+                </button>
             </div>
         `;
     }
@@ -204,6 +246,72 @@ function createUserCard(user, index) {
             ${adminControlsHtml}
         </div>
     `;
+    
+    // Apply styles directly to the buttons after creating the card
+    if (canModify) {
+        setTimeout(() => {
+            const changeRoleBtn = card.querySelector('.change-role-btn');
+            const deleteBtn = card.querySelector('.delete-user-btn');
+            
+            if (changeRoleBtn) {
+                changeRoleBtn.style.cssText = `
+                    flex: 1;
+                    padding: 10px 12px;
+                    background: linear-gradient(135deg, #4caf50, #45a049);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    transition: all 0.3s ease;
+                `;
+                
+                changeRoleBtn.addEventListener('mouseenter', function() {
+                    this.style.background = 'linear-gradient(135deg, #45a049, #3d8b40)';
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.3)';
+                });
+                
+                changeRoleBtn.addEventListener('mouseleave', function() {
+                    this.style.background = 'linear-gradient(135deg, #4caf50, #45a049)';
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                });
+            }
+            
+            if (deleteBtn) {
+                deleteBtn.style.cssText = `
+                    flex: 1;
+                    padding: 10px 12px;
+                    background: linear-gradient(135deg, #dc3545, #c82333);
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    transition: all 0.3s ease;
+                `;
+                
+                deleteBtn.addEventListener('mouseenter', function() {
+                    this.style.background = 'linear-gradient(135deg, #c82333, #bd2130)';
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 15px rgba(220, 53, 69, 0.3)';
+                });
+                
+                deleteBtn.addEventListener('mouseleave', function() {
+                    this.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                });
+            }
+        }, 0);
+    }
     
     card.addEventListener('click', (e) => {
         if (!e.target.closest('.admin-controls')) {

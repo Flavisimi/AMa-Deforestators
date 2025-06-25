@@ -143,6 +143,63 @@
             <p>Loading profile...</p>
         </div>
     </div>
+<div id="credentialsModal" class="modal-overlay" style="display: none;">
+    <div class="credentials-modal">
+        <div class="modal-header">
+            <h3>Change Credentials</h3>
+            <button type="button" class="modal-close" id="closeCredentialsModal">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="credentialsForm">
+                <div class="form-group">
+                    <label for="new-username">New Username:</label>
+                    <input type="text" id="new-username" class="form-input" required>
+                    <small class="form-help">Must be unique and at least 3 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new-email">New Email:</label>
+                    <input type="email" id="new-email" class="form-input" required>
+                    <small class="form-help">Must be a valid email address</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="current-password">Current Password:</label>
+                    <input type="password" id="current-password" class="form-input" required>
+                    <small class="form-help">Required for security verification</small>
+                </div>
+                
+                <div class="form-group">
+                    <div class="password-change-section">
+                        <label>
+                            <input type="checkbox" id="change-password-checkbox"> 
+                            Change Password
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="password-fields" class="password-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="new-password">New Password:</label>
+                        <input type="password" id="new-password" class="form-input">
+                        <small class="form-help">At least 6 characters</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm New Password:</label>
+                        <input type="password" id="confirm-password" class="form-input">
+                        <small class="form-help">Must match new password</small>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelCredentials">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Credentials</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
     <script src="../js/common.js"></script>
     <script src="../js/profile.js"></script>

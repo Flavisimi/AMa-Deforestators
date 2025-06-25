@@ -1,3 +1,8 @@
+const GLOBAL_USER = new Promise(async (resolve, reject) =>
+{
+    await loadUserData(resolve);
+});
+
 document.querySelector('.hamburger').addEventListener('click', function() {
     document.querySelector('.navigator').classList.toggle('active');
 });
@@ -13,6 +18,29 @@ document.addEventListener('click', function(e) {
         profileMenu.classList.remove('active');
     }
 });
+
+async function loadUserData(resolve_promise)
+{
+    await fetch('/api/profile', {
+        method: 'GET',
+        credentials: 'include'
+    })
+    .then(response => {
+        if (!response.ok) {
+            if (response.status === 401) {
+                return null;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(user => {
+        resolve_promise(user);
+    })
+    .catch(error => {
+        console.error('Error loading user data:', error);
+    });
+}
 
 function loadUserProfile() {
     fetch('/api/profile', {

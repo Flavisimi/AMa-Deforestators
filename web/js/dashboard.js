@@ -246,6 +246,7 @@ function refreshMeaning(meaningCard, meaningId) {
         })
         .then(meaning => {
             meaningCard.innerHTML = getMeaningCardHTML(meaning);
+            removeModControls(meaningCard);
         })
         .catch(error => {
             console.error('Error refreshing meaning:', error);
@@ -349,7 +350,8 @@ function displayMeanings(data) {
         meaningCard.style.animationDelay = `${index * 0.1}s`;
         
         meaningCard.innerHTML = getMeaningCardHTML(meaning);
-        
+        removeModControls(meaningCard);
+
         meaningsGrid.appendChild(meaningCard);
     });
     
@@ -402,6 +404,13 @@ function getMeaningCardHTML(meaning) {
             </button>
         </div>
     `;
+}
+
+async function removeModControls(element)
+{
+    const user = await GLOBAL_USER;
+    if(user == null || user.current_user_role == "USER")
+        element.querySelectorAll(".edit-btn, .delete-btn").forEach(btn => btn.parentElement.removeChild(btn));
 }
 
 function loadUserLists() {

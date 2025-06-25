@@ -1,10 +1,3 @@
-let statisticsData = {
-    mostVisited: [],
-    mostControversial: [],
-    highestLikeRate: [],
-    mostActiveUsers: []
-};
-
 const API_ENDPOINTS = {
     mostVisited: '/statistics/most_visited',
     mostControversial: '/statistics/most_controversial', 
@@ -136,10 +129,10 @@ function renderMedianAbbreviation(data) {
     `).join('');
 }
 
-async function fetchStatistics(endpoint, key) {
+async function fetchStatistics(endpoint, key, format = "json") {
     try {
-        console.log(`Fetching: ${endpoint}`);
-        
+        endpoint = endpoint + "?format=" + format;
+
         const response = await fetch(endpoint, {
             method: 'GET',
             headers: {
@@ -148,18 +141,16 @@ async function fetchStatistics(endpoint, key) {
             credentials: 'same-origin' 
         });
 
-        console.log(`Response status: ${response.status}`); 
-
         if (!response.ok) {
             const errorText = await response.text();
             console.error(`Error response: ${errorText}`);
             throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
         }
 
-        const data = await response.json();
-        console.log(`Data received for ${key}:`, data); 
-        statisticsData[key] = data;
-        return data;
+        if(format == "json")
+            return await response.json();
+        else
+            return await response.blob();
     } catch (error) {
         console.error(`Error fetching ${key}:`, error);
         showError(`Failed to load ${key.replace(/([A-Z])/g, ' $1').toLowerCase()}: ${error.message}`);
@@ -200,30 +191,50 @@ async function initialize()
         const actions = document.createElement("div");
         actions.setAttribute("class", "stat-actions");
         actions.innerHTML = `
-            <button class="export-btn action-btn" onclick="handleExport(this, 'CSV')">
+            <button class="export-btn action-btn" type="button">
                 Export as CSV
             </button>
-            <button class="export-btn action-btn" onclick="handleExport(this, 'PDF')">
+            <button class="export-btn action-btn" type="button">
                 Export as PDF
             </button>
             `;
+
+        const buttons = actions.querySelectorAll("button");
+        buttons[0].addEventListener("click", ev => {handleExport(ev.target, "csv")} );
+        buttons[1].addEventListener("click", ev => {handleExport(ev.target, "pdf")} );
         elem.appendChild(actions);
     });
 
     loadAllStatistics();
 }
 
-function handleExport(element, type)
+async function handleExport(btn, type)
 {
-    if(type != "PDF" && type != "CSV")
+    if(type != "pdf" && type != "csv")
         return;
 
-    console.log(type);
-}
+    const statList = btn.closest(".stat-card").querySelector(".stat-list");
 
-document.querySelector('.hamburger').addEventListener('click', function() {
-    document.querySelector('.navigator').classList.toggle('active');
-});
+    let endpoint = "";
+    switch(statList.id)
+    {
+        case "most-visited-list": {endpoint = API_ENDPOINTS.mostVisited; break;}
+        case "most-controversial-list": {endpoint = API_ENDPOINTS.mostControversial; break;}
+        case "highest-like-rate-list": {endpoint = API_ENDPOINTS.highestLikeRate; break;}
+        case "median-abbreviation-list": {endpoint = API_ENDPOINTS.medianAbbreviation; break;}
+        case "most-active-users-list": {endpoint = API_ENDPOINTS.mostActiveUsers; break;}
+        default: {showError("Couldn't identify statistics type for export."); return;}
+    }
+
+    let data = await fetchStatistics(endpoint, statList.id, type);
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(data);
+    link.download = statList.id + "." + type;
+    link.click();
+
+    URL.revokeObjectURL(link.href);
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     initialize();

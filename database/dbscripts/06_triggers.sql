@@ -262,4 +262,18 @@ end;
 
 /
 
+create or replace trigger users_delete
+before delete on users
+for each row
+declare
+
+begin
+    if(:old.id = 0) then
+        raise_application_error(-20102, 'Cannot delete AMA user (id 0)');
+    end if;
+    update meanings set uploader_id = 0 where uploader_id = :old.id;
+end;
+
+/
+
 commit;

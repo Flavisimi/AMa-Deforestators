@@ -33,9 +33,8 @@ class MeaningController
             if($meaning === null)
                 throw new ApiException(404, "No meaning was found with the given ID");
 
-            $abbreviation = AbbreviationRepository::load_abbreviation($conn, $meaning->abbr_id);
             MeaningService::attach_score($conn, $meaning);
-            MeaningService::attach_description($meaning, $abbreviation->searchable_name);
+            MeaningService::attach_description($meaning, MeaningService::get_searchable_name($meaning->name));
             
             if(isset($_SESSION["user_id"])) {
                 $user_vote = VoteRepository::load_vote($conn, $_SESSION["user_id"], $meaning->id);

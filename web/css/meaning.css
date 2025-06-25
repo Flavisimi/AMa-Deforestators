@@ -112,7 +112,7 @@
     flex-wrap: wrap;
 }
 
-.meta-item {
+.meta-item, .meta-div {
     display: flex;
     align-items: center;
     font-size: 0.95rem;
@@ -123,6 +123,45 @@
     color: #333;
     margin-right: 8px;
 }
+
+
+/* Meaning buttons */
+.meaning-actions {
+    margin: 0px 10px 10px 10px;
+    padding: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.add-to-list-btn {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+}
+
+.add-to-list-btn:hover {
+    background: linear-gradient(135deg, #138496, #117a8b);
+    box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3);
+}
+
+.delete-btn {
+    background: linear-gradient(135deg, #b81717, #961313);
+    color: white;
+}
+
+.delete-btn:hover {
+    background: linear-gradient(135deg, #961313, #8b1111);
+    box-shadow: 0 6px 20px rgba(184, 23, 23, 0.3);
+}
+
+.edit-btn {
+    background: #000000;
+    color: white;
+}
+
+.edit-btn:hover {
+    background: #000000;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
 
 @media (max-width: 768px) {
     .meanings-grid {
@@ -138,5 +177,12 @@
 
     .meanings-header h2 {
         font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .add-to-list-btn {
+        padding: 10px 16px;
+        font-size: 0.95rem;
     }
 }

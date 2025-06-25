@@ -212,13 +212,7 @@ function fetchMeanings(abbrId) {
         </div>
     `;
     
-    fetch(`/abbreviations?id=${abbrId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
+    loadMeaningsByAbbrId(abbrId)
         .then(data => {
             displayMeanings(data);
         })
@@ -235,71 +229,12 @@ function fetchMeanings(abbrId) {
         });
 }
 
-function refreshMeaning(meaningCard, meaningId) {
-    const placeholder = document.querySelector('.content-placeholder');
-    fetch(`/meanings?id=${meaningId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(meaning => {
-            meaningCard.innerHTML = getMeaningCardHTML(meaning);
-            removeModControls(meaningCard);
-        })
-        .catch(error => {
-            console.error('Error refreshing meaning:', error);
-            placeholder.innerHTML = `
-                <div class="error-state">
-                    <div class="error-icon">⚠️</div>
-                    <h3>Failed to refresh meaning</h3>
-                    <p>${error.message}</p>
-                    <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
-                </div>
-            `;
-        });
-}
-
-async function vote(event, meaningId, isUpvote) {
-    const errorMessage = document.getElementById('error-message');
+async function handleVote(event, meaningId, isUpvote) {
     const placeholder = document.querySelector('.content-placeholder');
     const meaningCard = event.target.closest('.meaning-card');
-    const upvoteBtn = meaningCard.querySelector('.upvote-btn');
-    const downvoteBtn = meaningCard.querySelector('.downvote-btn');
 
-    const wasUpvoteActive = upvoteBtn.classList.contains('active');
-    const wasDownvoteActive = downvoteBtn.classList.contains('active');
-
-    try {
-        const endpoint = isUpvote ? '/meanings/upvote' : '/meanings/downvote';
-        const response = await fetch(`${endpoint}?id=${meaningId}`, {
-            method: 'POST'
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                throw new Error('You need to be logged in to vote');
-            }
-            throw new Error('Failed to submit vote');
-        }
-        
-        upvoteBtn.classList.remove('active');
-        downvoteBtn.classList.remove('active');
-        
-        if (isUpvote) {
-            if (!wasUpvoteActive) {
-                upvoteBtn.classList.add('active');
-            }
-        } else {
-            if (!wasDownvoteActive) {
-                downvoteBtn.classList.add('active');
-            }
-        }
-        
-        refreshMeaning(meaningCard, meaningId);
-        
-    } catch (error) {
+    voteMeaning(event, meaningId, isUpvote)
+    .catch(error => {
         console.error('Error voting:', error);
         placeholder.innerHTML = `
             <div class="error-state">
@@ -309,7 +244,19 @@ async function vote(event, meaningId, isUpvote) {
                 <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
             </div>
         `;
-    }
+    })
+    .then(() => refreshMeaning(meaningCard, meaningId))
+    .catch(error => {
+        console.error('Error refreshing meaning:', error);
+        placeholder.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h3>Failed to refresh meaning</h3>
+                <p>${error.message}</p>
+                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+            </div>
+        `;
+    });
 }
 
 function displayMeanings(data) {
@@ -340,77 +287,9 @@ function displayMeanings(data) {
         <h2>Meanings for "${data.searchable_name}"</h2>
     `;
     meaningsContainer.appendChild(header);
-    
-    const meaningsGrid = document.createElement('div');
-    meaningsGrid.className = 'meanings-grid';
-    
-    meanings.forEach((meaning, index) => {
-        const meaningCard = document.createElement('div');
-        meaningCard.className = 'meaning-card';
-        meaningCard.style.animationDelay = `${index * 0.1}s`;
-        
-        meaningCard.innerHTML = getMeaningCardHTML(meaning);
-        removeModControls(meaningCard);
 
-        meaningsGrid.appendChild(meaningCard);
-    });
-    
-    meaningsContainer.appendChild(meaningsGrid);
+    meaningsContainer.appendChild(createMeaningsGrid(meanings, handleVote, showListModal, handleDeleteMeaning, null));
     placeholder.appendChild(meaningsContainer);
-}
-
-function getMeaningCardHTML(meaning) {
-    const upvoteClass = meaning.user_vote === 1 ? 'upvote-btn active' : 'upvote-btn';
-    const downvoteClass = meaning.user_vote === -1 ? 'downvote-btn active' : 'downvote-btn';
-    
-    return `
-        <div class="meaning-header">
-            <h4>${meaning.name}</h4>
-            <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
-        </div>
-        <div class="meaning-body">
-            <h3 class="meaning-expansion">${meaning.short_expansion}</h3>
-            <p class="meaning-description">${meaning.description}</p>
-            <div class="meaning-meta">
-                <span class="meta-item">
-                    <strong>Language:</strong> ${meaning.lang}
-                </span>
-                <span class="meta-item">
-                    <strong>Domain:</strong> ${meaning.domain}
-                </span>
-                <span class="meta-item">
-                    <strong>Submitted by:</strong> ${meaning.uploader_name}
-                </span>
-                <span class="meta-item">
-                    <strong>Score:</strong> ${meaning.score}
-                    <button class="vote-btn ${upvoteClass}" onclick="vote(event, ${meaning.id}, true)">
-                        👍 Upvote
-                    </button>
-                    <button class="vote-btn ${downvoteClass}" onclick="vote(event, ${meaning.id}, false)">
-                        👎 Downvote
-                    </button>
-                </span>
-            </div>
-        </div>
-        <div class="meaning-actions">
-            <button class="add-to-list-btn action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
-                ➕ Add to List
-            </button>
-            <button class="delete-btn action-btn" onclick="deleteMeaning(this, ${meaning.id})">
-                Delete
-            </button>
-            <button class="edit-btn action-btn" onclick="">
-                Edit
-            </button>
-        </div>
-    `;
-}
-
-async function removeModControls(element)
-{
-    const user = await GLOBAL_USER;
-    if(user == null || user.current_user_role == "USER")
-        element.querySelectorAll(".edit-btn, .delete-btn").forEach(btn => btn.parentElement.removeChild(btn));
 }
 
 function loadUserLists() {
@@ -508,7 +387,7 @@ function showListModal(meaningId, meaningName) {
                     const meaningsCount = list.meanings ? list.meanings.length : (list.meanings_count || 0);
                     
                     return `
-                        <div class="list-item" onclick="addMeaningToList(${meaningId}, ${listId}, '${listName.replace(/'/g, "\\'")}')">
+                        <div class="list-item" onclick="handleAddMeaningToList(${meaningId}, ${listId}, '${listName.replace(/'/g, "\\'")}')">
                             <div class="list-item-header">
                                 <h4>${listName}</h4>
                                 <span class="list-privacy ${isPrivate ? 'private' : 'public'}">
@@ -573,7 +452,7 @@ function closeListModal() {
     }
 }
 
-function addMeaningToList(meaningId, listId, listName) {
+function handleAddMeaningToList(meaningId, listId, listName) {
     const modalBody = document.querySelector('.modal-body');
     modalBody.innerHTML = `
         <div class="loading-spinner">
@@ -582,18 +461,7 @@ function addMeaningToList(meaningId, listId, listName) {
         </div>
     `;
     
-    fetch(`/abbr-lists/entry?id=${listId}&meaning=${meaningId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
+    addMeaningToList(meaningId, listId)
     .then(data => {
         modalBody.innerHTML = `
             <div class="success-state">
@@ -687,14 +555,9 @@ function performSearch() {
     });
 }
 
-function deleteMeaning(btn, id)
+function handleDeleteMeaning(btn, id)
 {
-    fetch(`/api/meanings?id=${id}`, {
-        method: "DELETE"
-    })
-    .then(response => {
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    })
+    deleteMeaning(id)
     .then(() => {
         const card = btn.closest(".meaning-card");
         const grid = card.parentElement;

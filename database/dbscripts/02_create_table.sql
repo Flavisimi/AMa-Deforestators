@@ -73,7 +73,7 @@ create table abbr_list_contents(
 
 create table visit_logs(
     visitor_id integer references users(id) on delete set null, --if this column is null then a guest (not logged in user) visited the abbreviation
-    abbr_id integer references users(id) on delete cascade not null,
+    abbr_id integer references abbreviations(id) on delete cascade not null,
     visit_date date not null
 );
 

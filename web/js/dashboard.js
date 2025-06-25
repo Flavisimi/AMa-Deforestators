@@ -246,6 +246,7 @@ function refreshMeaning(meaningCard, meaningId) {
         })
         .then(meaning => {
             meaningCard.innerHTML = getMeaningCardHTML(meaning);
+            removeModControls(meaningCard);
         })
         .catch(error => {
             console.error('Error refreshing meaning:', error);
@@ -349,7 +350,8 @@ function displayMeanings(data) {
         meaningCard.style.animationDelay = `${index * 0.1}s`;
         
         meaningCard.innerHTML = getMeaningCardHTML(meaning);
-        
+        removeModControls(meaningCard);
+
         meaningsGrid.appendChild(meaningCard);
     });
     
@@ -394,7 +396,7 @@ function getMeaningCardHTML(meaning) {
             <button class="add-to-list-btn action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
                 ➕ Add to List
             </button>
-            <button class="delete-btn action-btn" onclick="">
+            <button class="delete-btn action-btn" onclick="deleteMeaning(this, ${meaning.id})">
                 Delete
             </button>
             <button class="edit-btn action-btn" onclick="">
@@ -402,6 +404,13 @@ function getMeaningCardHTML(meaning) {
             </button>
         </div>
     `;
+}
+
+async function removeModControls(element)
+{
+    const user = await GLOBAL_USER;
+    if(user == null || user.current_user_role == "USER")
+        element.querySelectorAll(".edit-btn, .delete-btn").forEach(btn => btn.parentElement.removeChild(btn));
 }
 
 function loadUserLists() {
@@ -677,6 +686,37 @@ function performSearch() {
         `;
     });
 }
+
+function deleteMeaning(btn, id)
+{
+    fetch(`/api/meanings?id=${id}`, {
+        method: "DELETE"
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    })
+    .then(() => {
+        const card = btn.closest(".meaning-card");
+        const grid = card.parentElement;
+        grid.removeChild(card);
+
+        if(grid.childElementCount == 0)
+            loadAllAbbreviations();
+    })
+    .catch(error => {
+        const placeholder = document.querySelector('.content-placeholder');
+        console.error('Error:', error);
+        placeholder.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h3>Delete failed</h3>
+                <p>${error}</p>
+                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+            </div>
+        `;
+    });
+}
+
 
 document.querySelector('.search-button').addEventListener('click', function() {
     performSearch();

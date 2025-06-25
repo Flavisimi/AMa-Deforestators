@@ -152,6 +152,20 @@ class MeaningRepository
     
     return $meanings;
 }
+
+    public static function delete_meaning($conn, int $id, bool $autocommit = false)
+    {
+        $stmt = oci_parse($conn, "delete from meanings where id = :id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        
+        oci_bind_by_name($stmt, ":id", $id);
+
+        if(!oci_execute($stmt, $autocommit ? OCI_COMMIT_ON_SUCCESS : OCI_NO_AUTO_COMMIT)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+
+        oci_free_statement($stmt);
+    }
 }
 
 

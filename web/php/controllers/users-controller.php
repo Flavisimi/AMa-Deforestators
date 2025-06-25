@@ -93,6 +93,9 @@ class UsersController
 
     public static function change_user_role(int $user_id, string $new_role): bool
     {
+        if($user_id == 0)
+            throw new ApiException(403, "Cannot modify user AMA (id 0)");
+
         if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'ADMIN') {
             throw new ApiException(403, "Only administrators can change user roles");
         }
@@ -121,6 +124,9 @@ class UsersController
 
     public static function delete_user(int $user_id): bool
     {
+        if($user_id == 0)
+            throw new ApiException(403, "Cannot delete user AMA (id 0)");
+
         if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'ADMIN') {
             throw new ApiException(403, "Only administrators can delete users");
         }

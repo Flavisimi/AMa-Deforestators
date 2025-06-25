@@ -143,6 +143,12 @@ function createAbbreviationCard(meaning, index) {
                 <span class="meta-item">
                     <strong>Domain:</strong> ${meaning.domain}
                 </span>
+                <span class="meta-item">
+                    <strong>Submitted by:</strong> ${meaning.uploader_name}
+                </span>
+                <span class="meta-item">
+                    <strong>Score:</strong> ${meaning.score}
+                </span>
             </div>
         </div>
     `;
@@ -434,26 +440,6 @@ function addSelectedAbbreviation() {
         if (addBtn) {
             addBtn.textContent = 'Add Selected';
             addBtn.disabled = false;
-        }
-    });
-}
-
-function setupUserProfile() {
-    const userProfile = document.querySelector('.user-profile');
-    if (userProfile) {
-        userProfile.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const profileMenu = this.querySelector('.profile-menu');
-            if (profileMenu) {
-                profileMenu.classList.toggle('active');
-            }
-        });
-    }
-
-    document.addEventListener('click', function(e) {
-        const profileMenu = document.querySelector('.profile-menu');
-        if (profileMenu && !profileMenu.contains(e.target) && profileMenu.classList.contains('active')) {
-            profileMenu.classList.remove('active');
         }
     });
 }

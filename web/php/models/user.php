@@ -13,4 +13,6 @@ class User
     public string $profile_picture;
     public \DateTime $created_at;
     public \DateTime $updated_at;
+
+    public ?float $activity; 
 }

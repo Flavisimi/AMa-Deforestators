@@ -19,6 +19,7 @@ class Meaning
     public ?float $controversy;
     public ?float $like_rate;
     public ?int $user_vote;
+    public ?string $uploader_name;
 }
 
 ?>

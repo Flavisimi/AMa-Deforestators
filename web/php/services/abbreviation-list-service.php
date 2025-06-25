@@ -21,6 +21,7 @@ class AbbreviationListService
         {
             $abbreviation = AbbreviationRepository::load_abbreviation($conn, $meaning->abbr_id);
             MeaningService::attach_description($meaning, $abbreviation->searchable_name);
+            MeaningService::attach_score($conn, $meaning);
         }
         $abbr_list->meanings = $meanings;
     }

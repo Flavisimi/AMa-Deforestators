@@ -13,6 +13,8 @@ error_reporting(0);
 
 class MeaningRepository
 {
+    public static string $SQL_SELECT_TEMPLATE = "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at, (select name from users where id = meanings.uploader_id) as uploader_name from meanings";
+
     public static function convert_row_to_object( $row ): Meaning
     {
         $meaning = new Meaning();
@@ -28,13 +30,14 @@ class MeaningRepository
         $meaning->created_at->setTimestamp(strtotime($row["CREATED_AT"]));
         $meaning->updated_at = new \DateTime();
         $meaning->updated_at->setTimestamp(strtotime($row["UPDATED_AT"]));
+        $meaning->uploader_name = $row["UPLOADER_NAME"];
         
         return $meaning;
     }
 
     public static function load_meaning($conn, int $id): ?Meaning
     {
-        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where id = :id");
+        $stmt = oci_parse($conn, self::$SQL_SELECT_TEMPLATE . " where id = :id");
         if(!$stmt) 
             throw new ApiException(500, "Failed to parse SQL statement");
         oci_bind_by_name($stmt, ":id", $id);
@@ -58,7 +61,7 @@ class MeaningRepository
 
     public static function load_all_meanings($conn): ?array
     {
-        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings");
+        $stmt = oci_parse($conn, self::$SQL_SELECT_TEMPLATE);
         if(!$stmt) 
             throw new ApiException(500, "Failed to parse SQL statement");
         if(!oci_execute($stmt)) 
@@ -79,7 +82,7 @@ class MeaningRepository
 
     public static function load_meanings_by_abbr_id($conn, int $abbr_id): ?array
     {
-        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings where abbr_id = :abbr_id");
+        $stmt = oci_parse($conn, self::$SQL_SELECT_TEMPLATE . " where abbr_id = :abbr_id");
         if(!$stmt) 
             throw new ApiException(500, "Failed to parse SQL statement");
         oci_bind_by_name($stmt, ":abbr_id", $abbr_id);
@@ -102,7 +105,7 @@ class MeaningRepository
 
     public static function load_meanings_from_list($conn, int $list_id): ?array
     {
-        $stmt = oci_parse($conn, "select id, abbr_id, name, short_expansion, uploader_id, approval_status, lang, domain, created_at, updated_at from meanings join abbr_list_contents on meanings.id = abbr_list_contents.meaning_id and abbr_list_contents.list_id = :list_id order by list_index asc");
+        $stmt = oci_parse($conn, self::$SQL_SELECT_TEMPLATE . " join abbr_list_contents on meanings.id = abbr_list_contents.meaning_id and abbr_list_contents.list_id = :list_id order by list_index asc");
         if(!$stmt) 
             throw new ApiException(500, "Failed to parse SQL statement");
         oci_bind_by_name($stmt, ":list_id", $list_id);

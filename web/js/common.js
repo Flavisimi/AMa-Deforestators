@@ -1,7 +1,4 @@
-const GLOBAL_USER = new Promise(async (resolve, reject) =>
-{
-    await loadUserData(resolve);
-});
+const GLOBAL_USER = new Promise(loadUserData);
 
 document.querySelector('.hamburger').addEventListener('click', function() {
     document.querySelector('.navigator').classList.toggle('active');
@@ -19,7 +16,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-async function loadUserData(resolve_promise)
+async function loadUserData(resolve, reject)
 {
     await fetch('/api/profile', {
         method: 'GET',
@@ -35,10 +32,11 @@ async function loadUserData(resolve_promise)
         return response.json();
     })
     .then(user => {
-        resolve_promise(user);
+        resolve(user);
     })
     .catch(error => {
         console.error('Error loading user data:', error);
+        reject(error);
     });
 }
 

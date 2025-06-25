@@ -54,10 +54,12 @@ class MeaningService
 
     public static function get_searchable_name($name)
     {
-        $name = strtoupper($name);
-        $name = strtr($name, "ĂÎÂȘȚ", "AIAST");
-        $name = str_replace(str_split("0123456789!@#$%^&*(),./;''[]-=<>?:\"{}|_+"), [], $name);
-        return $name;
+        $out = $name;
+
+        $out = strtr($out, array("Â" => "A", "Ă" => "A", "â" => "a", "ă" => "a", "Î" => "I", "î" => "i", "Ș" => "S", "ș" => "s", "Ț" => "T", "ț" => "t"));
+        $out = strtoupper($out);
+        $out = str_replace(str_split(" 0123456789!@#$%^&*(),./;''[]-=<>?:\"{}|_+"), [], $out);
+        return $out;
     }
 }
 

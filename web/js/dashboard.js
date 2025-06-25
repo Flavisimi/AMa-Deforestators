@@ -377,6 +377,9 @@ function getMeaningCardHTML(meaning) {
                     <strong>Domain:</strong> ${meaning.domain}
                 </span>
                 <span class="meta-item">
+                    <strong>Submitted by:</strong> ${meaning.uploader_name}
+                </span>
+                <span class="meta-item">
                     <strong>Score:</strong> ${meaning.score}
                     <button class="vote-btn ${upvoteClass}" onclick="vote(event, ${meaning.id}, true)">
                         👍 Upvote

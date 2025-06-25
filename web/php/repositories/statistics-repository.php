@@ -71,7 +71,7 @@ class StatisticsRepository
         $output = [];
         while ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
             $meaning = MeaningRepository::convert_row_to_object($row);
-            $meaning->controversy = $row["CONTROVERSY"];
+            $meaning->controversy = round($row["CONTROVERSY"], 2);
             $output[] = $meaning;
         }
 
@@ -135,7 +135,7 @@ class StatisticsRepository
         $output = [];
         while ($row = oci_fetch_array($cursor, OCI_ASSOC)) {
             $user = UserRepository::convert_row_to_object($row);
-            $user->activity = $row["ACTIVITY"];
+            $user->activity = round($row["ACTIVITY"], 2);
             $output[] = $user;
         }
 

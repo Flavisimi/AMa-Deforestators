@@ -8,6 +8,8 @@ class Abbreviation
     public \DateTime $created_at;
     public \DateTime $updated_at;
     public ?array $meanings;
+
+    public ?int $visits;
 }
 
 

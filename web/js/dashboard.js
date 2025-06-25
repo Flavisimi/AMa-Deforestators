@@ -24,14 +24,6 @@ document.querySelectorAll('.nav-button').forEach(button => {
                 window.location.href = 'stats';
                 return;
             }
-            if (href === '#top') {
-                // Handle top abbreviations
-                return;
-            }
-            if (href === '#feed') {
-                // Handle feed
-                return;
-            }
         }
     });
 });
@@ -71,21 +63,7 @@ function populateDatalist(datalistId, options) {
     }
 }
 
-function clearLanguageFilter() {
-    document.getElementById('language-filter').value = '';
-    const searchTerm = document.querySelector('#search-bar').value.trim();
-    if (searchTerm) {
-        performSearch();
-    }
-}
 
-function clearDomainFilter() {
-    document.getElementById('domain-filter').value = '';
-    const searchTerm = document.querySelector('#search-bar').value.trim();
-    if (searchTerm) {
-        performSearch();
-    }
-}
 
 function createAbbreviationCard(abbreviation) {
     const card = document.createElement('div');
@@ -631,7 +609,7 @@ function performSearch() {
     const language = languageFilter ? languageFilter.value.trim() : '';
     const domain = domainFilter ? domainFilter.value.trim() : '';
     
-    if (!searchTerm) {
+    if (!searchTerm && !language && !domain) {
         loadAllAbbreviations();
         return;
     }
@@ -686,6 +664,64 @@ function performSearch() {
         `;
     });
 }
+
+function clearLanguageFilter() {
+    document.getElementById('language-filter').value = '';
+    const searchTerm = document.querySelector('#search-bar').value.trim();
+    const domain = document.querySelector('#domain-filter').value.trim();
+    
+    if (searchTerm || domain) {
+        performSearch();
+    } else {
+        loadAllAbbreviations();
+    }
+}
+
+function clearDomainFilter() {
+    document.getElementById('domain-filter').value = '';
+    const searchTerm = document.querySelector('#search-bar').value.trim();
+    const language = document.querySelector('#language-filter').value.trim();
+    
+    if (searchTerm || language) {
+        performSearch();
+    } else {
+        loadAllAbbreviations();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadFilterOptions();
+    loadAllAbbreviations();
+    
+    const languageFilter = document.querySelector('#language-filter');
+    const domainFilter = document.querySelector('#domain-filter');
+    
+    if (languageFilter) {
+        languageFilter.addEventListener('input', function() {
+            const searchTerm = document.querySelector('#search-bar').value.trim();
+            const domain = document.querySelector('#domain-filter').value.trim();
+            
+            if (searchTerm || this.value.trim() || domain) {
+                performSearch();
+            } else {
+                loadAllAbbreviations();
+            }
+        });
+    }
+    
+    if (domainFilter) {
+        domainFilter.addEventListener('input', function() {
+            const searchTerm = document.querySelector('#search-bar').value.trim();
+            const language = document.querySelector('#language-filter').value.trim();
+            
+            if (searchTerm || this.value.trim() || language) {
+                performSearch();
+            } else {
+                loadAllAbbreviations();
+            }
+        });
+    }
+});
 
 function deleteMeaning(btn, id)
 {

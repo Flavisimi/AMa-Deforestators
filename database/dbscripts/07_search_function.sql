@@ -250,3 +250,110 @@ begin
     return v_cursor;
 end get_available_domains;
 /
+create or replace function search_abv_with_filters(
+    p_search_term in varchar2,
+    p_search_type in varchar2,
+    p_language in varchar2 default null,
+    p_domain in varchar2 default null
+) return sys_refcursor is
+    v_cursor sys_refcursor;
+    v_search_term varchar2(256) := upper(trim(p_search_term));
+    v_language varchar2(30) := trim(p_language);
+    v_domain varchar2(30) := trim(p_domain);
+    v_has_search boolean := false;
+    v_has_filters boolean := false;
+begin
+    if p_search_type not in ('name', 'meaning') then
+        raise_application_error(-20006, 'Invalid search type');
+    end if;
+
+    if v_language = '' then
+        v_language := null;
+    end if;
+    
+    if v_domain = '' then
+        v_domain := null;
+    end if;
+
+    v_has_search := v_search_term is not null and v_search_term != '';
+    v_has_filters := v_language is not null or v_domain is not null;
+
+    if not v_has_search and not v_has_filters then
+        raise_application_error(-20008, 'Either search term or filters must be provided');
+    end if;
+
+    if v_has_search and p_search_type = 'name' then
+        if v_has_filters then
+            open v_cursor for
+                select distinct
+                    a.id,
+                    a.searchable_name,
+                    a.meaning_count,
+                    a.created_at,
+                    a.updated_at,
+                    levenshtein_distance(v_search_term, upper(a.searchable_name), 0) as distance
+                from abbreviations a
+                join meanings m on a.id = m.abbr_id
+                where levenshtein_distance(v_search_term, upper(a.searchable_name), 0) < 3
+                and (v_language is null or upper(m.lang) = upper(v_language))
+                and (v_domain is null or upper(m.domain) = upper(v_domain))
+                order by distance, a.searchable_name;
+        else
+            open v_cursor for
+                select 
+                    id,
+                    searchable_name,
+                    meaning_count,
+                    created_at,
+                    updated_at,
+                    distance
+                from (
+                    select 
+                        a.id,
+                        a.searchable_name,
+                        a.meaning_count,
+                        a.created_at,
+                        a.updated_at,
+                        levenshtein_distance(v_search_term, upper(a.searchable_name), 0) as distance
+                    from abbreviations a
+                )
+                where distance < 3
+                order by distance, searchable_name;
+        end if;
+    elsif v_has_search and p_search_type = 'meaning' then
+        open v_cursor for
+            select distinct
+                a.id,
+                a.searchable_name,
+                a.meaning_count,
+                a.created_at,
+                a.updated_at,
+                0 as distance 
+            from abbreviations a
+            join meanings m on a.id = m.abbr_id
+            where parse_words(upper(m.short_expansion)) like parse_words(v_search_term)
+            and (v_language is null or upper(m.lang) = upper(v_language))
+            and (v_domain is null or upper(m.domain) = upper(v_domain))
+            order by a.searchable_name;
+    else
+        open v_cursor for
+            select distinct
+                a.id,
+                a.searchable_name,
+                a.meaning_count,
+                a.created_at,
+                a.updated_at,
+                0 as distance 
+            from abbreviations a
+            join meanings m on a.id = m.abbr_id
+            where (v_language is null or upper(m.lang) = upper(v_language))
+            and (v_domain is null or upper(m.domain) = upper(v_domain))
+            order by a.searchable_name;
+    end if;
+
+    return v_cursor;
+exception
+    when others then
+        raise_application_error(-20007, 'Error in search_abv_with_filters: ' || sqlerrm);
+end search_abv_with_filters;
+/

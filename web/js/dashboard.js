@@ -245,8 +245,7 @@ function refreshMeaning(meaningCard, meaningId) {
             return response.json();
         })
         .then(meaning => {
-            meaningCard.innerHTML = getMeaningCardHTML(meaning);
-            removeModControls(meaningCard);
+            meaningCard.replaceWith(createMeaningCard(meaning));
         })
         .catch(error => {
             console.error('Error refreshing meaning:', error);
@@ -345,13 +344,8 @@ function displayMeanings(data) {
     meaningsGrid.className = 'meanings-grid';
     
     meanings.forEach((meaning, index) => {
-        const meaningCard = document.createElement('div');
-        meaningCard.className = 'meaning-card';
+        let meaningCard = createMeaningCard(meaning);
         meaningCard.style.animationDelay = `${index * 0.1}s`;
-        
-        meaningCard.innerHTML = getMeaningCardHTML(meaning);
-        removeModControls(meaningCard);
-
         meaningsGrid.appendChild(meaningCard);
     });
     
@@ -359,11 +353,15 @@ function displayMeanings(data) {
     placeholder.appendChild(meaningsContainer);
 }
 
-function getMeaningCardHTML(meaning) {
+function createMeaningCard(meaning)
+{
+    const meaningCard = document.createElement('div');
+    meaningCard.className = 'meaning-card';
+    
     const upvoteClass = meaning.user_vote === 1 ? 'upvote-btn active' : 'upvote-btn';
     const downvoteClass = meaning.user_vote === -1 ? 'downvote-btn active' : 'downvote-btn';
-    
-    return `
+
+    meaningCard.innerHTML = `
         <div class="meaning-header">
             <h4>${meaning.name}</h4>
             <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
@@ -383,27 +381,36 @@ function getMeaningCardHTML(meaning) {
                 </span>
                 <span class="meta-item">
                     <strong>Score:</strong> ${meaning.score}
-                    <button class="vote-btn ${upvoteClass}" onclick="vote(event, ${meaning.id}, true)">
+                    <button class="vote-btn ${upvoteClass}">
                         👍 Upvote
                     </button>
-                    <button class="vote-btn ${downvoteClass}" onclick="vote(event, ${meaning.id}, false)">
+                    <button class="vote-btn ${downvoteClass}">
                         👎 Downvote
                     </button>
                 </span>
             </div>
         </div>
         <div class="meaning-actions">
-            <button class="add-to-list-btn action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
+            <button class="add-to-list-btn action-btn">
                 ➕ Add to List
             </button>
-            <button class="delete-btn action-btn" onclick="deleteMeaning(this, ${meaning.id})">
+            <button class="delete-btn action-btn">
                 Delete
             </button>
-            <button class="edit-btn action-btn" onclick="">
+            <button class="edit-btn action-btn">
                 Edit
             </button>
         </div>
     `;
+
+    const voteButtons = meaningCard.querySelectorAll(".vote-btn");
+    voteButtons[0].addEventListener("click", ev => vote(ev, meaning.id, true));
+    voteButtons[1].addEventListener("click", ev => vote(ev, meaning.id, false));
+    meaningCard.querySelector(".add-to-list-btn").addEventListener("click", ev => showListModal(meaning.id, meaning.short_expansion));
+    meaningCard.querySelector(".delete-btn").addEventListener("click", ev => deleteMeaning(ev.target, meaning.id));
+    removeModControls(meaningCard);
+    
+    return meaningCard;
 }
 
 async function removeModControls(element)

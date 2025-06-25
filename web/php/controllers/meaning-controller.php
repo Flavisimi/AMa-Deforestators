@@ -10,6 +10,7 @@ require_once( __DIR__ . "/../models/vote.php");
 require_once( __DIR__ . "/../repositories/vote-repository.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
 require_once( __DIR__ . "/../services/meaning-service.php");
+require_once( __DIR__ . "/../helpers/docbook-helper.php");
 
 use ama\models\Meaning;
 use ama\helpers\ConnectionHelper;
@@ -19,6 +20,7 @@ use ama\models\Vote;
 use ama\repositories\VoteRepository;
 use ama\exceptions\ApiException;
 use ama\services\MeaningService;
+use ama\helpers\DocbookHelper;
 
 class MeaningController
 {
@@ -119,6 +121,54 @@ class MeaningController
         oci_close( $conn );
     }
 
+    public static function delete_meaning($id)
+    {
+        if(!isset($_SESSION["user_id"]))
+            throw new ApiException(401, "You need to be logged in to vote for an abbreviation");
+
+        if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] == 'USER')
+            throw new ApiException(403, "Users may not delete meanings");
+        
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $meaning = MeaningRepository::load_meaning($conn, $id);
+            $abbreviation = AbbreviationRepository::load_abbreviation($conn, $meaning->abbr_id);
+            MeaningRepository::delete_meaning($conn, $id);
+
+            $document = DocbookHelper::load_abbreviation_document($abbreviation->searchable_name);
+            if($document == null)
+            {
+                oci_rollback($conn);
+                throw new ApiException(500, "Inconsistent docbook state");
+            }
+
+            if($abbreviation->meaning_count > 1)
+            {
+                DocbookHelper::delete_meaning_from_document($document, $meaning->short_expansion);
+
+                if(!DocbookHelper::save_document($document))
+                {
+                    oci_rollback($conn);
+                    throw new ApiException(500, "Could not delete meaning from file");
+                }
+            }
+            else
+            {
+                unlink("/abbreviations/" . $abbreviation->searchable_name . ".xml");
+            }
+
+
+            oci_commit($conn);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+
+        oci_close($conn);
+    }
+
     public static function handle_get()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -176,6 +226,29 @@ class MeaningController
             http_response_code(400);
         }
     }
+
+    public static function handle_delete()
+    {
+        $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $query_components = array();
+        parse_str($_SERVER['QUERY_STRING'], $query_components);
+
+        if($url === "/api/meanings")
+        {
+            if(!isset($query_components["id"]))
+            {
+                http_response_code(400);
+                return;
+            }
+
+            $id = $query_components["id"];
+            if(!is_numeric($id))
+                    throw new ApiException(400, "Invalid ID");
+
+            self::delete_meaning($id);
+        }
+    }
+
     public static function handle_request()
     {
         session_start();
@@ -183,6 +256,8 @@ class MeaningController
             MeaningController::handle_get();
         else if($_SERVER['REQUEST_METHOD'] === 'POST')
             MeaningController::handle_post();
+        else if($_SERVER['REQUEST_METHOD'] === 'DELETE')
+            self::handle_delete();
         else
         {
             http_response_code(400);

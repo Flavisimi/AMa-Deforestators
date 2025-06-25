@@ -394,7 +394,7 @@ function getMeaningCardHTML(meaning) {
             <button class="add-to-list-btn action-btn" onclick="showListModal(${meaning.id}, '${meaning.short_expansion}')">
                 ➕ Add to List
             </button>
-            <button class="delete-btn action-btn" onclick="">
+            <button class="delete-btn action-btn" onclick="deleteMeaning(this, ${meaning.id})">
                 Delete
             </button>
             <button class="edit-btn action-btn" onclick="">
@@ -677,6 +677,32 @@ function performSearch() {
         `;
     });
 }
+
+function deleteMeaning(btn, id)
+{
+    fetch(`/api/meanings?id=${id}`, {
+        method: "DELETE"
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    })
+    .then(() => {
+        const card = btn.closest(".meaning-card");
+        card.parentElement.removeChild(card);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        placeholder.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h3>Delete failed</h3>
+                <p>${error}</p>
+                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+            </div>
+        `;
+    });
+}
+
 
 document.querySelector('.search-button').addEventListener('click', function() {
     performSearch();

@@ -81,17 +81,37 @@ end;
 /
 
 create or replace trigger meaning_delete
-after delete on meanings
-for each row
-declare
-    v_count integer;
-begin
-    select meaning_count into v_count from abbreviations where id = :old.abbr_id;
-    if(v_count = 1) then
-        delete from abbreviations where id = :old.abbr_id;
-    else
-        update abbreviations set meaning_count = meaning_count - 1 where id = :old.abbr_id;
-    end if;
+for delete on meanings
+compound trigger
+    type id_list is table of integer index by pls_integer;
+    v_affected_abbrs id_list;
+
+    after each row is
+    begin
+        if(v_affected_abbrs.exists(:old.abbr_id)) then
+            v_affected_abbrs(:old.abbr_id) := 1 + v_affected_abbrs(:old.abbr_id);
+        else
+            v_affected_abbrs(:old.abbr_id) := 1;
+        end if;
+    end after each row;
+
+    after statement is
+        v_abbr_id integer;
+        v_count integer;
+    begin
+        if(v_affected_abbrs.count > 0) then
+            v_abbr_id := v_affected_abbrs.first;
+            while v_abbr_id is not null loop
+                select meaning_count into v_count from abbreviations where id = v_abbr_id;
+                if(v_count = v_affected_abbrs(v_abbr_id)) then
+                    delete from abbreviations where id = v_abbr_id;
+                else
+                    update abbreviations set meaning_count = meaning_count - v_affected_abbrs(v_abbr_id) where id = v_abbr_id;
+                end if;
+                v_abbr_id := v_affected_abbrs.next(v_abbr_id);
+            end loop;
+        end if;
+    end after statement;
 end;
 
 /

@@ -67,6 +67,24 @@ class DocbookHelper
         return true;
     }
 
+    public static function delete_meaning_from_document($document, $short_expansion): bool
+    {
+        $meanings = $document->variablelist;
+        foreach($meanings->children() as $child)
+        {
+            if($child->getName() != "varlistentry")
+                continue;
+
+            if($child->listitem->formalpara[0]->para != $short_expansion)
+                continue;
+
+            unset($child);
+            return true;
+        }
+        
+        return false;
+    }
+
     public static function save_document($document)
     {
         $abbr_name = (string)$document->title->abbrev;

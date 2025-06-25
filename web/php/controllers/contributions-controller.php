@@ -4,9 +4,13 @@ namespace ama\controllers;
 
 require_once(__DIR__ . "/../helpers/connection-helper.php");
 require_once(__DIR__ . "/../exceptions/api-exception.php");
+require_once(__DIR__ . "/../repositories/meaning-repository.php");
+require_once(__DIR__ . "/../services/meaning-service.php");
 
 use ama\helpers\ConnectionHelper;
 use ama\exceptions\ApiException;
+use ama\repositories\MeaningRepository;
+use ama\services\MeaningService;
 
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_strict_mode', 1);
@@ -21,59 +25,14 @@ class ContributionsController
         $conn = ConnectionHelper::open_connection();
         
         try {
-            $current_user_id = $_SESSION['user_id'] ?? null;
-            
-            $stmt = oci_parse($conn, "
-                SELECT m.id, m.name, m.short_expansion, m.lang, m.domain, 
-                       m.approval_status, 
-                       TO_CHAR(m.created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at,
-                       TO_CHAR(m.updated_at, 'YYYY-MM-DD HH24:MI:SS') as updated_at,
-                       a.searchable_name,
-                       COALESCE(v.score, 0) as score,
-                       uv.vote as user_vote
-                FROM meanings m
-                JOIN abbreviations a ON m.abbr_id = a.id
-                LEFT JOIN (
-                    SELECT meaning_id, SUM(vote) as score 
-                    FROM votes 
-                    GROUP BY meaning_id
-                ) v ON m.id = v.meaning_id
-                LEFT JOIN votes uv ON m.id = uv.meaning_id AND uv.voter_id = :current_user_id
-                WHERE m.uploader_id = :user_id
-                ORDER BY m.created_at DESC
-            ");
-            
-            if (!$stmt) {
-                throw new ApiException(500, "Failed to prepare statement");
+            $meanings = MeaningRepository::load_meanings_by_uploader_id($conn, $user_id);
+            if($meanings !== null) {
+                foreach($meanings as &$meaning) {
+                    MeaningService::attach_description($meaning, MeaningService::get_searchable_name($meaning->name));
+                    MeaningService::attach_score($conn, $meaning);
+                    MeaningService::attach_user_vote($conn, $meaning);
+                }
             }
-            
-            oci_bind_by_name($stmt, ":user_id", $user_id);
-            oci_bind_by_name($stmt, ":current_user_id", $current_user_id);
-            
-            if (!oci_execute($stmt)) {
-                $error = oci_error($stmt);
-                throw new ApiException(500, "Database error: " . ($error['message'] ?? 'unknown'));
-            }
-            
-            $meanings = [];
-            while ($row = oci_fetch_assoc($stmt)) {
-                $meanings[] = [
-                    'id' => (int)$row['ID'],
-                    'name' => $row['NAME'],
-                    'short_expansion' => $row['SHORT_EXPANSION'],
-                    'lang' => $row['LANG'],
-                    'domain' => $row['DOMAIN'],
-                    'approval_status' => $row['APPROVAL_STATUS'],
-                    'created_at' => $row['CREATED_AT'],
-                    'updated_at' => $row['UPDATED_AT'],
-                    'description' => $row['SHORT_EXPANSION'], 
-                    'score' => (int)$row['SCORE'],
-                    'user_vote' => $row['USER_VOTE'] ? (int)$row['USER_VOTE'] : null
-                ];
-            }
-            
-            oci_free_statement($stmt);
-            
         } catch (ApiException $e) {
             oci_close($conn);
             throw $e;

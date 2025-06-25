@@ -23,13 +23,7 @@ class AbbreviationService
         {
             MeaningService::attach_description($meaning, $abbreviation->searchable_name);
             MeaningService::attach_score($conn, $meaning);
-            
-            if(isset($_SESSION["user_id"])) {
-                $user_vote = VoteRepository::load_vote($conn, $_SESSION["user_id"], $meaning->id);
-                $meaning->user_vote = $user_vote ? $user_vote->vote : null;
-            } else {
-                $meaning->user_vote = null;
-            }
+            MeaningService::attach_user_vote($conn, $meaning);
         }
         $abbreviation->meanings = $meanings;
     }

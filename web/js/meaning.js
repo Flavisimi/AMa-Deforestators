@@ -58,6 +58,7 @@ function createMeaningCard(meaning, voteHandler, addHandler, deleteHandler, edit
     }
     if(addHandler != null) meaningCard.querySelector(".add-to-list-btn").addEventListener("click", ev => addHandler(meaning.id, meaning.short_expansion));
     if(deleteHandler != null) meaningCard.querySelector(".delete-btn").addEventListener("click", ev => deleteHandler(ev.target, meaning.id));
+    if(editHandler != null) meaningCard.querySelector(".edit-btn").addEventListener("click", ev => editHandler(meaning.id, meaning.name, meaning.lang, meaning.domain, meaning.short_expansion));
     removeModControls(meaningCard);
     
     return meaningCard;
@@ -164,4 +165,40 @@ function addMeaningToList(meaningId, listId) {
         }
         return response.json();
     })
+}
+
+function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, handleEdit)
+{
+    const meaningsGrid = document.createElement('div');
+    meaningsGrid.className = 'meanings-grid';
+    
+    meanings.forEach((meaning, index) => {
+        let meaningCard = createMeaningCard(meaning, handleVote, handleList, handleDelete, handleEdit);
+        meaningCard.style.animationDelay = `${index * 0.1}s`;
+        meaningsGrid.appendChild(meaningCard);
+    });
+
+    return meaningsGrid;
+}
+
+function loadMeaningsByAbbrId(abbreviationId)
+{
+    return fetch(`/abbreviations?id=${abbreviationId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        });
+}
+
+function loadMeaningsByUploaderId(uploaderId)
+{
+        return fetch(`/api/contributions?user_id=${uploaderId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        });
 }

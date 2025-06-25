@@ -84,20 +84,20 @@ function updateUserInterface() {
     }
 }
 
-async function loadUserContributions() {
-    try {
-        const response = await fetch(`/api/contributions?user_id=${targetUserId}`);
-        const data = await response.json();
-        
+async function loadUserContributions()
+{
+    await loadMeaningsByUploaderId(targetUserId)
+    .then(data => {
         if (data.success) {
             displayContributions(data.contributions);
         } else {
             showError(data.error || 'Failed to load contributions');
         }
-    } catch (error) {
+    })
+    .catch(error => {
         console.error('Error loading contributions:', error);
         showError('Failed to load contributions');
-    }
+    })
 }
 
 function displayContributions(contributions) {
@@ -112,87 +112,14 @@ function displayContributions(contributions) {
         `;
         return;
     }
-    
-    const contributionsGrid = document.createElement('div');
-    contributionsGrid.className = 'contributions-grid';
-    
-    contributions.forEach(contribution => {
-        const card = createContributionCard(contribution);
-        contributionsGrid.appendChild(card);
-    });
-    
-    container.innerHTML = '';
-    container.appendChild(contributionsGrid);
-}
 
-function createContributionCard(contribution) {
-    const card = document.createElement('div');
-    card.className = 'contribution-card';
-    
-    let canEdit = false;
-    if (currentUser) {
-        const userRole = currentUser.role || currentUser.current_user_role || null;
-        canEdit = (userRole === 'ADMIN' || userRole === 'MOD');
-    }
-    
-    console.log('Creating card for contribution:', contribution.id, 'Can edit:', canEdit, 'User role:', currentUser?.role);
-    
-    const upvoteClass = contribution.user_vote === 1 ? 'vote-btn upvote-btn active' : 'vote-btn upvote-btn';
-    const downvoteClass = contribution.user_vote === -1 ? 'vote-btn downvote-btn active' : 'vote-btn downvote-btn';
-    
-    let actionsHtml = '';
-    if (canEdit) {
-        actionsHtml = `
-            <div class="contribution-actions">
-                <button class="action-btn edit-btn" onclick="openEditModal(${contribution.id}, '${escapeHtml(contribution.name)}', '${escapeHtml(contribution.lang)}', '${escapeHtml(contribution.domain)}', '${escapeHtml(contribution.short_expansion)}')">
-                    ✏️ Edit
-                </button>
-                <button class="action-btn delete-btn" onclick="deleteMeaning(${contribution.id})">
-                    🗑️ Delete
-                </button>
-            </div>
-        `;
-    }
-    
-    card.innerHTML = `
-        <div class="contribution-header">
-            <h4>${escapeHtml(contribution.name)}</h4>
-            <span class="status-badge status-${contribution.approval_status.toLowerCase()}">${contribution.approval_status}</span>
-        </div>
-        <div class="contribution-body">
-            <div class="contribution-expansion">${escapeHtml(contribution.short_expansion)}</div>
-            <div class="contribution-description">${escapeHtml(contribution.description || '')}</div>
-            <div class="contribution-meta">
-                <div class="meta-item">
-                    <strong>Language:</strong>
-                    <span>${escapeHtml(contribution.lang)}</span>
-                </div>
-                <div class="meta-item">
-                    <strong>Domain:</strong>
-                    <span>${escapeHtml(contribution.domain)}</span>
-                </div>
-                <div class="meta-item vote-section">
-                    <strong>Score:</strong>
-                    <span class="score-display">${contribution.score || 0}</span>
-                    <div class="vote-buttons">
-                        <button class="${upvoteClass}" onclick="vote(event, ${contribution.id}, true)">
-                            👍 Upvote
-                        </button>
-                        <button class="${downvoteClass}" onclick="vote(event, ${contribution.id}, false)">
-                            👎 Downvote
-                        </button>
-                    </div>
-                </div>
-                <div class="meta-item">
-                    <strong>Created:</strong>
-                    <span>${formatDate(contribution.created_at)}</span>
-                </div>
-            </div>
-        </div>
-        ${actionsHtml}
-    `;
-    
-    return card;
+    const meanings = Object.values(contributions);
+
+    container.innerHTML = '';
+    const grid = createMeaningsGrid(meanings, handleVote, null, handleDelete, openEditModal);
+    container.appendChild(grid);
+
+    grid.querySelectorAll(".add-to-list-btn").forEach(btn => btn.remove());
 }
 
 function openEditModal(meaningId, name, lang, domain, shortExpansion) {
@@ -258,35 +185,18 @@ async function handleEditSubmit(e) {
     }
 }
 
-async function deleteMeaning(meaningId) {
+async function handleDelete(btn, id)
+{
     if (!confirm('Are you sure you want to delete this meaning? This action cannot be undone.')) {
         return;
     }
-    
-    try {
-        const response = await fetch(`/api/contributions/delete?meaning_id=${meaningId}`, {
-            method: 'DELETE'
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showSuccess('Meaning deleted successfully');
-            loadUserContributions();
-        } else {
-            showError(result.error || 'Failed to delete meaning');
-        }
-    } catch (error) {
-        console.error('Error deleting meaning:', error);
-        showError('Failed to delete meaning');
-    }
-}
 
-function escapeHtml(text) {
-    if (typeof text !== 'string') return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    await deleteMeaning(id)
+    .then(() => {showSuccess('Meaning deleted successfully'); loadUserContributions();})
+    .catch(error => {
+        console.error('Error deleting meaning:', error);
+        showError('Failed to delete meaning: ' + error);
+    });
 }
 
 function formatDate(dateString) {
@@ -304,7 +214,8 @@ function formatDate(dateString) {
     }
 }
 
-async function vote(event, meaningId, isUpvote) {
+async function handleVote(event, meaningId, isUpvote)
+{
     event.preventDefault();
     event.stopPropagation();
     
@@ -319,27 +230,16 @@ async function vote(event, meaningId, isUpvote) {
     button.disabled = true;
     button.textContent = isUpvote ? '👍 Voting...' : '👎 Voting...';
     
-    try {
-        const endpoint = isUpvote ? 'upvote' : 'downvote';
-        const response = await fetch(`/meanings/${endpoint}?id=${meaningId}`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            await loadUserContributions();
-            showSuccess(isUpvote ? 'Upvoted successfully!' : 'Downvoted successfully!');
-        } else {
-            const error = await response.json();
-            showError(error.error || 'Failed to vote');
-        }
-    } catch (error) {
+    await voteMeaning(event, meaningId, isUpvote)
+    .then(() => refreshMeaning(button.closest(".meaning-card"), meaningId))
+    .then(() => showSuccess(isUpvote ? 'Upvoted successfully!' : 'Downvoted successfully!'))
+    .catch(error => {
         console.error('Error voting:', error);
         showError('Failed to vote. Please try again.');
-    } finally {
+    }).finally(() => {
         button.disabled = false;
         button.textContent = originalText;
-    }
+    });
 }
 
 function showSuccess(message) {

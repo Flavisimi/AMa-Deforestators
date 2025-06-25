@@ -212,13 +212,7 @@ function fetchMeanings(abbrId) {
         </div>
     `;
     
-    fetch(`/abbreviations?id=${abbrId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
+    loadMeaningsByAbbrId(abbrId)
         .then(data => {
             displayMeanings(data);
         })
@@ -293,17 +287,8 @@ function displayMeanings(data) {
         <h2>Meanings for "${data.searchable_name}"</h2>
     `;
     meaningsContainer.appendChild(header);
-    
-    const meaningsGrid = document.createElement('div');
-    meaningsGrid.className = 'meanings-grid';
-    
-    meanings.forEach((meaning, index) => {
-        let meaningCard = createMeaningCard(meaning, handleVote, showListModal, handleDeleteMeaning, null);
-        meaningCard.style.animationDelay = `${index * 0.1}s`;
-        meaningsGrid.appendChild(meaningCard);
-    });
-    
-    meaningsContainer.appendChild(meaningsGrid);
+
+    meaningsContainer.appendChild(createMeaningsGrid(meanings, handleVote, showListModal, handleDeleteMeaning, null));
     placeholder.appendChild(meaningsContainer);
 }
 

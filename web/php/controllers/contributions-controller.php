@@ -58,7 +58,7 @@ class ContributionsController
             
             $user_id = (int)$query_components["user_id"];
             
-            if (!is_numeric($user_id) || $user_id <= 0) {
+            if (!is_numeric($user_id) || $user_id < 0) {
                 http_response_code(400);
                 header("Content-Type: application/json");
                 echo json_encode(['error' => 'Invalid user ID']);

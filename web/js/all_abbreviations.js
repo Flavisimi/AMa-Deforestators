@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializePage() {
     await loadCurrentUser();
     await loadAbbreviationLists();
+    setupCreateListModal(); 
 }
 
 async function loadCurrentUser() {
@@ -864,4 +865,110 @@ async function addMeaningToList(meaningId, listId) {
     }
     
     return response.json();
+}
+function setupCreateListModal() {
+    const createBtn = document.getElementById('createNewListBtn');
+    const modal = document.getElementById('createModal');
+    const closeBtn = document.getElementById('closeCreateModalBtn');
+    const cancelBtn = document.getElementById('cancelCreateBtn');
+    const form = document.getElementById('createListForm');
+
+    if (createBtn) {
+        createBtn.addEventListener('click', openCreateModal);
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeCreateModal);
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeCreateModal);
+    }
+
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeCreateModal();
+            }
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', handleCreateList);
+    }
+}
+
+function openCreateModal() {
+    const modal = document.getElementById('createModal');
+    if (modal) {
+        modal.classList.add('active');
+        const input = document.getElementById('listName');
+        if (input) {
+            input.focus();
+        }
+    }
+}
+
+function closeCreateModal() {
+    const modal = document.getElementById('createModal');
+    if (modal) {
+        modal.classList.remove('active');
+        const form = document.getElementById('createListForm');
+        if (form) {
+            form.reset();
+        }
+    }
+}
+
+async function handleCreateList(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('listName').value.trim();
+    const isPrivate = document.getElementById('isPrivate').checked;
+
+    if (!name) {
+        showError('Please enter a list name');
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('.btn-primary');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Creating...';
+    submitBtn.disabled = true;
+
+    try {
+        const privateValue = isPrivate ? 'true' : 'false';
+
+        const response = await fetch(`/api/abbr-lists?name=${encodeURIComponent(name)}&private=${privateValue}`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await response.json();
+                throw new Error(errorData.err_msg || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+            } else {
+                const text = await response.text();
+                throw new Error(text || `HTTP ${response.status}: ${response.statusText}`);
+            }
+        }
+
+        closeCreateModal();
+        showSuccess('List created successfully');
+        await loadAbbreviationLists();
+
+    } catch (error) {
+        console.error('Error creating list:', error);
+        let errorMessage = 'Failed to create list';
+        if (error && typeof error === 'object') {
+            errorMessage = error.err_msg || error.message || errorMessage;
+        } else if (typeof error === 'string') {
+            errorMessage = error;
+        }
+        showError(errorMessage);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
 }

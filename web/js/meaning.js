@@ -68,7 +68,7 @@ async function createMeaningCard(meaning, voteHandler, addHandler, deleteHandler
     if(deleteHandler != null) meaningCard.querySelector(".delete-btn").addEventListener("click", ev => deleteHandler(ev.target, meaning.id));
     else meaningCard.querySelector(".delete-btn").remove();
 
-    if(submitHandler != null) meaningCard.querySelector(".edit-btn").addEventListener("click", ev => openEditModal(ev, meaning, submitHandler));
+    if(submitHandler != null) meaningCard.querySelector(".edit-btn").addEventListener("click", ev => openEditModal(ev, meaningCard, meaning, submitHandler));
     else meaningCard.querySelector(".edit-btn").remove();
 
     await removeModControls(meaningCard);
@@ -223,7 +223,7 @@ function loadMeaningsByUploaderId(uploaderId)
         });
 }
 
-function createEditModal(meaning, submitHandler)
+function createEditModal(meaningCard, meaning, submitHandler)
 {
     const modal = document.createElement("div");
     modal.id = "editModal";
@@ -275,13 +275,13 @@ function createEditModal(meaning, submitHandler)
 
     modal.querySelector("#closeEditModal").addEventListener("click", closeEditModal);
     modal.querySelector("#cancelEdit").addEventListener("click", closeEditModal);
-    modal.querySelector("#editForm").addEventListener("submit", ev => submitHandler(ev, meaning));
+    modal.querySelector("#editForm").addEventListener("submit", ev => submitHandler(ev, meaningCard, meaning));
 
     return modal;
 }
 
-function openEditModal(ev, meaning, submitHandler) {
-    document.body.appendChild(createEditModal(meaning, submitHandler));
+function openEditModal(ev, meaningCard, meaning, submitHandler) {
+    document.body.appendChild(createEditModal(meaningCard, meaning, submitHandler));
 
     document.getElementById('editName').value = meaning.name;
     document.getElementById('editLang').value = meaning.lang;
@@ -294,7 +294,9 @@ function openEditModal(ev, meaning, submitHandler) {
 }
 
 function closeEditModal() {
-    document.getElementById('editModal').remove();
+    const modal = document.getElementById('editModal');
+    if(modal != null)
+        modal.remove();
 }
 
 async function submitEditModal(e, meaning) {

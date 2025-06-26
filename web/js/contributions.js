@@ -84,7 +84,7 @@ function displayContributions(contributions) {
     grid.querySelectorAll(".add-to-list-btn").forEach(btn => btn.remove());
 }
 
-async function handleSubmit(ev, meaning)
+async function handleSubmit(ev, meaningCard, meaning)
 {
     await submitEditModal(ev, meaning)
     .then(result => {

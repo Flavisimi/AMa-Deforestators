@@ -13,7 +13,7 @@ error_reporting(0);
 
 class AbbreviationListRepository
 {
-    public static string $SQL_SELECT_TEMPLATE = "select id, creator_id, name, private, created_at, updated_at, (select name from users where id = abbr_lists.creator_id) as creator_name, (select count(*) from abbr_list_contents where list_id = abbr_lists.id) as meanings_count from abbr_lists";
+    public static string $SQL_SELECT_TEMPLATE = "select id, creator_id, name, private, created_at, updated_at, (select name from users where id = abbr_lists.creator_id) as creator_name, (select role from users where id = abbr_lists.creator_id) as creator_role, (select count(*) from abbr_list_contents where list_id = abbr_lists.id) as meanings_count from abbr_lists";
 
     public static function convert_row_to_object( $row ): AbbreviationList
     {
@@ -27,6 +27,7 @@ class AbbreviationListRepository
         $abbr_list->updated_at = new \DateTime();
         $abbr_list->updated_at->setTimestamp(strtotime($row["UPDATED_AT"]));
         $abbr_list->creator_name = $row["CREATOR_NAME"];
+        $abbr_list->creator_role = $row["CREATOR_ROLE"] ?? "USER";
         $abbr_list->meanings_count = $row["MEANINGS_COUNT"];
         
         return $abbr_list;
@@ -144,6 +145,23 @@ class AbbreviationListRepository
         oci_free_statement($stmt);
     }
 
+    public static function update_abbr_list($conn, int $id, string $name, bool $private)
+    {
+        $stmt = oci_parse($conn, "update abbr_lists set name = :name, private = :private, updated_at = sysdate where id = :id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        
+        oci_bind_by_name($stmt, ":name", $name);
+        oci_bind_by_name($stmt, ":id", $id);
+        $private_in_sql = $private ? "1" : "0";
+        oci_bind_by_name($stmt, ":private", $private_in_sql);
+
+        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+
+        oci_free_statement($stmt);
+    }
+
     public static function insert_abbr_list_entry($conn, int $list_id, int $meaning_id)
     {
         $stmt = oci_parse($conn, "insert into abbr_list_contents(list_id, meaning_id) values(:list_id, :meaning_id)");
@@ -185,7 +203,20 @@ class AbbreviationListRepository
 
         oci_free_statement($stmt);
     }
-}
 
+    public static function delete_abbr_list_entry_by_meaning($conn, int $list_id, int $meaning_id)
+    {
+        $stmt = oci_parse($conn, "delete from abbr_list_contents where list_id = :list_id and meaning_id = :meaning_id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        oci_bind_by_name($stmt, ":list_id", $list_id);
+        oci_bind_by_name($stmt, ":meaning_id", $meaning_id);
+
+        if(!oci_execute($stmt, OCI_COMMIT_ON_SUCCESS)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+
+        oci_free_statement($stmt);
+    }
+}
 
 ?>

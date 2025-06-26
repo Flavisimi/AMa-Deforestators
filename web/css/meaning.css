@@ -175,6 +175,95 @@
     flex-direction: column;
 }
 
+
+.list-modal {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+/* Lists Container */
+.lists-container p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.lists-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.list-item {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.list-item:hover {
+    border-color: #4caf50;
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.15);
+}
+
+.list-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.list-item-header h4 {
+    font-size: 1.2rem;
+    color: #333;
+    margin: 0;
+    font-weight: 600;
+}
+
+.list-privacy {
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.list-privacy.private {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+.list-privacy.public {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+}
+
+.list-item-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-description {
+    color: #666;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.list-stats {
+    color: #4caf50;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
     .meanings-grid {
         grid-template-columns: 1fr;
@@ -194,6 +283,27 @@
     .edit-modal {
         width: 95%;
         margin: 10px;
+    }
+
+    .list-modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .list-item {
+        padding: 15px;
+    }
+    
+    .list-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .list-item-body {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
 }
 

@@ -78,7 +78,7 @@ function displayContributions(contributions) {
     const meanings = Object.values(contributions);
 
     container.innerHTML = '';
-    const grid = createMeaningsGrid(meanings, handleVote, null, handleDelete, handleSubmit);
+    const grid = createMeaningsGrid(meanings, handleVote, true, handleDelete, handleSubmit);
     container.appendChild(grid);
 }
 
@@ -89,7 +89,7 @@ async function handleSubmit(ev, meaningCard, meaning)
         if (result.success) {
             showSuccess('Meaning updated successfully');
             closeEditModal();
-            loadUserContributions();
+            refreshMeaning(meaningCard, meaning.id);
         } else {
             showError(result.error || 'Failed to update meaning');
         }

@@ -265,129 +265,6 @@
     box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
 }
 
-.list-modal {
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow: hidden;
-    animation: slideUp 0.3s ease;
-}
-
-/* Lists Container */
-.lists-container p {
-    font-size: 1.1rem;
-    color: #666;
-    margin-bottom: 20px;
-}
-
-.lists-grid {
-    display: grid;
-    gap: 15px;
-}
-
-.list-item {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    border: 2px solid transparent;
-    border-radius: 12px;
-    padding: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.list-item:hover {
-    border-color: #4caf50;
-    background: linear-gradient(135deg, #ffffff, #f8f9fa);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.15);
-}
-
-.list-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.list-item-header h4 {
-    font-size: 1.2rem;
-    color: #333;
-    margin: 0;
-    font-weight: 600;
-}
-
-.list-privacy {
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.list-privacy.private {
-    background: linear-gradient(135deg, #dc3545, #c82333);
-    color: white;
-}
-
-.list-privacy.public {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: white;
-}
-
-.list-item-body {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.list-description {
-    color: #666;
-    font-size: 0.95rem;
-    margin: 0;
-}
-
-.list-stats {
-    color: #4caf50;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-/* Success and Error States in Modal */
-.success-state, .error-state {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.success-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-}
-
-.success-state h4 {
-    color: #28a745;
-    font-size: 1.4rem;
-    margin-bottom: 10px;
-}
-
-.success-state p {
-    color: #666;
-    font-size: 1.1rem;
-    margin-bottom: 20px;
-}
-
-.error-state h4 {
-    color: #dc3545;
-    font-size: 1.4rem;
-    margin-bottom: 10px;
-}
-
-.error-state p {
-    color: #666;
-    font-size: 1.1rem;
-    margin-bottom: 20px;
-}
-
 @keyframes slideUp {
     from {
         opacity: 0;
@@ -437,35 +314,8 @@
         grid-template-columns: 1fr;
         gap: 20px;
     }
-
-    .list-modal {
-        width: 95%;
-        max-height: 90vh;
-    }
-    
-    .list-item {
-        padding: 15px;
-    }
-    
-    .list-item-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    
-    .list-item-body {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
 }
 
-@media (max-width: 480px) {
-    .add-to-list-btn {
-        padding: 10px 16px;
-        font-size: 0.95rem;
-    }
-}
 /* Loading More Indicator */
 .loading-more {
     display: flex;
@@ -582,41 +432,6 @@ html {
         height: 35px;
         border-width: 3px;
     }
-}
-
-/* Error and empty state improvements */
-.error-state,
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 20px;
-    text-align: center;
-    color: #666;
-}
-
-.error-icon,
-.empty-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
-    opacity: 0.7;
-}
-
-.error-state h3,
-.empty-state h3 {
-    font-size: 1.5rem;
-    color: #333;
-    margin-bottom: 10px;
-    font-weight: 600;
-}
-
-.error-state p,
-.empty-state p {
-    font-size: 1.1rem;
-    margin-bottom: 25px;
-    max-width: 400px;
-    line-height: 1.5;
 }
 
 .retry-btn,

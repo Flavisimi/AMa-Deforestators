@@ -464,8 +464,9 @@ function showListModal(ev, meaning) {
     });
 }
 
-function closeListModal() {
-    const modal = document.querySelector('.modal-overlay');
+function closeListModal(modal) {
+    if(modal == null)
+        modal = document.querySelector('.modal-overlay');
     if (modal) {
         modal.remove();
     }
@@ -492,8 +493,9 @@ function handleAddMeaningToList(meaningId, listId, listName) {
             </div>
         `;
         
+        const modal = document.querySelector('.modal-overlay');
         setTimeout(() => {
-            closeListModal();
+            closeListModal(modal);
         }, 2000);
     })
     .catch(error => {

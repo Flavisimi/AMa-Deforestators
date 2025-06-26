@@ -162,6 +162,18 @@
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
+.edit-modal {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
+    width: 90%;
+    max-height: 85vh;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
 
 @media (max-width: 768px) {
     .meanings-grid {
@@ -177,6 +189,11 @@
 
     .meanings-header h2 {
         font-size: 1.6rem;
+    }
+
+    .edit-modal {
+        width: 95%;
+        margin: 10px;
     }
 }
 

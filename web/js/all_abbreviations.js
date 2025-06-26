@@ -629,14 +629,14 @@ function openAddMeaningsModal(listId) {
     modalOverlay.id = 'add-meanings-modal';
     
     const modal = document.createElement('div');
-    modal.className = 'modal-content add-meanings-modal-content';
+    modal.className = 'add-meanings-modal';
     
     modal.innerHTML = `
         <div class="modal-header">
             <h2 class="modal-title">Add Meanings to List</h2>
             <button class="modal-close" id="closeMeaningsModal">&times;</button>
         </div>
-        <div class="modal-body">
+        <div class="modal-content">
             <div class="search-section">
                 <div class="search-box">
                     <input type="text" class="search-input" id="meaningsSearch" placeholder="Search for meanings to add...">
@@ -663,7 +663,7 @@ function openAddMeaningsModal(listId) {
 }
 
 function setupAddMeaningsModal(listId, modalOverlay) {
-    const modal = modalOverlay.querySelector('.modal-content');
+    const modal = modalOverlay.querySelector('.add-meanings-modal');
     const searchInput = modal.querySelector('#meaningsSearch');
     const searchResults = modal.querySelector('#meaningsSearchResults');
     const addSelectedBtn = modal.querySelector('#addSelectedMeanings');

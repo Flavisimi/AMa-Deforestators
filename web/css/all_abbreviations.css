@@ -284,12 +284,16 @@
 .modal-content {
     background: white;
     padding: 30px;
-    border-radius: 20px;
+    /* border-radius: 20px; */
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
     max-width: 500px;
     max-height: 80vh;
     overflow-y: auto;
     animation: slideUp 0.3s ease;
+}
+
+.add-meanings-modal .modal-content {
+    padding: 0px;
 }
 
 @keyframes fadeIn {
@@ -694,7 +698,6 @@
     background: white;
     cursor: pointer;
     transition: all 0.3s ease;
-    hover-effect: transform;
 }
 
 .search-result-item:hover {
@@ -843,7 +846,7 @@
     font-size: 14px;
 }
 
-.create-modal, .edit-list-modal {
+.create-modal, .edit-list-modal, .add-meanings-modal {
     background: white;
     border-radius: 15px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -970,7 +973,7 @@
         font-size: 14px;
     }
     
-    .create-modal, .edit-list-modal {
+    .create-modal, .edit-list-modal, .add-meanings-modal {
         width: 95%;
         margin: 10px;
     }

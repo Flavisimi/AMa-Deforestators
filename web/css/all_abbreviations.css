@@ -843,7 +843,7 @@
     font-size: 14px;
 }
 
-.create-modal {
+.create-modal, .edit-list-modal {
     background: white;
     border-radius: 15px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -909,11 +909,11 @@
     color: #666;
 }
 
-#isPrivateLabel, #isPrivate {
+#isPrivateLabel, #isPrivate, #edit-list-private, #edit-list-private-label {
     display: inline;
 }
 
-#isPrivate {
+#isPrivate, #edit-list-private {
     width: auto;
     margin-left: 10px;
 }
@@ -970,7 +970,7 @@
         font-size: 14px;
     }
     
-    .create-modal {
+    .create-modal, .edit-list-modal {
         width: 95%;
         margin: 10px;
     }

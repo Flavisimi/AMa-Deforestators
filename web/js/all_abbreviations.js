@@ -408,30 +408,30 @@ function editList(list) {
     modal.id = 'edit-list-modal';
     
     modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Edit List</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="edit-list-form">
-                    <div class="form-group">
-                        <label for="edit-list-name">List Name:</label>
-                        <input type="text" id="edit-list-name" value="${escapeHtml(list.name)}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="edit-list-private" ${list.private ? 'checked' : ''}>
-                            Make this list private
-                        </label>
-                    </div>
-                </form>
-            </div>
-            <div class="form-actions">
-                <button type="button" class="cancel-btn">Cancel</button>
-                <button type="submit" class="save-btn" form="edit-list-form">Save Changes</button>
-            </div>
+    <div class="edit-list-modal">
+        <div class="modal-header">
+            <h3>Edit List</h3>
+            <button class="modal-close">&times;</button>
         </div>
+        <div class="modal-content">
+            <form id="edit-list-form">
+                <div class="form-group">
+                    <label for="edit-list-name">List Name:</label>
+                    <input type="text" id="edit-list-name" value="${escapeHtml(list.name)}" required>
+                </div>
+                <div class="form-group">
+                    <label id="edit-list-private-label" class="form-checkbox" for="edit-list-private">
+                        Make this list private
+                    </label>
+                    <input type="checkbox" id="edit-list-private" ${list.private ? 'checked' : ''}>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="save-btn" form="edit-list-form">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
     `;
     
     document.body.appendChild(modal);

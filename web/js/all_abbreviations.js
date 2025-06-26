@@ -292,7 +292,8 @@ function displayMeanings(meanings) {
         handleVote,
         false,
         canUserEditList(getCurrentList()) ? handleDeleteMeaning : null,
-        canUserEditList(getCurrentList()) ? submitHandler : null
+        canUserEditList(getCurrentList()) ? submitHandler : null,
+        true
     );
     
     // Add remove buttons if user can edit

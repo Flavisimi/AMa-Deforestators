@@ -18,14 +18,17 @@ class FilterHelper
     
     public static function filter_words($text): bool
     {
-        $words = explode(" ", $text);
+        $words = $text;
+        $words = str_replace(str_split(" 0123456789!@#$%^&*(),./;''[]-=<>?:\"{}|_+"), [], $words);
+        $words = explode(" ", $words);
         foreach($words as $word)
         {
             $word = self::get_searchable_name($word);
-            if($text == $word)
+            
+            if(in_array($word, self::$bad_words))
                 return true;
         }
-        
+
         return false;
     }
 }

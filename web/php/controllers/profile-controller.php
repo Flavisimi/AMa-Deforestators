@@ -4,11 +4,13 @@ namespace ama\controllers;
 
 require_once( __DIR__ . "/../models/user.php");
 require_once( __DIR__ . "/../helpers/connection-helper.php");
+require_once( __DIR__ . "/../helpers/filter-helper.php");
 require_once( __DIR__ . "/../repositories/user-repository.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
 
 use ama\models\User;
 use ama\helpers\ConnectionHelper;
+use ama\helpers\FilterHelper;
 use ama\repositories\UserRepository;
 use ama\exceptions\ApiException;
 
@@ -94,6 +96,12 @@ class ProfileController
         $current_user_id = $_SESSION["user_id"];
         $current_user_role = $_SESSION["user_role"] ?? 'USER';
         
+        if($current_user_role == 'USER')
+        {
+            if(FilterHelper::filter_words($data["description"]))
+                throw new ApiException(400, "Input contained invalid words");
+        }
+
         $is_own_profile = ($current_user_id === $user_id);
         $can_edit = false;
         
@@ -174,6 +182,12 @@ class ProfileController
         
         if ($current_user_role !== 'ADMIN' && $current_user_id !== $user_id) {
             throw new ApiException(403, "You don't have permission to update these credentials");
+        }
+
+        if($current_user_role == 'USER')
+        {
+            if(FilterHelper::filter_words($data["username"]))
+                throw new ApiException(400, "Input contained invalid words");
         }
 
         $conn = ConnectionHelper::open_connection();
@@ -261,6 +275,12 @@ class ProfileController
         
         if (!isset($data['username']) || !isset($data['email']) || !isset($data['current_password'])) {
             throw new ApiException(400, "Username, email and current password are required");
+        }
+        
+        if(!isset($_SESSION['user_role']) || $_SESSION['user_role'] == 'USER')
+        {
+            if(FilterHelper::filter_words($data["username"]))
+                throw new ApiException(400, "Input contained invalid words");
         }
 
         $username = trim($data['username']);

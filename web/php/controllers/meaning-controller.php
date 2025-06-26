@@ -179,6 +179,16 @@ class MeaningController
 
         if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] == 'USER')
             throw new ApiException(403, "Users may not update meanings");
+
+        if($_SESSION['user_role'] == 'USER')
+        {
+            if(FilterHelper::filter_words($dto->name)
+                || FilterHelper::filter_words($dto->short_expansion)
+                || FilterHelper::filter_words($dto->description)
+                || FilterHelper::filter_words($dto->lang)
+                || FilterHelper::filter_words($dto->domain))
+                throw new ApiException(400, "Input contained invalid words");
+        }
         
         $conn = ConnectionHelper::open_connection();
         try

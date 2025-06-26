@@ -98,7 +98,7 @@ function displayListDetails(list) {
     `;
 }
 
-function displayAbbreviations(meanings) {
+async function displayAbbreviations(meanings) {
     allAbbreviations = meanings;
     filteredAbbreviations = meanings;
     
@@ -115,61 +115,20 @@ function displayAbbreviations(meanings) {
         return;
     }
 
-    const grid = document.createElement('div');
-    grid.className = 'abbreviations-grid';
+    const grid = await createMeaningsGrid(meanings, null, null, null, null);
 
-    meanings.forEach((meaning, index) => {
-        const card = createAbbreviationCard(meaning, index);
-        grid.appendChild(card);
+    grid.querySelectorAll(".meaning-header").forEach((header, index) => {
+        const button = document.createElement("button");
+        button.className = "remove-btn";
+        button.title="Remove from list";
+        button.textContent = "X";
+        button.addEventListener("click", ev => removeAbbreviation(index));
+
+        header.appendChild(button);
     });
 
     container.innerHTML = '';
     container.appendChild(grid);
-}
-
-function createAbbreviationCard(meaning, index) {
-    const card = document.createElement('div');
-    card.className = 'meaning-card';
-
-    card.innerHTML = `
-        <div class="meaning-header">
-            <h4>${meaning.name}</h4>
-            <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
-            <button class="remove-btn" onclick="removeAbbreviation(${index})" title="Remove from list">×</button>
-        </div>
-        <div class="meaning-body">
-            <h3 class="meaning-expansion">${meaning.short_expansion}</h3>
-            <p class="meaning-description">${meaning.description}</p>
-            <div class="meaning-meta">
-                <span class="meta-item">
-                    <strong>Language:</strong> ${meaning.lang}
-                </span>
-                <span class="meta-item">
-                    <strong>Domain:</strong> ${meaning.domain}
-                </span>
-                <span class="meta-item">
-                    <strong>Submitted by:</strong> ${meaning.uploader_name}
-                </span>
-                <span class="meta-item">
-                    <strong>Score:</strong> ${meaning.score}
-                </span>
-            </div>
-        </div>
-    `;
-
-    return card;
-}
-
-function escapeHtml(text) {
-    if (typeof text !== 'string') return text;
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function setupSearch() {
@@ -453,8 +412,6 @@ function initializePage() {
     
     setupSearch();
     setupAbbreviationSearch();
-    
-    setupUserProfile();
 }
 
 document.addEventListener('DOMContentLoaded', initializePage);

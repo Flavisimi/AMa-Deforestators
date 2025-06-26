@@ -80,8 +80,6 @@ function displayContributions(contributions) {
     container.innerHTML = '';
     const grid = createMeaningsGrid(meanings, handleVote, null, handleDelete, handleSubmit);
     container.appendChild(grid);
-
-    grid.querySelectorAll(".add-to-list-btn").forEach(btn => btn.remove());
 }
 
 async function handleSubmit(ev, meaningCard, meaning)

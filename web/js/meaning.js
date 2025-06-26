@@ -246,7 +246,7 @@ function createEditModal(meaningCard, meaning, submitHandler)
                         <textarea id="editExpansion" name="short_expansion" required maxlength="256" rows="3"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="description">Description</label>
+                        <label for="editDescription">Description:</label>
                         <textarea id="editDescription" name="description" required></textarea>
                     </div>
                     <div class="form-group">

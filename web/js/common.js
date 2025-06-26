@@ -16,6 +16,8 @@ function initializeHamburger()
 {
     const button = document.createElement("button");
     button.className = "hamburger";
+    button.type = "button";
+    button.title = "Navigator";
     button.innerHTML = "<span></span><span></span><span></span>";
     button.addEventListener("click", ev => document.querySelector(".navigator").classList.toggle("active"));
 

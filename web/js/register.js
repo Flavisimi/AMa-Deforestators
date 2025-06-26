@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
 function showError(message) {
     console.log('Displaying error:', message); 
     let errorDiv = document.querySelector('.error-message');
@@ -81,4 +82,16 @@ function showError(message) {
     }
     errorDiv.textContent = escapeHtml(message);
     errorDiv.style.display = 'block';
+}
+
+function escapeHtml(text) {
+    if (typeof text !== 'string') return text;
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }

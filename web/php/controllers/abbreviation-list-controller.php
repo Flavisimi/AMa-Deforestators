@@ -4,12 +4,14 @@ namespace ama\controllers;
 
 require_once( __DIR__ . "/../models/abbreviation-list.php");
 require_once( __DIR__ . "/../helpers/connection-helper.php");
+require_once( __DIR__ . "/../helpers/filter-helper.php");
 require_once( __DIR__ . "/../repositories/abbreviation-list-repository.php");
 require_once( __DIR__ . "/../services/abbreviation-list-service.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
 
 use ama\models\AbbreviationList;
 use ama\helpers\ConnectionHelper;
+use ama\helpers\FilterHelper;
 use ama\repositories\AbbreviationListRepository;
 use ama\services\AbbreviationListService;
 use ama\exceptions\ApiException;
@@ -77,6 +79,12 @@ class AbbreviationListController
     {
         if(!isset($_SESSION["user_id"]))
             throw new ApiException(401, "You need to be logged in to create an abbreviation list");
+
+        if(!isset($_SESSION['user_role']) || $_SESSION['user_role'] == 'USER')
+        {
+            if(FilterHelper::filter_words($name))
+                throw new ApiException(400, "Input contained invalid words");
+        }
 
         $conn = ConnectionHelper::open_connection();
         try

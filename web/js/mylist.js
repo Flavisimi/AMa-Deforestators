@@ -82,7 +82,7 @@ function displayListDetails(list) {
                 <span class="stat-label">Last Updated</span>
             </div>
             <div class="stat-item">
-                <span class="stat-data">${escapeHtml(list.creator_name)}</span>
+                <span class="stat-data"><a href="/profile?id=${list.creator_id}">${escapeHtml(list.creator_name)}</a></span>
                 <span class="stat-label">Creator</span>
             </div>
         </div>

@@ -85,12 +85,69 @@ function createAbbreviationCard(abbreviation) {
             <button class="view-meanings-btn">
                 View Meanings
             </button>
+            <button class="export-meanings-btn">
+                Export as HTML
+            </button>
         </div>
     `;
 
     card.querySelector(".view-meanings-btn").addEventListener("click", ev => fetchMeanings(abbreviation.id));
-    
+    card.querySelector(".export-meanings-btn").addEventListener("click", ev => exportMeaningsAsHtml(abbreviation));
+
     return card;
+}
+
+async function exportMeaningsAsHtml(abbreviation)
+{
+    abbreviation = await loadMeaningsByAbbrId(abbreviation.id);
+    
+    const defList = document.createElement("dl");
+    defList.className = "meanings";
+
+    Object.values(abbreviation.meanings).forEach(meaning => {
+        const term = document.createElement("dt");
+        term.className = "meaning-name";
+        term.textContent = escapeHtml(meaning.name);
+
+        const definition = document.createElement("dd");
+        definition.innerHTML = `
+            <h2 class="short_expansion">Short expansion</h2>
+            <p>${escapeHtml(meaning.short_expansion)}</p>
+            <h2 class="description">Description</h2>
+            <p>${escapeHtml(meaning.description)}</p>
+            <h2 class="language">Language</h2>
+            <p>${escapeHtml(meaning.lang)}</p>
+            <h2 class="domain">Domain</h2>
+            <p>${escapeHtml(meaning.domain)}</p>
+        `;
+
+        defList.appendChild(term);
+        defList.appendChild(definition);
+    });
+
+    const htmlString = `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${abbreviation.searchable_name}</title>
+    </head>
+    <body>
+        <h1 class="searchable_name">${abbreviation.searchable_name}</h1>
+        ${defList.getHTML()}
+    </body>
+    </html>
+    `;
+
+    const blob = new Blob([htmlString]);
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = abbreviation.searchable_name + ".html";
+    link.click();
+
+    URL.revokeObjectURL(link.href);
 }
 
 function displayAbbreviations(data, isSearchResult = false, append = false) {

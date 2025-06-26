@@ -246,7 +246,7 @@
     padding: 0 25px 25px;
 }
 
-.view-meanings-btn {
+.view-meanings-btn, .export-meanings-btn {
     width: 100%;
     padding: 14px;
     background: linear-gradient(135deg, #4caf50, #45a049);
@@ -257,9 +257,10 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    margin-bottom: 5px;
 }
 
-.view-meanings-btn:hover {
+.view-meanings-btn:hover, .export-meanings-btn:hover {
     background: linear-gradient(135deg, #45a049, #3d8b40);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);

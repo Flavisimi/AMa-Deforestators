@@ -60,52 +60,6 @@
         </div>
     </main>
 
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal-overlay" style="display: none;">
-        <div class="edit-modal">
-            <div class="modal-header">
-                <h3>Edit Meaning</h3>
-                <button class="modal-close" id="closeEditModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="editForm">
-                    <div class="form-group">
-                        <label for="editName">Name:</label>
-                        <input type="text" id="editName" name="name" required maxlength="30">
-                    </div>
-                    <div class="form-group">
-                        <label for="editExpansion">Short Expansion:</label>
-                        <textarea id="editExpansion" name="short_expansion" required maxlength="256" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea id="editDescription" name="description" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="editLang">Language:</label>
-                        <input type="text" id="editLang" name="lang" required maxlength="3">
-                    </div>
-                    <div class="form-group">
-                        <label for="editDomain">Domain:</label>
-                        <input type="text" id="editDomain" name="domain" required maxlength="30">
-                    </div>
-                    <div class="form-group">
-                        <label for="editStatus">Approval status:</label>
-                        <select id="editStatus" name="approval_status">
-                            <option value="rejected">REJECTED</option>
-                            <option value="pending">PENDING</option>
-                            <option value="approved">APPROVED</option>
-                        </select>
-                    </div>
-                    <div class="modal-actions">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <button type="button" class="btn btn-secondary" id="cancelEdit">Cancel</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <script src="../js/common.js"></script>
     <script src="../js/meaning.js"></script>
     <script src="../js/contributions.js"></script>

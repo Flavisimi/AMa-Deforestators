@@ -18,7 +18,7 @@ document.addEventListener('click', function(e) {
 
 async function loadUserData(resolve, reject)
 {
-    await fetch('/api/profile', {
+    fetch('/api/profile', {
         method: 'GET',
         credentials: 'include'
     })

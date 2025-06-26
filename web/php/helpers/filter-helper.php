@@ -19,7 +19,7 @@ class FilterHelper
     public static function filter_words($text): bool
     {
         $words = $text;
-        $words = str_replace(str_split(" 0123456789!@#$%^&*(),./;''[]-=<>?:\"{}|_+"), [], $words);
+        $words = str_replace(str_split("0123456789!@#$%^&*(),./;''[]-=<>?:\"{}|_+"), [], $words);
         $words = explode(" ", $words);
         foreach($words as $word)
         {

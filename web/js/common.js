@@ -1,9 +1,5 @@
 const GLOBAL_USER = new Promise(loadUserData);
 
-document.querySelector('.hamburger').addEventListener('click', function() {
-    document.querySelector('.navigator').classList.toggle('active');
-});
-
 document.querySelector('.user-profile').addEventListener('click', function(e) {
     e.stopPropagation();
     this.querySelector('.profile-menu').classList.toggle('active');
@@ -15,6 +11,35 @@ document.addEventListener('click', function(e) {
         profileMenu.classList.remove('active');
     }
 });
+
+function initializeHamburger()
+{
+    const button = document.createElement("button");
+    button.className = "hamburger";
+    button.innerHTML = "<span></span><span></span><span></span>";
+    button.addEventListener("click", ev => document.querySelector(".navigator").classList.toggle("active"));
+
+    document.body.appendChild(button);
+}
+
+function initializeNavigator()
+{
+    const navigator = document.createElement("nav");
+    navigator.className = "navigator";
+    navigator.innerHTML = `
+        <ul class="nav-list">
+            <li><div class="nav-header"><h2>Abbreviations</h2></div></li>
+            <li><a href="main" class="nav-button">Dashboard</a></li>
+            <li><a href="create-abbreviation" class="nav-button">Create an Abbreviation</a></li>
+            <li><a href="stats" class="nav-button">Statistics</a></li>
+            <li><a href="my_abbreviations" class="nav-button">Saved Abbreviations</a></li>
+            <li><a href="all_abbreviations" class="nav-button">Abbreviation Lists</a></li>
+            <li><a href="users-page" class="nav-button">Users</a></li>
+        </ul>
+    `;
+
+    document.body.appendChild(navigator);
+}
 
 async function loadUserData(resolve, reject)
 {
@@ -130,6 +155,8 @@ function updateProfileMenuForGuest() {
 
 document.addEventListener('DOMContentLoaded', function() {
     loadUserProfile();
+    initializeNavigator();
+    initializeHamburger();
     
     const logoutLinks = document.querySelectorAll('a[href="/"], a[href="index"], a[href="index.html"]');
     logoutLinks.forEach(link => {

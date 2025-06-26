@@ -62,8 +62,10 @@ class AbbreviationListController
             $abbr_lists = AbbreviationListRepository::load_all_abbr_lists($conn);
             $output = [];
             foreach($abbr_lists as $abbr_list)
-                if($abbr_list->private === false || $abbr_list->creator_id == $_SESSION["user_id"])
-                    $output[] = $abbr_list;
+            {
+                // Convert object to array for easier access
+                $output[] = $abbr_list;
+            }
         } catch(ApiException $e)
         {
             oci_close($conn);
@@ -111,10 +113,53 @@ class AbbreviationListController
             $abbr_list = AbbreviationListRepository::load_abbreviation_list($conn, $list_id);
             if($abbr_list === null)
                 throw new ApiException(400, "No list exists for given ID");
-            if($abbr_list->creator_id != $_SESSION["user_id"])
+            
+            $user_role = $_SESSION["user_role"] ?? "USER";
+            $user_id = $_SESSION["user_id"];
+            
+            if($abbr_list->creator_id != $user_id && 
+               $user_role !== "ADMIN" && 
+               !($user_role === "MOD" && $abbr_list->creator_role !== "ADMIN"))
+            {
                 throw new ApiException(403, "You may not insert entries into another user's list");
+            }
 
             AbbreviationListRepository::insert_abbr_list_entry($conn, $list_id, $meaning_id);
+            AbbreviationListService::attach_meanings($conn, $abbr_list);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+        
+        oci_close($conn);
+        return $abbr_list;
+    }
+
+    public static function update_abbr_list(int $id, string $name, bool $private): AbbreviationList
+    {
+        if(!isset($_SESSION["user_id"]))
+            throw new ApiException(401, "You need to be logged in to update an abbreviation list");
+
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $abbr_list = AbbreviationListRepository::load_abbreviation_list($conn, $id);
+            if($abbr_list === null)
+                throw new ApiException(400, "No list exists for given ID");
+            
+            $user_role = $_SESSION["user_role"] ?? "USER";
+            $user_id = $_SESSION["user_id"];
+            
+            if($abbr_list->creator_id != $user_id && 
+               $user_role !== "ADMIN" && 
+               !($user_role === "MOD" && $abbr_list->creator_role !== "ADMIN"))
+            {
+                throw new ApiException(403, "You may not update another user's list");
+            }
+
+            AbbreviationListRepository::update_abbr_list($conn, $id, $name, $private);
+            $abbr_list = AbbreviationListRepository::load_abbreviation_list($conn, $id);
             AbbreviationListService::attach_meanings($conn, $abbr_list);
         } catch(ApiException $e)
         {
@@ -137,8 +182,16 @@ class AbbreviationListController
             $abbr_list = AbbreviationListRepository::load_abbreviation_list($conn, $id);
             if($abbr_list === null)
                 throw new ApiException(400, "No list exists for given ID");
-            if($abbr_list->creator_id != $_SESSION["user_id"])
+            
+            $user_role = $_SESSION["user_role"] ?? "USER";
+            $user_id = $_SESSION["user_id"];
+            
+            if($abbr_list->creator_id != $user_id && 
+               $user_role !== "ADMIN" && 
+               !($user_role === "MOD" && $abbr_list->creator_role !== "ADMIN"))
+            {
                 throw new ApiException(403, "You may not delete another user's list");
+            }
 
             AbbreviationListRepository::delete_abbr_list($conn, $id);
         } catch(ApiException $e)
@@ -150,7 +203,7 @@ class AbbreviationListController
         oci_close($conn);
     }
 
-    public static function delete_abbr_list_entry(int $id, int $index)
+    public static function delete_abbr_list_entry(int $id, int $meaning_id)
     {
         if(!isset($_SESSION["user_id"]))
             throw new ApiException(401, "You need to be logged in to delete an abbreviation list entry");
@@ -161,10 +214,18 @@ class AbbreviationListController
             $abbr_list = AbbreviationListRepository::load_abbreviation_list($conn, $id);
             if($abbr_list === null)
                 throw new ApiException(400, "No list exists for given ID");
-            if($abbr_list->creator_id != $_SESSION["user_id"])
+            
+            $user_role = $_SESSION["user_role"] ?? "USER";
+            $user_id = $_SESSION["user_id"];
+            
+            if($abbr_list->creator_id != $user_id && 
+               $user_role !== "ADMIN" && 
+               !($user_role === "MOD" && $abbr_list->creator_role !== "ADMIN"))
+            {
                 throw new ApiException(403, "You may not delete another user's list's entry");
+            }
 
-            AbbreviationListRepository::delete_abbr_list_entry($conn, $id, $index);
+            AbbreviationListRepository::delete_abbr_list_entry_by_meaning($conn, $id, $meaning_id);
         } catch(ApiException $e)
         {
             oci_close($conn);
@@ -216,7 +277,7 @@ class AbbreviationListController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/api/bbr-lists")
+        if($url === "/api/abbr-lists")
         {
             if(!isset($query_components["name"]))
                 throw new ApiException(400, "Missing name");
@@ -249,6 +310,42 @@ class AbbreviationListController
         }
     }
 
+    public static function handle_put()
+    {
+        $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $query_components = array();
+        parse_str($_SERVER['QUERY_STRING'], $query_components);
+
+        if($url === "/api/abbr-lists")
+        {
+            if(!isset($query_components["id"]))
+                throw new ApiException(400, "Missing ID");
+            if(!is_numeric($query_components["id"]))
+                throw new ApiException(400, "Invalid ID");
+
+            $request_body = file_get_contents("php://input");
+            $data = json_decode($request_body, true);
+            
+            if(!isset($data["name"]))
+                throw new ApiException(400, "Missing name");
+            if(!isset($data["private"]))
+                throw new ApiException(400, "Missing private setting");
+
+            $rez = AbbreviationListController::update_abbr_list(
+                $query_components["id"], 
+                $data["name"], 
+                $data["private"]
+            );
+            
+            header("Content-Type: application/json");
+            echo json_encode($rez);
+        }
+        else
+        {
+            http_response_code(400);
+        }
+    }
+
     public static function handle_delete()
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -263,19 +360,23 @@ class AbbreviationListController
                 throw new ApiException(400, "Invalid ID");
 
             AbbreviationListController::delete_abbr_list($query_components["id"]);
+            header("Content-Type: application/json");
+            echo json_encode(["success" => true]);
         }
         else if($url === "/api/abbr-lists/entry")
         {
             if(!isset($query_components["id"]))
-                throw new ApiException(400, "Missing ID");
+                throw new ApiException(400, "Missing list ID");
             if(!is_numeric($query_components["id"]))
-                throw new ApiException(400, "Invalid ID");
-            if(!isset($query_components["index"]))
-                throw new ApiException(400, "Missing index");
-            if(!is_numeric($query_components["index"]))
-                throw new ApiException(400, "Invalid index");
+                throw new ApiException(400, "Invalid list ID");
+            if(!isset($query_components["meaning"]))
+                throw new ApiException(400, "Missing meaning ID");
+            if(!is_numeric($query_components["meaning"]))
+                throw new ApiException(400, "Invalid meaning ID");
 
-            AbbreviationListController::delete_abbr_list_entry($query_components["id"], $query_components["index"]);
+            AbbreviationListController::delete_abbr_list_entry($query_components["id"], $query_components["meaning"]);
+            header("Content-Type: application/json");
+            echo json_encode(["success" => true]);
         }
         else
         {
@@ -290,6 +391,8 @@ class AbbreviationListController
             AbbreviationListController::handle_get();
         else if($_SERVER['REQUEST_METHOD'] === 'POST')
             AbbreviationListController::handle_post();
+        else if($_SERVER['REQUEST_METHOD'] === 'PUT')
+            AbbreviationListController::handle_put();
         else if($_SERVER['REQUEST_METHOD'] === 'DELETE')
             AbbreviationListController::handle_delete();
         else

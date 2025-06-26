@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializePage() {
     await loadCurrentUser();
     await loadAbbreviationLists();
+    setupCreateListModal(); 
 }
 
 async function loadCurrentUser() {
@@ -559,4 +560,420 @@ function showSuccess(message) {
     setTimeout(() => {
         successDiv.remove();
     }, 3000);
+}
+function displayListContents(list) {
+    const container = document.getElementById('lists-content');
+    
+    // Check if user can add meanings to this list
+    const canAddMeanings = canUserAddMeanings(list);
+    
+    container.innerHTML = `
+        <div class="list-view">
+            <div class="list-header-section">
+                <button class="back-btn" id="backToListsBtn">
+                    ← Back to Lists
+                </button>
+                <div class="list-title-section">
+                    <h2>${escapeHtml(list.name)}</h2>
+                    <span class="privacy-badge">
+                        ${list.private ? '🔒 Private' : '🌐 Public'}
+                    </span>
+                </div>
+                <div class="list-meta">
+                    <span>Created by <a href="/profile?id=${list.creator_id}">${escapeHtml(list.creator_name)}</a></span>
+                    <span>${list.meanings_count} meanings</span>
+                </div>
+                ${canAddMeanings ? `
+                <div class="list-actions-section">
+                    <button class="add-meanings-btn" id="addMeaningsBtn">+ Add Meanings</button>
+                </div>
+                ` : ''}
+            </div>
+            <div class="meanings-container" id="meaningsContainer">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading meanings...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('backToListsBtn').addEventListener('click', goBackToLists);
+    
+    if (canAddMeanings) {
+        const addMeaningsBtn = document.getElementById('addMeaningsBtn');
+        if (addMeaningsBtn) {
+            addMeaningsBtn.addEventListener('click', () => openAddMeaningsModal(list.id));
+        }
+    }
+    
+    displayMeanings(list.meanings || []);
+}
+
+function canUserAddMeanings(list) {
+    if (!currentUser) return false;
+    
+    const userRole = currentUser.current_user_role || currentUser.role;
+    const userId = currentUser.current_user_id || currentUser.id;
+    
+    // Admin and Mod can add to any list
+    if (userRole === 'ADMIN' || userRole === 'MOD') return true;
+    
+    // Regular users can only add to their own lists
+    return list.creator_id === userId;
+}
+
+function openAddMeaningsModal(listId) {
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
+    modalOverlay.id = 'add-meanings-modal';
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-content add-meanings-modal-content';
+    
+    modal.innerHTML = `
+        <div class="modal-header">
+            <h2 class="modal-title">Add Meanings to List</h2>
+            <button class="modal-close" id="closeMeaningsModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="search-section">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="meaningsSearch" placeholder="Search for meanings to add...">
+                </div>
+            </div>
+            <div id="meaningsSearchResults" class="search-results">
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <h3>Search for meanings</h3>
+                    <p>Type in the search box above to find meanings to add to your list.</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-secondary" id="cancelAddMeanings">Cancel</button>
+            <button type="button" class="btn-primary" id="addSelectedMeanings" disabled>Add Selected</button>
+        </div>
+    `;
+    
+    modalOverlay.appendChild(modal);
+    document.body.appendChild(modalOverlay);
+    
+    setupAddMeaningsModal(listId, modalOverlay);
+}
+
+function setupAddMeaningsModal(listId, modalOverlay) {
+    const modal = modalOverlay.querySelector('.modal-content');
+    const searchInput = modal.querySelector('#meaningsSearch');
+    const searchResults = modal.querySelector('#meaningsSearchResults');
+    const addSelectedBtn = modal.querySelector('#addSelectedMeanings');
+    const cancelBtn = modal.querySelector('#cancelAddMeanings');
+    const closeBtn = modal.querySelector('#closeMeaningsModal');
+    
+    let selectedMeanings = [];
+    let searchTimeout;
+    
+    const closeModal = () => {
+        modalOverlay.remove();
+    };
+    
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+    });
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(searchTimeout);
+        
+        if (query.length < 2) {
+            searchResults.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <h3>Search for meanings</h3>
+                    <p>Type at least 2 characters to search.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+            searchForMeanings(query, listId, searchResults);
+        }, 300);
+    });
+    
+    // Add selected meanings
+    addSelectedBtn.addEventListener('click', async () => {
+        if (selectedMeanings.length === 0) return;
+        
+        try {
+            addSelectedBtn.disabled = true;
+            addSelectedBtn.textContent = 'Adding...';
+            
+            for (const meaningId of selectedMeanings) {
+                await addMeaningToList(meaningId, listId);
+            }
+            
+            showSuccess(`Added ${selectedMeanings.length} meaning(s) to the list successfully`);
+            closeModal();
+            
+            await viewList(listId);
+            
+        } catch (error) {
+            console.error('Error adding meanings to list:', error);
+            showError('Failed to add meanings to list');
+            addSelectedBtn.disabled = false;
+            addSelectedBtn.textContent = 'Add Selected';
+        }
+    });
+    
+    searchInput.focus();
+    
+    window.updateSelectedMeanings = function(meaningId, isSelected) {
+        if (isSelected) {
+            if (!selectedMeanings.includes(meaningId)) {
+                selectedMeanings.push(meaningId);
+            }
+        } else {
+            selectedMeanings = selectedMeanings.filter(id => id !== meaningId);
+        }
+        
+        addSelectedBtn.disabled = selectedMeanings.length === 0;
+        addSelectedBtn.textContent = selectedMeanings.length > 0 
+            ? `Add Selected (${selectedMeanings.length})` 
+            : 'Add Selected';
+    };
+}
+
+async function searchForMeanings(query, listId, resultsContainer) {
+    try {
+        resultsContainer.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Searching meanings...</p>
+            </div>
+        `;
+        
+        const response = await fetch(`/api/abbreviations/search?q=${encodeURIComponent(query)}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const meanings = await response.json();
+        
+        // Get current list contents to filter out already added meanings
+        const listResponse = await fetch(`/api/abbr-lists?id=${listId}`);
+        const currentList = listResponse.ok ? await listResponse.json() : { meanings: [] };
+        const currentMeaningIds = (currentList.meanings || []).map(m => m.id);
+        
+        displaySearchResults(meanings, currentMeaningIds, resultsContainer);
+        
+    } catch (error) {
+        console.error('Error searching meanings:', error);
+        resultsContainer.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h3>Search failed</h3>
+                <p>Failed to search meanings. Please try again.</p>
+            </div>
+        `;
+    }
+}
+
+function displaySearchResults(meanings, excludeIds, container) {
+    if (!meanings || meanings.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <h3>No meanings found</h3>
+                <p>No meanings match your search query.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const availableMeanings = meanings.filter(meaning => !excludeIds.includes(meaning.id));
+    
+    if (availableMeanings.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">✅</div>
+                <h3>All meanings already in list</h3>
+                <p>All found meanings are already in this list.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    const resultsGrid = document.createElement('div');
+    resultsGrid.className = 'search-results-grid';
+    
+    availableMeanings.forEach(meaning => {
+        const resultItem = document.createElement('div');
+        resultItem.className = 'search-result-item';
+        
+        resultItem.innerHTML = `
+            <div class="search-result-header">
+                <div class="result-checkbox-container">
+                    <input type="checkbox" class="result-checkbox" data-meaning-id="${meaning.id}">
+                </div>
+                <div class="result-content">
+                    <div class="result-abbreviation">${escapeHtml(meaning.name)}</div>
+                    <div class="result-expansion">${escapeHtml(meaning.short_expansion)}</div>
+                    <div class="result-meta">
+                        <span class="result-lang">${escapeHtml(meaning.lang)}</span>
+                        <span class="result-domain">${escapeHtml(meaning.domain)}</span>
+                        <span class="result-score">Score: ${meaning.score || 0}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const checkbox = resultItem.querySelector('.result-checkbox');
+        checkbox.addEventListener('change', function() {
+            window.updateSelectedMeanings(meaning.id, this.checked);
+        });
+        
+        resultItem.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox') {
+                checkbox.checked = !checkbox.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            }
+        });
+        
+        resultsGrid.appendChild(resultItem);
+    });
+    
+    container.appendChild(resultsGrid);
+}
+
+async function addMeaningToList(meaningId, listId) {
+    const response = await fetch(`/api/abbr-lists/entry?id=${listId}&meaning=${meaningId}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    
+    if (!response.ok) {
+        let errorMessage = 'Failed to add meaning to list';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.err_msg || errorMessage;
+        } catch (e) {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+    }
+    
+    return response.json();
+}
+function setupCreateListModal() {
+    const createBtn = document.getElementById('createNewListBtn');
+    const modal = document.getElementById('createModal');
+    const closeBtn = document.getElementById('closeCreateModalBtn');
+    const cancelBtn = document.getElementById('cancelCreateBtn');
+    const form = document.getElementById('createListForm');
+
+    if (createBtn) {
+        createBtn.addEventListener('click', openCreateModal);
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeCreateModal);
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeCreateModal);
+    }
+
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeCreateModal();
+            }
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', handleCreateList);
+    }
+}
+
+function openCreateModal() {
+    const modal = document.getElementById('createModal');
+    if (modal) {
+        modal.classList.add('active');
+        const input = document.getElementById('listName');
+        if (input) {
+            input.focus();
+        }
+    }
+}
+
+function closeCreateModal() {
+    const modal = document.getElementById('createModal');
+    if (modal) {
+        modal.classList.remove('active');
+        const form = document.getElementById('createListForm');
+        if (form) {
+            form.reset();
+        }
+    }
+}
+
+async function handleCreateList(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('listName').value.trim();
+    const isPrivate = document.getElementById('isPrivate').checked;
+
+    if (!name) {
+        showError('Please enter a list name');
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('.btn-primary');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Creating...';
+    submitBtn.disabled = true;
+
+    try {
+        const privateValue = isPrivate ? 'true' : 'false';
+
+        const response = await fetch(`/api/abbr-lists?name=${encodeURIComponent(name)}&private=${privateValue}`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await response.json();
+                throw new Error(errorData.err_msg || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+            } else {
+                const text = await response.text();
+                throw new Error(text || `HTTP ${response.status}: ${response.statusText}`);
+            }
+        }
+
+        closeCreateModal();
+        showSuccess('List created successfully');
+        await loadAbbreviationLists();
+
+    } catch (error) {
+        console.error('Error creating list:', error);
+        let errorMessage = 'Failed to create list';
+        if (error && typeof error === 'object') {
+            errorMessage = error.err_msg || error.message || errorMessage;
+        } else if (typeof error === 'string') {
+            errorMessage = error;
+        }
+        showError(errorMessage);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
 }

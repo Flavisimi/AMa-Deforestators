@@ -41,7 +41,7 @@ function renderMostVisited(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.searchable_name}</span>
             </div>
@@ -61,7 +61,7 @@ function renderMostControversial(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.name}</span>
             </div>
@@ -81,7 +81,7 @@ function renderHighestLikeRate(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.name}</span>
             </div>
@@ -101,7 +101,7 @@ function renderMostActiveUsers(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.name}</span>
             </div>
@@ -121,7 +121,7 @@ function renderMedianAbbreviation(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.searchable_name}</span>
             </div>

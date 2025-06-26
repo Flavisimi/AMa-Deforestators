@@ -193,27 +193,38 @@ document.addEventListener('DOMContentLoaded', function() {
             const adminActionsDiv = document.createElement('div');
             adminActionsDiv.className = 'admin-profile-actions';
             adminActionsDiv.innerHTML = `
-                <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
-                    <h4 style="color: #dc3545; margin-bottom: 15px; font-size: 1.1rem;">Admin Actions</h4>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-primary" onclick="enableProfileEdit()">
+                <div>
+                    <h4>Admin Actions</h4>
+                    <div>
+                        <button type="button" class="btn btn-primary">
                             Edit Profile
                         </button>
-                        <button type="button" class="btn btn-info" onclick="showAdminEditModal('${user.id}', '${escapeHtml(user.name)}', '${escapeHtml(user.email)}')">
+                        <button type="button" class="btn btn-info">
                             Edit Credentials
                         </button>
-                        <button type="button" class="btn btn-warning" onclick="showRoleChangeModal('${user.id}', '${user.role}', '${escapeHtml(user.name)}')">
+                        <button type="button" class="btn btn-warning">
                             Change Role
                         </button>
-                        <button type="button" class="btn btn-danger" onclick="confirmDeleteUser('${user.id}', '${escapeHtml(user.name)}')">
+                        <button type="button" class="btn btn-danger">
                             Delete User
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${escapeHtml(user.name)}')">
+                        <button type="button" class="btn btn-secondary">
                             Remove Picture
                         </button>
                     </div>
                 </div>
             `;
+
+            adminActionsDiv.querySelectorAll("div")[0].style = "border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;";
+            adminActionsDiv.querySelector("h4").style = "color: #dc3545; margin-bottom: 15px; font-size: 1.1rem;";
+            adminActionsDiv.querySelectorAll("div")[1].style = "display: flex; gap: 10px; flex-wrap: wrap;";
+
+            adminActionsDiv.querySelector(".btn-primary").addEventListener("click", ev => enableProfileEdit());
+            adminActionsDiv.querySelector(".btn-info").addEventListener("click", ev => showAdminEditModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-warning").addEventListener("click", ev => showRoleChangeModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-danger").addEventListener("click", ev => confirmDeleteUser(user.id, user.name));
+            adminActionsDiv.querySelector(".btn-secondary").addEventListener("click", ev => clearProfilePicture(user.id, user.name));
+
             profileCard.appendChild(adminActionsDiv);
         }
     } else if (user.current_user_role === 'MOD' && !user.is_own_profile && user.role === 'USER') {
@@ -222,18 +233,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const modActionsDiv = document.createElement('div');
             modActionsDiv.className = 'admin-profile-actions';
             modActionsDiv.innerHTML = `
-                <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
-                    <h4 style="color: #ffc107; margin-bottom: 15px; font-size: 1.1rem;">Moderator Actions</h4>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-primary" onclick="enableProfileEdit()">
+                <div>
+                    <h4 >Moderator Actions</h4>
+                    <div>
+                        <button type="button" class="btn btn-primary">
                             Edit Profile
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${escapeHtml(user.name)}')">
+                        <button type="button" class="btn btn-secondary">
                             Remove Picture
                         </button>
                     </div>
                 </div>
             `;
+
+            adminActionsDiv.querySelectorAll("div")[0].style = "border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;";
+            adminActionsDiv.querySelector("h4").style = "color: #ffc107; margin-bottom: 15px; font-size: 1.1rem;"
+            adminActionsDiv.querySelectorAll("div")[1].style = "display: flex; gap: 10px; flex-wrap: wrap;";
+
+            adminActionsDiv.querySelector(".btn-primary").addEventListener("click", ev => enableProfileEdit());
+            adminActionsDiv.querySelector(".btn-info").addEventListener("click", ev => showAdminEditModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-warning").addEventListener("click", ev => showRoleChangeModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-danger").addEventListener("click", ev => confirmDeleteUser(user.id, user.name));
+            adminActionsDiv.querySelector(".btn-secondary").addEventListener("click", ev => clearProfilePicture(user.id, user.name));
+
             profileCard.appendChild(modActionsDiv);
         }
     }
@@ -718,7 +740,7 @@ function showAdminEditModal(userId, currentName, currentEmail) {
         <div class="admin-edit-modal">
             <div class="modal-header">
                 <h3>Edit User Credentials</h3>
-                <button class="modal-close" onclick="closeModal(this)">×</button>
+                <button class="modal-close">×</button>
             </div>
             <div class="modal-body">
                 <form id="adminEditForm">
@@ -739,7 +761,7 @@ function showAdminEditModal(userId, currentName, currentEmail) {
                         <input type="password" id="admin-password-confirm" class="form-input" placeholder="Confirm new password">
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal(this)">Cancel</button>
+                        <button type="button" class="btn btn-secondary">Cancel</button>
                         <button type="submit" class="btn btn-primary">Update Credentials</button>
                     </div>
                 </form>
@@ -747,6 +769,8 @@ function showAdminEditModal(userId, currentName, currentEmail) {
         </div>
     `;
     
+    modal.querySelector(".modal-close").addEventListener("click", ev => closeModal(modal));
+    modal.querySelector(".form-actions > .btn-secondary").addEventListener("click", ev => closeModal(modal));
     document.body.appendChild(modal);
     
     const form = modal.querySelector('#adminEditForm');

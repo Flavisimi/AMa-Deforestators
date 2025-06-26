@@ -74,7 +74,7 @@ function displayListDetails(list) {
 
     document.getElementById('listDetails').innerHTML = `
         <h3>${escapeHtml(list.name)}</h3>
-        <p style="color: #666; margin: 10px 0;">
+        <p>
             ${list.private ? 'Private' : 'Public'} list
         </p>
         <div class="list-stats">
@@ -96,6 +96,8 @@ function displayListDetails(list) {
             </div>
         </div>
     `;
+    
+    document.getElementById("listDetails").querySelector("p").style = "color: #666; margin: 10px 0;";
 }
 
 function displayAbbreviations(meanings) {
@@ -281,7 +283,7 @@ function displaySearchResults(results) {
         resultItem.innerHTML = `
             <div class="result-abbreviation">${escapeHtml(result.abbreviation)}</div>
             <div class="result-meaning">${escapeHtml(result.meaning)}</div>
-            ${alreadyInList ? '<div style="color: #666; font-size: 0.9rem; margin-top: 5px;">Already in list</div>' : ''}
+            ${alreadyInList ? '<div>Already in list</div>' : ''}
         `;
 
         if (!alreadyInList) {
@@ -295,6 +297,10 @@ function displaySearchResults(results) {
                 const addBtn = document.getElementById('addSelectedBtn');
                 if (addBtn) addBtn.disabled = false;
             });
+        }
+        else
+        {
+            resultItem.querySelectorAll("div")[2].style = "color: #666; font-size: 0.9rem; margin-top: 5px;";
         }
 
         container.appendChild(resultItem);

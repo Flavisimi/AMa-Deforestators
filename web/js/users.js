@@ -22,13 +22,15 @@ function showError(message) {
 function showLoading() {
     const container = document.getElementById('users-grid');
     container.innerHTML = `
-        <div class="loading-container" style="grid-column: 1 / -1;">
+        <div class="loading-container">
             <div class="loading-spinner">
                 <div class="spinner"></div>
                 <p>Loading users...</p>
             </div>
         </div>
     `;
+
+    container.querySelector(".loading-container").style = "grid-column: 1 / -1;";
 }
 
 function showLoadingMore() {
@@ -102,18 +104,18 @@ function openRoleModal(userId, currentRole, userName) {
         <div class="role-modal">
             <div class="modal-header">
                 <h3>Change Role for ${userName}</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
                 <p>Select a new role for this user:</p>
                 <div class="role-options">
-                    <button class="role-btn ${currentRole === 'USER' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'USER')">
+                    <button class="role-btn ${currentRole === 'USER' ? 'active' : ''}">
                         👤 USER
                     </button>
-                    <button class="role-btn ${currentRole === 'MOD' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'MOD')">
+                    <button class="role-btn ${currentRole === 'MOD' ? 'active' : ''}">
                         🛡️ MODERATOR
                     </button>
-                    <button class="role-btn ${currentRole === 'ADMIN' ? 'active' : ''}" onclick="changeUserRole(${userId}, 'ADMIN')">
+                    <button class="role-btn ${currentRole === 'ADMIN' ? 'active' : ''}">
                         👑 ADMIN
                     </button>
                 </div>
@@ -121,6 +123,13 @@ function openRoleModal(userId, currentRole, userName) {
         </div>
     `;
     
+    modal.querySelector(".modal-close").addEventListener("click", ev => closeModal());
+
+    const roleButtons = modal.querySelectorAll(".role-btn");
+    roleButtons[0].addEventListener("click", ev => changeUserRole(userId, "USER"));
+    roleButtons[1].addEventListener("click", ev => changeUserRole(userId, "MOD"));
+    roleButtons[2].addEventListener("click", ev => changeUserRole(userId, "ADMIN"));
+
     document.body.appendChild(modal);
     
     modal.addEventListener('click', function(e) {
@@ -192,10 +201,10 @@ function createUserCard(user, index) {
     if (canModify) {
         adminControlsHtml = `
             <div class="admin-controls">
-                <button class="change-role-btn" onclick="openRoleModal(${user.id}, '${user.role}', '${escapeHtml(user.name)}'); event.stopPropagation();">
+                <button class="change-role-btn">
                     Change Role
                 </button>
-                <button class="delete-user-btn" onclick="deleteUser(${user.id}); event.stopPropagation();">
+                <button class="delete-user-btn">
                     Delete User
                 </button>
             </div>
@@ -206,7 +215,7 @@ function createUserCard(user, index) {
     
     let avatarContent = '';
     if (user.profile_picture) {
-        avatarContent = `<img src="/api/profile/picture?id=${user.id}" alt="${escapeHtml(user.name)}" onerror="this.style.display='none'; this.parentElement.setAttribute('data-initial', '${userInitial}'); this.parentElement.classList.add('no-image');">`;
+        avatarContent = `<img src="/api/profile/picture?id=${user.id}" alt="${escapeHtml(user.name)}">`;
     }
     
     let memberSince = 'Unknown';
@@ -246,7 +255,15 @@ function createUserCard(user, index) {
             ${adminControlsHtml}
         </div>
     `;
+
+    card.querySelector(".user-avatar > img").addEventListener("error", ev => {this.style.display='none'; this.parentElement.setAttribute('data-initial', userInitial); this.parentElement.classList.add('no-image');})
     
+    if(canModify)
+    {
+        card.querySelector(".change-role-btn").addEventListener("click", ev => openRoleModal(user.id, user.role, user.name));
+        card.querySelector(".delete-user-btn").addEventListener("click", ev => deleteUser(user.id));
+    }
+
     // Apply styles directly to the buttons after creating the card
     if (canModify) {
         setTimeout(() => {
@@ -460,12 +477,13 @@ function displayUsers(users, append = false) {
 function displayEmptyState(title, message) {
     const container = document.getElementById('users-grid');
     container.innerHTML = `
-        <div class="no-results" style="grid-column: 1 / -1;">
+        <div class="no-results">
             <div class="no-results-icon">👥</div>
             <h3>${title}</h3>
             <p>${message}</p>
         </div>
     `;
+    container.querySelector(".no-results").style = "grid-column: 1 / -1;";
     document.getElementById('load-more-container').style.display = 'none';
 }
 
@@ -531,19 +549,22 @@ function displaySearchResults(users, query) {
     
     if (users.length === 0) {
         container.innerHTML = `
-            <div class="no-results" style="grid-column: 1 / -1;">
+            <div class="no-results">
                 <div class="no-results-icon">🔍</div>
                 <h3>No users found</h3>
                 <p>No users match your search for "${escapeHtml(query)}"</p>
             </div>
         `;
+
+        container.querySelector(".no-results").style = "grid-column: 1 / -1;";
     } else {
         container.innerHTML = `
-            <div class="search-results-info" style="grid-column: 1 / -1;">
+            <div class="search-results-info">
                 Found ${users.length} user${users.length !== 1 ? 's' : ''} matching "${escapeHtml(query)}"
             </div>
         `;
         
+        container.querySelector(".search-results-info").style = "grid-column: 1 / -1;";
         users.forEach((user, index) => {
             const card = createUserCard(user, index);
             container.appendChild(card);

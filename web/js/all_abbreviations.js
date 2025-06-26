@@ -24,9 +24,12 @@ function loadAbbreviationLists() {
                     <div class="empty-icon">⚠️</div>
                     <h3>Failed to load lists</h3>
                     <p>${error.message}</p>
-                    <button onclick="loadAbbreviationLists()" class="btn-primary" style="margin-top: 20px;">Retry</button>
+                    <button class="btn-primary">Retry</button>
                 </div>
             `;
+
+            content.querySelector(".btn-primary").style = "margin-top: 20px;";
+            content.querySelector(".btn-primary").addEventListener("click", ev => loadAbbreviationLists());
         });
 }
 
@@ -80,11 +83,12 @@ function createListCard(list) {
                 <span>Updated: ${updatedDate}</span>
             </div>
             <div class="list-actions">
-                <button class="view-btn" onclick="viewList(${list.id})">View List</button>
+                <button class="view-btn">View List</button>
             </div>
         </div>
     `;
 
+    card.querySelector(".view-btn").addEventListener("click", ev => viewList(list.id));
     return card;
 }
 

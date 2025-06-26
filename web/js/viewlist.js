@@ -57,14 +57,14 @@ function loadListDetails() {
             <div class="empty-state">
                 <div class="empty-icon">⚠️</div>
                 <h3>Failed to load list</h3>
-                <p>${error.message}</p>
+                <p>${escapeHtml(error.message)}</p>
             </div>
         `;
     });
 }
 
 function displayListDetails(list) {
-    document.getElementById('listTitle').textContent = list.name;
+    document.getElementById('listTitle').textContent = escapeHtml(list.name);
     document.title = `${list.name} - Abbreviations Manager`;
 
     const createdDate = list.created_at ? 
@@ -79,7 +79,7 @@ function displayListDetails(list) {
         </p>
         <div class="list-stats">
             <div class="stat-item">
-                <span class="stat-data">${(list.meanings || []).length}</span>
+                <span class="stat-data">${list.meanings_count}</span>
                 <span class="stat-label">Abbreviations</span>
             </div>
             <div class="stat-item">
@@ -91,7 +91,7 @@ function displayListDetails(list) {
                 <span class="stat-label">Last Updated</span>
             </div>
             <div class="stat-item">
-                <span class="stat-data">${list.creator_name}</span>
+                <span class="stat-data">${escapeHtml(list.creator_name)}</span>
                 <span class="stat-label">Creator</span>
             </div>
         </div>
@@ -120,19 +120,6 @@ function displayAbbreviations(meanings) {
     const grid = createMeaningsGrid(meanings, null, null, null, null);
     container.innerHTML = '';
     container.appendChild(grid);
-}
-
-
-function escapeHtml(text) {
-    if (typeof text !== 'string') return text;
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function setupSearch() {

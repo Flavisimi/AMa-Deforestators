@@ -32,7 +32,7 @@ function loadAbbreviationLists() {
                 <div class="empty-state">
                     <div class="empty-icon">⚠️</div>
                     <h3>Failed to load lists</h3>
-                    <p>${error.message}</p>
+                    <p>${escapeHtml(error.message)}</p>
                     <button class="btn-primary">Retry</button>
                 </div>
             `;
@@ -77,13 +77,10 @@ function createListCard(list) {
         new Date(list.created_at.date || list.created_at).toLocaleDateString() : 'N/A';
     const updatedDate = list.updated_at ? 
         new Date(list.updated_at.date || list.updated_at).toLocaleDateString() : 'N/A';
-
-    // Escape quotes in list name to prevent XSS and onclick issues
-    const escapedName = list.name.replace(/'/g, "\\'").replace(/"/g, '\\"');
-
+    
     card.innerHTML = `
         <div class="list-header">
-            <h3 class="list-name">${list.name}</h3>
+            <h3 class="list-name">${escapeHtml(list.name)}</h3>
             <span class="privacy-badge">${list.private ? 'Private' : 'Public'}</span>
         </div>
         <div class="list-body">
@@ -99,7 +96,7 @@ function createListCard(list) {
     `;
 
     card.querySelector(".view-btn").addEventListener("click", ev => viewList(list.id));
-    card.querySelector(".delete-btn").addEventListener("click", ev => deleteListist(list.id, escapedName));
+    card.querySelector(".delete-btn").addEventListener("click", ev => deleteListist(list.id, list.name));
     return card;
 }
 
@@ -172,7 +169,7 @@ function viewList(listId) {
 }
 
 function deleteList(listId, listName) {
-    if (!confirm(`Are you sure you want to delete the list "${listName}"? This action cannot be undone.`)) {
+    if (!confirm(`Are you sure you want to delete the list "${escapeHtml(listName)}"? This action cannot be undone.`)) {
         return;
     }
 
@@ -221,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector(".create-list-btn").addEventListener("click", ev => openCreateModal());
     document.querySelector("#createModal .close-btn").addEventListener("click", ev => closeCreateModal());
     document.querySelector("#createModal .form-actions > .btn-secondary").addEventListener("click", ev => closeCreateModal());
-    
+
     loadAbbreviationLists();
 });
 

@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('profileTitle').textContent = 'My Profile';
             } else {
                 editBtn.style.display = 'none';
-                document.getElementById('profileTitle').textContent = `${user.name}'s Profile`;
+                document.getElementById('profileTitle').textContent = `${escapeHtml(user.name)}'s Profile`;
             }
             
         } catch (error) {
@@ -108,8 +108,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displayProfile(user) {
-        document.getElementById('usernameDisplay').textContent = user.name;
-        document.getElementById('emailDisplay').textContent = user.email;
+        document.getElementById('usernameDisplay').textContent = escapeHtml(user.name);
+        document.getElementById('emailDisplay').textContent = escapeHtml(user.email);
         document.getElementById('roleDisplay').textContent = user.role;
         
         if (user.created_at) {
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (user.description && user.description.trim() !== '') {
-            document.getElementById('descriptionDisplay').textContent = user.description;
+            document.getElementById('descriptionDisplay').textContent = escapeHtml(user.description);
             document.getElementById('descriptionField').style.display = 'flex';
         } else {
             document.getElementById('descriptionField').style.display = 'none';
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (user.is_own_profile) {
                     editBtn.textContent = 'Edit Profile';
                 } else {
-                    editBtn.textContent = `Edit ${user.name}'s Profile`;
+                    editBtn.textContent = `Edit ${escapeHtml(user.name)}'s Profile`;
                 }
             } else {
                 editBtn.style.display = 'none';
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (user.is_own_profile) {
                 titleElement.textContent = 'My Profile';
             } else {
-                titleElement.textContent = `${user.name}'s Profile`;
+                titleElement.textContent = `${escapeHtml(user.name)}'s Profile`;
             }
         }
         if (user.is_own_profile) {
@@ -396,13 +396,13 @@ document.addEventListener('DOMContentLoaded', function() {
         errorDiv.style.display = 'none';
         
         if (type === 'success') {
-            successDiv.textContent = message;
+            successDiv.textContent = escapeHtml(message);
             successDiv.style.display = 'block';
             setTimeout(() => {
                 successDiv.style.display = 'none';
             }, 5000);
         } else {
-            errorDiv.textContent = message;
+            errorDiv.textContent = escapeHtml(message);
             errorDiv.style.display = 'block';
             setTimeout(() => {
                 errorDiv.style.display = 'none';
@@ -458,18 +458,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function escapeHtml(text) {
-    if (typeof text !== 'string') return text;
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-}
-
 function enableProfileEdit() {
     const editBtn = document.getElementById('editProfileBtn');
     const editFormContainer = document.getElementById('editFormContainer');
@@ -499,7 +487,7 @@ function showRoleChangeModal(userId, currentRole, userName) {
     modal.innerHTML = `
         <div class="role-modal">
             <div class="modal-header">
-                <h3>Change Role for ${userName}</h3>
+                <h3>Change Role for ${escapeHtml(userName)}</h3>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
@@ -544,13 +532,13 @@ function showRoleChangeModal(userId, currentRole, userName) {
 }
 
 function confirmDeleteUser(userId, userName) {
-    if (confirm(`Are you sure you want to permanently delete the user "${userName}"? This action cannot be undone.`)) {
+    if (confirm(`Are you sure you want to permanently delete the user "${escapeHtml(userName)}"? This action cannot be undone.`)) {
         deleteUser(userId);
     }
 }
 
 function clearProfilePicture(userId, userName) {
-    if (confirm(`Are you sure you want to remove the profile picture for "${userName}"?`)) {
+    if (confirm(`Are you sure you want to remove the profile picture for "${escapeHtml(userName)}"?`)) {
         removePicture(userId);
     }
 }
@@ -597,7 +585,7 @@ async function changeUserRole(userId, newRole) {
         console.error('Error changing user role:', error);
         const errorDiv = document.getElementById('error-message');
         if (errorDiv) {
-            errorDiv.textContent = 'Failed to change user role: ' + error.message;
+            errorDiv.textContent = 'Failed to change user role: ' + escapeHtml(error.message);
             errorDiv.style.display = 'block';
         }
     }
@@ -633,7 +621,7 @@ async function deleteUser(userId) {
         console.error('Error deleting user:', error);
         const errorDiv = document.getElementById('error-message');
         if (errorDiv) {
-            errorDiv.textContent = 'Failed to delete user: ' + error.message;
+            errorDiv.textContent = 'Failed to delete user: ' + escapeHtml(error.message);
             errorDiv.style.display = 'block';
         }
     }
@@ -729,7 +717,7 @@ async function removePicture(userId) {
     } catch (error) {
         console.error('Error removing picture:', error);
         const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = 'Failed to remove profile picture: ' + error.message;
+        errorDiv.textContent = 'Failed to remove profile picture: ' + escapeHtml(error.message);
         errorDiv.style.display = 'block';
     } finally {
         const overlay = document.getElementById('loading-overlay');
@@ -750,11 +738,11 @@ function showAdminEditModal(userId, currentName, currentEmail) {
                 <form id="adminEditForm">
                     <div class="form-group">
                         <label for="admin-username">Username:</label>
-                        <input type="text" id="admin-username" class="form-input" value="${currentName}" required>
+                        <input type="text" id="admin-username" class="form-input" value="${escapeHtml(currentName)}" required>
                     </div>
                     <div class="form-group">
                         <label for="admin-email">Email:</label>
-                        <input type="email" id="admin-email" class="form-input" value="${currentEmail}" required>
+                        <input type="email" id="admin-email" class="form-input" value="${escapeHtml(currentEmail)}" required>
                     </div>
                     <div class="form-group">
                         <label for="admin-password">New Password (leave empty to keep current):</label>
@@ -842,7 +830,7 @@ async function updateUserCredentials(userId, modal) {
     } catch (error) {
         console.error('Error updating credentials:', error);
         const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = 'Failed to update credentials: ' + error.message;
+        errorDiv.textContent = 'Failed to update credentials: ' + escapeHtml(error.message);
         errorDiv.style.display = 'block';
     } finally {
         const overlay = document.getElementById('loading-overlay');
@@ -1107,7 +1095,7 @@ function showAlert(message, type) {
         alert.style.border = '1px solid #f5c6cb';
     }
     
-    alert.textContent = message;
+    alert.textContent = escapeHtml(message);
     document.body.appendChild(alert);
     
     setTimeout(() => {

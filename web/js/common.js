@@ -53,7 +53,7 @@ function displayUserProfile(user) {
     const avatarElement = document.querySelector('.avatar');
     
     if (usernameElement) {
-        usernameElement.textContent = user.name;
+        usernameElement.textContent = escapeHtml(user.name);
     }
     
     if (avatarElement) {

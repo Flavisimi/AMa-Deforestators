@@ -244,7 +244,7 @@ function loadAbbreviations(page = 1, append = false) {
                     <div class="error-state">
                         <div class="error-icon">⚠️</div>
                         <h3>Failed to load abbreviations</h3>
-                        <p>${error.message}</p>
+                        <p>${escapeHtml(error.message)}</p>
                         <button class="retry-btn">Retry</button>
                     </div>
                 `;
@@ -309,7 +309,7 @@ function fetchMeanings(abbrId) {
                 <div class="error-state">
                     <div class="error-icon">⚠️</div>
                     <h3>Failed to load meanings</h3>
-                    <p>${error.message}</p>
+                    <p>${escapeHtml(error.message)}</p>
                     <button class="back-btn">Back to All</button>
                 </div>
             `;
@@ -336,7 +336,7 @@ async function handleSubmit(ev, meaningCard, meaning)
                 <div class="error-state">
                     <div class="error-icon">⚠️</div>
                     <h3>Failed to edit meaning</h3>
-                    <p>${error.message}</p>
+                    <p>${escapeHtml(error.message)}</p>
                     <button class="back-btn">Back to All</button>
                 </div>
             `;
@@ -356,7 +356,7 @@ async function handleVote(event, meaningId, isUpvote) {
             <div class="error-state">
                 <div class="error-icon">⚠️</div>
                 <h3>Failed to vote meaning</h3>
-                <p>${error.message}</p>
+                <p>${escapeHtml(error.message)}</p>
                 <button class="back-btn">Back to All</button>
             </div>
         `;
@@ -370,7 +370,7 @@ async function handleVote(event, meaningId, isUpvote) {
             <div class="error-state">
                 <div class="error-icon">⚠️</div>
                 <h3>Failed to refresh meaning</h3>
-                <p>${error.message}</p>
+                <p>${escapeHtml(error.message)}</p>
                 <button class="back-btn">Back to All</button>
             </div>
         `;
@@ -530,7 +530,7 @@ function handleDeleteMeaning(btn, id)
             <div class="error-state">
                 <div class="error-icon">⚠️</div>
                 <h3>Delete failed</h3>
-                <p>${error}</p>
+                <p>${escapeHtml(error)}</p>
                 <button class="back-btn">Back to All</button>
             </div>
         `;

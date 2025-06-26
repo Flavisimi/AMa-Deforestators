@@ -12,7 +12,7 @@ const USERS_PER_PAGE = 20;
 
 function showError(message) {
     const errorDiv = document.getElementById('error-message');
-    errorDiv.textContent = message;
+    errorDiv.textContent = escapeHtml(message);
     errorDiv.style.display = 'block';
     setTimeout(() => {
         errorDiv.style.display = 'none';
@@ -103,7 +103,7 @@ function openRoleModal(userId, currentRole, userName) {
     modal.innerHTML = `
         <div class="role-modal">
             <div class="modal-header">
-                <h3>Change Role for ${userName}</h3>
+                <h3>Change Role for ${escapeHtml(userName)}</h3>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
@@ -340,18 +340,6 @@ function createUserCard(user, index) {
     return card;
 }
 
-function escapeHtml(text) {
-    if (typeof text !== 'string') return text;
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-}
-
 async function loadUsers(page = 1, append = false) {
     if (isLoading) return;
     
@@ -480,8 +468,8 @@ function displayEmptyState(title, message) {
     container.innerHTML = `
         <div class="no-results">
             <div class="no-results-icon">👥</div>
-            <h3>${title}</h3>
-            <p>${message}</p>
+            <h3>${escapeHtml(title)}</h3>
+            <p>${escapeHtml(message)}</p>
         </div>
     `;
     container.querySelector(".no-results").style = "grid-column: 1 / -1;";

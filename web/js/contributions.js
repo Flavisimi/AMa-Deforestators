@@ -54,20 +54,7 @@ function attachEventListeners() {
 }
 
 async function loadCurrentUser() {
-    try {
-        const response = await fetch('/api/profile');
-        if (response.ok) {
-            const userData = await response.json();
-            currentUser = userData;
-            updateUserInterface();
-            console.log('Current user loaded:', currentUser);
-        } else {
-            currentUser = null;
-        }
-    } catch (error) {
-        console.error('Error loading current user:', error);
-        currentUser = null;
-    }
+    currentUser = await GLOBAL_USER;
 }
 
 function updateUserInterface() {

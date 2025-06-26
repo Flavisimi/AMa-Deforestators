@@ -45,6 +45,7 @@
     flex: 1;
     max-width: 400px;
     position: relative;
+    margin-bottom: 20px;
 }
 
 .search-input {

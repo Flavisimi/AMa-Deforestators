@@ -87,6 +87,11 @@
     border-radius: 8px;
 }
 
+.stat-item-div {
+    display: flex; 
+    align-items: center;
+}
+
 .stat-name {
     font-weight: 600;
     color: #333;

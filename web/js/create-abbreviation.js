@@ -57,14 +57,14 @@ document.getElementById('abbreviation-form').addEventListener('submit', function
 
 function showSuccess(message) {
     const successDiv = document.getElementById('success-message');
-    successDiv.textContent = message;
+    successDiv.textContent = escapeHtml(message);
     successDiv.style.display = 'block';
     successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function showError(message) {
     const errorDiv = document.getElementById('error-message');
-    errorDiv.textContent = message;
+    errorDiv.textContent = escapeHtml(message);
     errorDiv.style.display = 'block';
     errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }

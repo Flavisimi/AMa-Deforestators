@@ -79,6 +79,6 @@ function showError(message) {
         if (form) form.parentNode.insertBefore(errorDiv, form);
         else console.error('Form not found for error display'); 
     }
-    errorDiv.textContent = message;
+    errorDiv.textContent = escapeHtml(message);
     errorDiv.style.display = 'block';
 }

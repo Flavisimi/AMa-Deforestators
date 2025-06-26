@@ -16,7 +16,7 @@ function hideLoading() {
 
 function showError(message) {
     const errorElement = document.getElementById('error-message');
-    errorElement.textContent = message;
+    errorElement.textContent = escapeHtml(message);
     errorElement.style.display = 'block';
     setTimeout(() => {
         errorElement.style.display = 'none';
@@ -41,7 +41,7 @@ function renderMostVisited(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.searchable_name}</span>
             </div>
@@ -61,9 +61,9 @@ function renderMostControversial(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.name}</span>
+                <span class="stat-name">${escapeHtml(item.name)}</span>
             </div>
             <span class="stat-value controversial">${parseFloat(item.controversy).toFixed(2) || 0}</span>
         </li>
@@ -81,9 +81,9 @@ function renderHighestLikeRate(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.name}</span>
+                <span class="stat-name">${escapeHtml(item.name)}</span>
             </div>
             <span class="stat-value liked">${Math.round((item.like_rate || 0) * 100)}%</span>
         </li>
@@ -101,9 +101,9 @@ function renderMostActiveUsers(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
-                <span class="stat-name">${item.name}</span>
+                <span class="stat-name">${escapeHtml(item.name)}</span>
             </div>
             <span class="stat-value active">${parseFloat(item.activity).toFixed(2) || 0}</span>
         </li>
@@ -121,7 +121,7 @@ function renderMedianAbbreviation(data) {
 
     container.innerHTML = data.map((item, index) => `
         <li class="stat-item">
-            <div style="display: flex; align-items: center;">
+            <div class="stat-item-div">
                 <span class="rank-number ${getRankClass(index)}">${index + 1}</span>
                 <span class="stat-name">${item.searchable_name}</span>
             </div>
@@ -204,6 +204,8 @@ async function initialize()
         buttons[1].addEventListener("click", ev => {handleExport(ev.target, "pdf")} );
         elem.appendChild(actions);
     });
+
+    document.querySelector(".refresh-btn").addEventListener("click", ev => loadAllStatistics());
 
     loadAllStatistics();
 }

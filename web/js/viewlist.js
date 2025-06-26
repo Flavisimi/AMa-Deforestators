@@ -57,14 +57,14 @@ function loadListDetails() {
             <div class="empty-state">
                 <div class="empty-icon">⚠️</div>
                 <h3>Failed to load list</h3>
-                <p>${error.message}</p>
+                <p>${escapeHtml(error.message)}</p>
             </div>
         `;
     });
 }
 
 function displayListDetails(list) {
-    document.getElementById('listTitle').textContent = list.name;
+    document.getElementById('listTitle').textContent = escapeHtml(list.name);
     document.title = `${list.name} - Abbreviations Manager`;
 
     const createdDate = list.created_at ? 
@@ -74,12 +74,12 @@ function displayListDetails(list) {
 
     document.getElementById('listDetails').innerHTML = `
         <h3>${escapeHtml(list.name)}</h3>
-        <p style="color: #666; margin: 10px 0;">
+        <p>
             ${list.private ? 'Private' : 'Public'} list
         </p>
         <div class="list-stats">
             <div class="stat-item">
-                <span class="stat-data">${(list.meanings || []).length}</span>
+                <span class="stat-data">${list.meanings_count}</span>
                 <span class="stat-label">Abbreviations</span>
             </div>
             <div class="stat-item">
@@ -91,11 +91,13 @@ function displayListDetails(list) {
                 <span class="stat-label">Last Updated</span>
             </div>
             <div class="stat-item">
-                <span class="stat-data">${list.creator_name}</span>
+                <span class="stat-data">${escapeHtml(list.creator_name)}</span>
                 <span class="stat-label">Creator</span>
             </div>
         </div>
     `;
+    
+    document.getElementById("listDetails").querySelector("p").style = "color: #666; margin: 10px 0;";
 }
 
 function displayAbbreviations(meanings) {
@@ -118,19 +120,6 @@ function displayAbbreviations(meanings) {
     const grid = createMeaningsGrid(meanings, null, null, null, null);
     container.innerHTML = '';
     container.appendChild(grid);
-}
-
-
-function escapeHtml(text) {
-    if (typeof text !== 'string') return text;
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function setupSearch() {
@@ -281,7 +270,7 @@ function displaySearchResults(results) {
         resultItem.innerHTML = `
             <div class="result-abbreviation">${escapeHtml(result.abbreviation)}</div>
             <div class="result-meaning">${escapeHtml(result.meaning)}</div>
-            ${alreadyInList ? '<div style="color: #666; font-size: 0.9rem; margin-top: 5px;">Already in list</div>' : ''}
+            ${alreadyInList ? '<div>Already in list</div>' : ''}
         `;
 
         if (!alreadyInList) {
@@ -295,6 +284,10 @@ function displaySearchResults(results) {
                 const addBtn = document.getElementById('addSelectedBtn');
                 if (addBtn) addBtn.disabled = false;
             });
+        }
+        else
+        {
+            resultItem.querySelectorAll("div")[2].style = "color: #666; font-size: 0.9rem; margin-top: 5px;";
         }
 
         container.appendChild(resultItem);

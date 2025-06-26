@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll(".modal-overlay").forEach(elem => elem.style.display = "none");
+    document.querySelector("#success-message").style.display = "none";
+    document.querySelector("#error-message").style.display = "none";
+
     const editBtn = document.getElementById('editProfileBtn');
     const cancelBtn = document.getElementById('cancelEditBtn');
     const editFormContainer = document.getElementById('editFormContainer');
@@ -76,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('profileTitle').textContent = 'My Profile';
             } else {
                 editBtn.style.display = 'none';
-                document.getElementById('profileTitle').textContent = `${user.name}'s Profile`;
+                document.getElementById('profileTitle').textContent = `${escapeHtml(user.name)}'s Profile`;
             }
             
         } catch (error) {
@@ -104,8 +108,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function displayProfile(user) {
-        document.getElementById('usernameDisplay').textContent = user.name;
-        document.getElementById('emailDisplay').textContent = user.email;
+        document.getElementById('usernameDisplay').textContent = escapeHtml(user.name);
+        document.getElementById('emailDisplay').textContent = escapeHtml(user.email);
         document.getElementById('roleDisplay').textContent = user.role;
         
         if (user.created_at) {
@@ -130,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (user.description && user.description.trim() !== '') {
-            document.getElementById('descriptionDisplay').textContent = user.description;
+            document.getElementById('descriptionDisplay').textContent = escapeHtml(user.description);
             document.getElementById('descriptionField').style.display = 'flex';
         } else {
             document.getElementById('descriptionField').style.display = 'none';
@@ -159,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (user.is_own_profile) {
                     editBtn.textContent = 'Edit Profile';
                 } else {
-                    editBtn.textContent = `Edit ${user.name}'s Profile`;
+                    editBtn.textContent = `Edit ${escapeHtml(user.name)}'s Profile`;
                 }
             } else {
                 editBtn.style.display = 'none';
@@ -171,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (user.is_own_profile) {
                 titleElement.textContent = 'My Profile';
             } else {
-                titleElement.textContent = `${user.name}'s Profile`;
+                titleElement.textContent = `${escapeHtml(user.name)}'s Profile`;
             }
         }
         if (user.is_own_profile) {
@@ -193,27 +197,38 @@ document.addEventListener('DOMContentLoaded', function() {
             const adminActionsDiv = document.createElement('div');
             adminActionsDiv.className = 'admin-profile-actions';
             adminActionsDiv.innerHTML = `
-                <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
-                    <h4 style="color: #dc3545; margin-bottom: 15px; font-size: 1.1rem;">Admin Actions</h4>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-primary" onclick="enableProfileEdit()">
+                <div>
+                    <h4>Admin Actions</h4>
+                    <div>
+                        <button type="button" class="btn btn-primary">
                             Edit Profile
                         </button>
-                        <button type="button" class="btn btn-info" onclick="showAdminEditModal('${user.id}', '${escapeHtml(user.name)}', '${escapeHtml(user.email)}')">
+                        <button type="button" class="btn btn-info">
                             Edit Credentials
                         </button>
-                        <button type="button" class="btn btn-warning" onclick="showRoleChangeModal('${user.id}', '${user.role}', '${escapeHtml(user.name)}')">
+                        <button type="button" class="btn btn-warning">
                             Change Role
                         </button>
-                        <button type="button" class="btn btn-danger" onclick="confirmDeleteUser('${user.id}', '${escapeHtml(user.name)}')">
+                        <button type="button" class="btn btn-danger">
                             Delete User
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${escapeHtml(user.name)}')">
+                        <button type="button" class="btn btn-secondary">
                             Remove Picture
                         </button>
                     </div>
                 </div>
             `;
+
+            adminActionsDiv.querySelectorAll("div")[0].style = "border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;";
+            adminActionsDiv.querySelector("h4").style = "color: #dc3545; margin-bottom: 15px; font-size: 1.1rem;";
+            adminActionsDiv.querySelectorAll("div")[1].style = "display: flex; gap: 10px; flex-wrap: wrap;";
+
+            adminActionsDiv.querySelector(".btn-primary").addEventListener("click", ev => enableProfileEdit());
+            adminActionsDiv.querySelector(".btn-info").addEventListener("click", ev => showAdminEditModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-warning").addEventListener("click", ev => showRoleChangeModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-danger").addEventListener("click", ev => confirmDeleteUser(user.id, user.name));
+            adminActionsDiv.querySelector(".btn-secondary").addEventListener("click", ev => clearProfilePicture(user.id, user.name));
+
             profileCard.appendChild(adminActionsDiv);
         }
     } else if (user.current_user_role === 'MOD' && !user.is_own_profile && user.role === 'USER') {
@@ -222,18 +237,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const modActionsDiv = document.createElement('div');
             modActionsDiv.className = 'admin-profile-actions';
             modActionsDiv.innerHTML = `
-                <div style="border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;">
-                    <h4 style="color: #ffc107; margin-bottom: 15px; font-size: 1.1rem;">Moderator Actions</h4>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="btn btn-primary" onclick="enableProfileEdit()">
+                <div>
+                    <h4 >Moderator Actions</h4>
+                    <div>
+                        <button type="button" class="btn btn-primary">
                             Edit Profile
                         </button>
-                        <button type="button" class="btn btn-secondary" onclick="clearProfilePicture('${user.id}', '${escapeHtml(user.name)}')">
+                        <button type="button" class="btn btn-secondary">
                             Remove Picture
                         </button>
                     </div>
                 </div>
             `;
+
+            adminActionsDiv.querySelectorAll("div")[0].style = "border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;";
+            adminActionsDiv.querySelector("h4").style = "color: #ffc107; margin-bottom: 15px; font-size: 1.1rem;"
+            adminActionsDiv.querySelectorAll("div")[1].style = "display: flex; gap: 10px; flex-wrap: wrap;";
+
+            adminActionsDiv.querySelector(".btn-primary").addEventListener("click", ev => enableProfileEdit());
+            adminActionsDiv.querySelector(".btn-info").addEventListener("click", ev => showAdminEditModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-warning").addEventListener("click", ev => showRoleChangeModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-danger").addEventListener("click", ev => confirmDeleteUser(user.id, user.name));
+            adminActionsDiv.querySelector(".btn-secondary").addEventListener("click", ev => clearProfilePicture(user.id, user.name));
+
             profileCard.appendChild(modActionsDiv);
         }
     }
@@ -370,13 +396,13 @@ document.addEventListener('DOMContentLoaded', function() {
         errorDiv.style.display = 'none';
         
         if (type === 'success') {
-            successDiv.textContent = message;
+            successDiv.textContent = escapeHtml(message);
             successDiv.style.display = 'block';
             setTimeout(() => {
                 successDiv.style.display = 'none';
             }, 5000);
         } else {
-            errorDiv.textContent = message;
+            errorDiv.textContent = escapeHtml(message);
             errorDiv.style.display = 'block';
             setTimeout(() => {
                 errorDiv.style.display = 'none';
@@ -432,18 +458,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function escapeHtml(text) {
-    if (typeof text !== 'string') return text;
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-}
-
 function enableProfileEdit() {
     const editBtn = document.getElementById('editProfileBtn');
     const editFormContainer = document.getElementById('editFormContainer');
@@ -473,7 +487,7 @@ function showRoleChangeModal(userId, currentRole, userName) {
     modal.innerHTML = `
         <div class="role-modal">
             <div class="modal-header">
-                <h3>Change Role for ${userName}</h3>
+                <h3>Change Role for ${escapeHtml(userName)}</h3>
                 <button class="modal-close">&times;</button>
             </div>
             <div class="modal-body">
@@ -518,13 +532,13 @@ function showRoleChangeModal(userId, currentRole, userName) {
 }
 
 function confirmDeleteUser(userId, userName) {
-    if (confirm(`Are you sure you want to permanently delete the user "${userName}"? This action cannot be undone.`)) {
+    if (confirm(`Are you sure you want to permanently delete the user "${escapeHtml(userName)}"? This action cannot be undone.`)) {
         deleteUser(userId);
     }
 }
 
 function clearProfilePicture(userId, userName) {
-    if (confirm(`Are you sure you want to remove the profile picture for "${userName}"?`)) {
+    if (confirm(`Are you sure you want to remove the profile picture for "${escapeHtml(userName)}"?`)) {
         removePicture(userId);
     }
 }
@@ -571,7 +585,7 @@ async function changeUserRole(userId, newRole) {
         console.error('Error changing user role:', error);
         const errorDiv = document.getElementById('error-message');
         if (errorDiv) {
-            errorDiv.textContent = 'Failed to change user role: ' + error.message;
+            errorDiv.textContent = 'Failed to change user role: ' + escapeHtml(error.message);
             errorDiv.style.display = 'block';
         }
     }
@@ -607,7 +621,7 @@ async function deleteUser(userId) {
         console.error('Error deleting user:', error);
         const errorDiv = document.getElementById('error-message');
         if (errorDiv) {
-            errorDiv.textContent = 'Failed to delete user: ' + error.message;
+            errorDiv.textContent = 'Failed to delete user: ' + escapeHtml(error.message);
             errorDiv.style.display = 'block';
         }
     }
@@ -703,7 +717,7 @@ async function removePicture(userId) {
     } catch (error) {
         console.error('Error removing picture:', error);
         const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = 'Failed to remove profile picture: ' + error.message;
+        errorDiv.textContent = 'Failed to remove profile picture: ' + escapeHtml(error.message);
         errorDiv.style.display = 'block';
     } finally {
         const overlay = document.getElementById('loading-overlay');
@@ -718,17 +732,17 @@ function showAdminEditModal(userId, currentName, currentEmail) {
         <div class="admin-edit-modal">
             <div class="modal-header">
                 <h3>Edit User Credentials</h3>
-                <button class="modal-close" onclick="closeModal(this)">×</button>
+                <button class="modal-close">×</button>
             </div>
             <div class="modal-body">
                 <form id="adminEditForm">
                     <div class="form-group">
                         <label for="admin-username">Username:</label>
-                        <input type="text" id="admin-username" class="form-input" value="${currentName}" required>
+                        <input type="text" id="admin-username" class="form-input" value="${escapeHtml(currentName)}" required>
                     </div>
                     <div class="form-group">
                         <label for="admin-email">Email:</label>
-                        <input type="email" id="admin-email" class="form-input" value="${currentEmail}" required>
+                        <input type="email" id="admin-email" class="form-input" value="${escapeHtml(currentEmail)}" required>
                     </div>
                     <div class="form-group">
                         <label for="admin-password">New Password (leave empty to keep current):</label>
@@ -739,7 +753,7 @@ function showAdminEditModal(userId, currentName, currentEmail) {
                         <input type="password" id="admin-password-confirm" class="form-input" placeholder="Confirm new password">
                     </div>
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="closeModal(this)">Cancel</button>
+                        <button type="button" class="btn btn-secondary">Cancel</button>
                         <button type="submit" class="btn btn-primary">Update Credentials</button>
                     </div>
                 </form>
@@ -747,6 +761,8 @@ function showAdminEditModal(userId, currentName, currentEmail) {
         </div>
     `;
     
+    modal.querySelector(".modal-close").addEventListener("click", ev => closeModal(modal));
+    modal.querySelector(".form-actions > .btn-secondary").addEventListener("click", ev => closeModal(modal));
     document.body.appendChild(modal);
     
     const form = modal.querySelector('#adminEditForm');
@@ -814,7 +830,7 @@ async function updateUserCredentials(userId, modal) {
     } catch (error) {
         console.error('Error updating credentials:', error);
         const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = 'Failed to update credentials: ' + error.message;
+        errorDiv.textContent = 'Failed to update credentials: ' + escapeHtml(error.message);
         errorDiv.style.display = 'block';
     } finally {
         const overlay = document.getElementById('loading-overlay');
@@ -1079,7 +1095,7 @@ function showAlert(message, type) {
         alert.style.border = '1px solid #f5c6cb';
     }
     
-    alert.textContent = message;
+    alert.textContent = escapeHtml(message);
     document.body.appendChild(alert);
     
     setTimeout(() => {

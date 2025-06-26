@@ -8,21 +8,21 @@ function createMeaningCard(meaning, voteHandler, showAddList, deleteHandler, sub
 
     meaningCard.innerHTML = `
         <div class="meaning-header">
-            <h4>${meaning.name}</h4>
+            <h4>${escapeHtml(meaning.name)}</h4>
             <span class="status-badge status-${meaning.approval_status.toLowerCase()}">${meaning.approval_status}</span>
         </div>
         <div class="meaning-body">
-            <h3 class="meaning-expansion">${meaning.short_expansion}</h3>
-            <p class="meaning-description">${meaning.description}</p>
+            <h3 class="meaning-expansion">${escapeHtml(meaning.short_expansion)}</h3>
+            <p class="meaning-description">${escapeHtml(meaning.description)}</p>
             <div class="meaning-meta">
                 <span class="meta-item">
-                    <strong>Language:</strong> ${meaning.lang}
+                    <strong>Language:</strong> ${escapeHtml(meaning.lang)}
                 </span>
                 <span class="meta-item">
-                    <strong>Domain:</strong> ${meaning.domain}
+                    <strong>Domain:</strong> ${escapeHtml(meaning.domain)}
                 </span>
                 <span class="meta-item">
-                    <strong>Submitted by:</strong> ${meaning.uploader_name}
+                    <strong>Submitted by:</strong> ${escapeHtml(meaning.uploader_name)}
                 </span>
                 <div class="meta-div">
                     <span class="meta-item">
@@ -82,16 +82,16 @@ function setMeaningCardData(meaningCard, meaning)
     const upvoteClass = meaning.user_vote === 1 ? 'upvote-btn active' : 'upvote-btn';
     const downvoteClass = meaning.user_vote === -1 ? 'downvote-btn active' : 'downvote-btn';
 
-    meaningCard.querySelector(".meaning-header > h4").textContent = meaning.name;
+    meaningCard.querySelector(".meaning-header > h4").textContent = escapeHtml(meaning.name);
     meaningCard.querySelector(".meaning-header > span").className = `status-badge status-${meaning.approval_status.toLowerCase()}`;
     meaningCard.querySelector(".meaning-header > span").textContent = meaning.approval_status;
-    meaningCard.querySelector(".meaning-expansion").textContent = meaning.short_expansion;
-    meaningCard.querySelector(".meaning-description").textContent = meaning.description;
+    meaningCard.querySelector(".meaning-expansion").textContent = escapeHtml(meaning.short_expansion);
+    meaningCard.querySelector(".meaning-description").textContent = escapeHtml(meaning.description);
     
     const metaItems = meaningCard.querySelectorAll(".meaning-meta span");
-    metaItems[0].innerHTML = `<strong>Language:</strong> ${meaning.lang}`;
-    metaItems[1].innerHTML = `<strong>Domain:</strong> ${meaning.domain}`;
-    metaItems[2].innerHTML = `<strong>Submitted by:</strong> ${meaning.uploader_name}`;
+    metaItems[0].innerHTML = `<strong>Language:</strong> ${escapeHtml(meaning.lang)}`;
+    metaItems[1].innerHTML = `<strong>Domain:</strong> ${escapeHtml(meaning.domain)}`;
+    metaItems[2].innerHTML = `<strong>Submitted by:</strong> ${escapeHtml(meaning.uploader_name)}`;
     metaItems[3].innerHTML = `<strong>Score:</strong> ${meaning.score}`;
 
     const voteButtons = meaningCard.querySelectorAll(".meta-div > button");
@@ -314,23 +314,7 @@ function loadUserLists() {
     .then(data => {
         console.log('Raw API response:', data);
         
-        let lists = [];
-        
-        if (Array.isArray(data)) {
-            lists = data;
-        } else if (data && Array.isArray(data.lists)) {
-            lists = data.lists;
-        } else if (data && Array.isArray(data.data)) {
-            lists = data.data;
-        } else if (data && typeof data === 'object') {
-            const values = Object.values(data);
-            const arrayValue = values.find(val => Array.isArray(val));
-            if (arrayValue) {
-                lists = arrayValue;
-            } else {
-                lists = values.filter(val => val && typeof val === 'object');
-            }
-        }
+        let lists = Object.values(data);
         
         console.log('Processed lists:', lists);
         return lists;
@@ -348,7 +332,7 @@ function createListItem(list)
 
     listItem.innerHTML = `
         <div class="list-item-header">
-            <h4>${list.name}</h4>
+            <h4>${escapeHtml(list.name)}</h4>
             <span class="list-privacy ${list.private ? 'private' : 'public'}">
                 ${list.private ? '🔒 Private' : '🌐 Public'}
             </span>
@@ -381,8 +365,8 @@ function showListModal(ev, meaning) {
     
     modal.innerHTML = `
         <div class="modal-header">
-            <h3>Add "${meaning.name}" to List</h3>
-            <button class="modal-close" onclick="closeListModal()">×</button>
+            <h3>Add "${escapeHtml(meaning.name)}" to List</h3>
+            <button class="modal-close">×</button>
         </div>
         <div class="modal-body">
             <div class="loading-spinner">
@@ -392,6 +376,7 @@ function showListModal(ev, meaning) {
         </div>
     `;
     
+    modal.querySelector(".modal-close").addEventListener("click", ev => closeListModal());
     modalOverlay.appendChild(modal);
     document.body.appendChild(modalOverlay);
     
@@ -407,11 +392,12 @@ function showListModal(ev, meaning) {
                         <div class="empty-icon">📋</div>
                         <h4>No lists found</h4>
                         <p>You don't have any lists yet. Create one first!</p>
-                        <button class="btn btn-primary" onclick="window.location.href='my_abbreviations'">
+                        <button class="btn btn-primary">
                             Create List
                         </button>
                     </div>
                 `;
+                modalBody.querySelector(".btn-primary").addEventListener("click", ev => {window.location.href='my_abbreviations';});
                 return;
             }
             
@@ -440,9 +426,10 @@ function showListModal(ev, meaning) {
                         <div class="error-icon">⚠️</div>
                         <h4>Error processing lists</h4>
                         <p>There was an issue displaying your lists. Please try again.</p>
-                        <button onclick="showListModal(${meaning.id}, '${meaning.name}')" class="retry-btn">Retry</button>
+                        <button class="retry-btn">Retry</button>
                     </div>
                 `;
+                modalBody.querySelector(".retry-btn").addEventListener("click", ev => showListModal(ev, meaning));
             }
         })
         .catch(error => {
@@ -451,10 +438,11 @@ function showListModal(ev, meaning) {
                 <div class="error-state">
                     <div class="error-icon">⚠️</div>
                     <h4>Failed to load lists</h4>
-                    <p>${error.message}</p>
-                    <button onclick="showListModal(${meaning.id}, '${meaning.name}')" class="retry-btn">Retry</button>
+                    <p>${escapeHtml(error.message)}</p>
+                    <button class="retry-btn">Retry</button>
                 </div>
             `;
+            modalBody.querySelector(".retry-btn").addEventListener("click", ev => showListModal(ev, meaning));
         });
     
     modalOverlay.addEventListener('click', function(e) {
@@ -488,10 +476,12 @@ function handleAddMeaningToList(meaningId, listId, listName) {
             <div class="success-state">
                 <div class="success-icon">✅</div>
                 <h4>Success!</h4>
-                <p>Meaning added to "${listName}" successfully!</p>
-                <button onclick="closeListModal()" class="btn btn-primary">Close</button>
+                <p>Meaning added to "${escapeHtml(listName)}" successfully!</p>
+                <button class="btn btn-primary">Close</button>
             </div>
         `;
+
+        modalBody.querySelector(".btn-primary").addEventListener("click", ev => closeListModal());
         
         const modal = document.querySelector('.modal-overlay');
         setTimeout(() => {
@@ -504,11 +494,14 @@ function handleAddMeaningToList(meaningId, listId, listName) {
             <div class="error-state">
                 <div class="error-icon">⚠️</div>
                 <h4>Failed to add meaning</h4>
-                <p>${error.message}</p>
-                <button onclick="addMeaningToList(${meaningId}, ${listId}, '${listName}')" class="retry-btn">Retry</button>
-                <button onclick="closeListModal()" class="btn btn-secondary">Cancel</button>
+                <p>${escapeHtml(error.message)}</p>
+                <button class="retry-btn">Retry</button>
+                <button class="btn btn-secondary">Cancel</button>
             </div>
         `;
+
+        modalBody.querySelector(".retry-btn").addEventListener("click", ev => handleAddMeaningToList(meaningId, listId, listName));
+        modalBody.querySelector(".btn-secondary").addEventListener("click", ev => closeListModal());
     });
 }
 

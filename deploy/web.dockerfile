@@ -38,6 +38,7 @@ RUN chown -R www-data:www-data /tfpdf/ \
 RUN ldconfig
 
 RUN a2enmod rewrite
+RUN a2enmod headers
 
 RUN chown -R www-data:www-data /var/www/html \
  && chmod -R 755 /var/www/html

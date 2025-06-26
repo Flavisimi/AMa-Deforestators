@@ -37,7 +37,7 @@ function updateUserInterface() {
     const avatar = document.querySelector('.avatar');
     
     if (currentUser && currentUser.name) {
-        username.textContent = currentUser.name;
+        username.textContent = escapeHtml(currentUser.name);
         if (currentUser.profile_picture) {
             avatar.style.backgroundImage = `url(${currentUser.profile_picture})`;
             avatar.style.backgroundSize = 'cover';
@@ -160,7 +160,7 @@ async function handleVote(event, meaningId, isUpvote)
 function showSuccess(message) {
     const successDiv = document.getElementById('success-message');
     if (successDiv) {
-        successDiv.textContent = message;
+        successDiv.textContent = escapeHtml(message);
         successDiv.style.display = 'block';
         setTimeout(() => {
             successDiv.style.display = 'none';
@@ -176,7 +176,7 @@ function showSuccess(message) {
 function showError(message) {
     const errorDiv = document.getElementById('error-message');
     if (errorDiv) {
-        errorDiv.textContent = message;
+        errorDiv.textContent = escapeHtml(message);
         errorDiv.style.display = 'block';
         setTimeout(() => {
             errorDiv.style.display = 'none';

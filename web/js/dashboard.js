@@ -109,11 +109,13 @@ function createAbbreviationCard(abbreviation) {
             </div>
         </div>
         <div class="card-footer">
-            <button class="view-meanings-btn" onclick="fetchMeanings(${abbreviation.id})">
+            <button class="view-meanings-btn">
                 View Meanings
             </button>
         </div>
     `;
+
+    card.querySelector(".view-meanings-btn").addEventListener("click", ev => fetchMeanings(abbreviation.id));
     
     return card;
 }
@@ -133,13 +135,17 @@ function displayAbbreviations(data, isSearchResult = false, append = false) {
                 <div class="empty-icon">📝</div>
                 <h3>No abbreviations found</h3>
                 <p>${isSearchResult ? 'Try adjusting your search terms' : 'No abbreviations available at the moment'}</p>
-                <div style="margin-top: 20px;">
-                    <a href="create-abbreviation" class="btn btn-primary" style="padding: 12px 24px; background: linear-gradient(135deg, #4caf50, #45a049); color: white; text-decoration: none; border-radius: 25px; font-weight: 500; transition: all 0.3s ease;">
+                <div>
+                    <a href="create-abbreviation" class="btn btn-primary">
                         Create First Abbreviation
                     </a>
                 </div>
             </div>
         `;
+
+        const lastDiv = placeholder.querySelectorAll(".empty-state > div")[1];
+        lastDiv.style = "margin-top: 20px";
+        lastDiv.querySelector(".btn-primary").style = "padding: 12px 24px; background: linear-gradient(135deg, #4caf50, #45a049); color: white; text-decoration: none; border-radius: 25px; font-weight: 500; transition: all 0.3s ease;";
         return;
     }
     
@@ -238,10 +244,12 @@ function loadAbbreviations(page = 1, append = false) {
                     <div class="error-state">
                         <div class="error-icon">⚠️</div>
                         <h3>Failed to load abbreviations</h3>
-                        <p>${error.message}</p>
-                        <button onclick="loadAllAbbreviations()" class="retry-btn">Retry</button>
+                        <p>${escapeHtml(error.message)}</p>
+                        <button class="retry-btn">Retry</button>
                     </div>
                 `;
+
+                placeholder.querySelector(".retry-btn").addEventListener("click", ev => loadAllAbbreviations());
             }
         });
 }
@@ -301,10 +309,11 @@ function fetchMeanings(abbrId) {
                 <div class="error-state">
                     <div class="error-icon">⚠️</div>
                     <h3>Failed to load meanings</h3>
-                    <p>${error.message}</p>
-                    <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                    <p>${escapeHtml(error.message)}</p>
+                    <button class="back-btn">Back to All</button>
                 </div>
             `;
+            placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
         });
 }
 
@@ -327,10 +336,12 @@ async function handleSubmit(ev, meaningCard, meaning)
                 <div class="error-state">
                     <div class="error-icon">⚠️</div>
                     <h3>Failed to edit meaning</h3>
-                    <p>${error.message}</p>
-                    <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                    <p>${escapeHtml(error.message)}</p>
+                    <button class="back-btn">Back to All</button>
                 </div>
             `;
+
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
     });
 }
 
@@ -345,10 +356,12 @@ async function handleVote(event, meaningId, isUpvote) {
             <div class="error-state">
                 <div class="error-icon">⚠️</div>
                 <h3>Failed to vote meaning</h3>
-                <p>${error.message}</p>
-                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                <p>${escapeHtml(error.message)}</p>
+                <button class="back-btn">Back to All</button>
             </div>
         `;
+
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
     })
     .then(() => refreshMeaning(meaningCard, meaningId))
     .catch(error => {
@@ -357,10 +370,12 @@ async function handleVote(event, meaningId, isUpvote) {
             <div class="error-state">
                 <div class="error-icon">⚠️</div>
                 <h3>Failed to refresh meaning</h3>
-                <p>${error.message}</p>
-                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                <p>${escapeHtml(error.message)}</p>
+                <button class="back-btn">Back to All</button>
             </div>
         `;
+
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
     });
 }
 
@@ -376,9 +391,11 @@ function displayMeanings(data) {
                 <div class="empty-icon">📖</div>
                 <h3>No meanings found</h3>
                 <p>This abbreviation doesn't have any meanings yet</p>
-                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                <button class="back-btn">Back to All</button>
             </div>
         `;
+
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
         return;
     }
     
@@ -388,9 +405,10 @@ function displayMeanings(data) {
     const header = document.createElement('div');
     header.className = 'meanings-header';
     header.innerHTML = `
-        <button onclick="loadAllAbbreviations()" class="back-btn">← Back to All</button>
+        <button class="back-btn">← Back to All</button>
         <h2>Meanings for "${data.searchable_name}"</h2>
     `;
+    header.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
     meaningsContainer.appendChild(header);
 
     meaningsContainer.appendChild(createMeaningsGrid(meanings, handleVote, true, handleDeleteMeaning, handleSubmit));
@@ -460,10 +478,13 @@ function performSearch() {
                 <div class="error-icon">⚠️</div>
                 <h3>Search failed</h3>
                 <p>Please try again</p>
-                <button onclick="performSearch()" class="retry-btn">Retry</button>
-                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                <button class="retry-btn">Retry</button>
+                <button class="back-btn">Back to All</button>
             </div>
         `;
+
+        placeholder.querySelector(".retry-btn").addEventListener("click", ev => performSearch());
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
     });
 }
 
@@ -509,10 +530,12 @@ function handleDeleteMeaning(btn, id)
             <div class="error-state">
                 <div class="error-icon">⚠️</div>
                 <h3>Delete failed</h3>
-                <p>${error}</p>
-                <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                <p>${escapeHtml(error)}</p>
+                <button class="back-btn">Back to All</button>
             </div>
         `;
+
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
     });
 }
 
@@ -545,6 +568,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadAllAbbreviations();
             }
         });
+
+        languageFilter.parentElement.querySelector(".clear-filter").addEventListener("click", ev => clearLanguageFilter());
     }
     
     if (domainFilter) {
@@ -558,5 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadAllAbbreviations();
             }
         });
+
+        domainFilter.parentElement.querySelector(".clear-filter").addEventListener("click", ev => clearDomainFilter());
     }
 });

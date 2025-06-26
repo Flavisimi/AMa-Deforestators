@@ -151,28 +151,35 @@ class MeaningRepository
     }
     public static function search_meanings($conn, string $query): ?array
 {
-    $sql = "SELECT * FROM meanings m 
-            JOIN abbreviations a ON m.abbreviation_id = a.id 
-            WHERE LOWER(a.name) LIKE LOWER(:query) 
-            OR LOWER(m.meaning) LIKE LOWER(:query)
-            ORDER BY a.name";
+    $search_term = '%' . strtolower($query) . '%';
+    
+    $sql = "SELECT m.id, m.abbr_id, m.name, m.short_expansion, m.uploader_id, m.approval_status, m.lang, m.domain, m.created_at, m.updated_at, 
+                   (SELECT name FROM users WHERE id = m.uploader_id) as uploader_name
+            FROM meanings m 
+            JOIN abbreviations a ON m.abbr_id = a.id 
+            WHERE LOWER(m.name) LIKE :search_term 
+            OR LOWER(m.short_expansion) LIKE :search_term
+            OR LOWER(a.searchable_name) LIKE :search_term
+            ORDER BY a.searchable_name, m.name";
     
     $stmt = oci_parse($conn, $sql);
-    oci_bind_by_name($stmt, ':query', '%' . $query . '%');
+    if(!$stmt) 
+        throw new ApiException(500, "Failed to parse SQL statement");
+    
+    oci_bind_by_name($stmt, ':search_term', $search_term);
     
     if (!oci_execute($stmt)) {
-        throw new ApiException(500, "Database error occurred");
+        oci_free_statement($stmt);
+        throw new ApiException(500, oci_error($stmt)['message'] ?? "Database error occurred");
     }
     
-    $meanings = [];
-    while ($row = oci_fetch_assoc($stmt)) {
-        $meaning = new Meaning();
-        $meaning->id = $row['ID'];
-        $meaning->abbreviation = $row['NAME']; 
-        $meaning->meaning = $row['MEANING'];
+    $meanings = array();
+    while (($row = oci_fetch_array($stmt, OCI_ASSOC)) != false) {
+        $meaning = MeaningRepository::convert_row_to_object($row);
         $meanings[] = $meaning;
     }
     
+    oci_free_statement($stmt);
     return $meanings;
 }
 

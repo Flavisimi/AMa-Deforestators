@@ -21,6 +21,7 @@ class AbbreviationListService
         {
             MeaningService::attach_description($meaning, FilterHelper::get_searchable_name($meaning->name));
             MeaningService::attach_score($conn, $meaning);
+            MeaningService::attach_user_vote($conn, $meaning);  
         }
         $abbr_list->meanings = $meanings;
     }

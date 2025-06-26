@@ -6,11 +6,13 @@ require_once(__DIR__ . "/../helpers/connection-helper.php");
 require_once(__DIR__ . "/../exceptions/api-exception.php");
 require_once(__DIR__ . "/../repositories/meaning-repository.php");
 require_once(__DIR__ . "/../services/meaning-service.php");
+require_once(__DIR__ . "/../helpers/filter-helper.php");
 
 use ama\helpers\ConnectionHelper;
 use ama\exceptions\ApiException;
 use ama\repositories\MeaningRepository;
 use ama\services\MeaningService;
+use ama\helpers\FilterHelper;
 
 ini_set('session.cookie_httponly', 1);
 ini_set('session.use_strict_mode', 1);
@@ -28,7 +30,7 @@ class ContributionsController
             $meanings = MeaningRepository::load_meanings_by_uploader_id($conn, $user_id);
             if($meanings !== null) {
                 foreach($meanings as &$meaning) {
-                    MeaningService::attach_description($meaning, MeaningService::get_searchable_name($meaning->name));
+                    MeaningService::attach_description($meaning, FilterHelper::get_searchable_name($meaning->name));
                     MeaningService::attach_score($conn, $meaning);
                     MeaningService::attach_user_vote($conn, $meaning);
                 }

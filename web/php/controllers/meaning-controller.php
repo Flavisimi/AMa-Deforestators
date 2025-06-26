@@ -11,6 +11,7 @@ require_once( __DIR__ . "/../repositories/vote-repository.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
 require_once( __DIR__ . "/../services/meaning-service.php");
 require_once( __DIR__ . "/../helpers/docbook-helper.php");
+require_once( __DIR__ . "/../helpers/filter-helper.php");
 require_once( __DIR__ . "/../dtos/meaning-update-dto.php");
 
 use ama\models\Meaning;
@@ -22,6 +23,7 @@ use ama\repositories\VoteRepository;
 use ama\exceptions\ApiException;
 use ama\services\MeaningService;
 use ama\helpers\DocbookHelper;
+use ama\helpers\FilterHelper;
 use ama\dtos\MeaningUpdateDTO;
 
 class MeaningController
@@ -36,7 +38,7 @@ class MeaningController
                 throw new ApiException(404, "No meaning was found with the given ID");
 
             MeaningService::attach_score($conn, $meaning);
-            MeaningService::attach_description($meaning, MeaningService::get_searchable_name($meaning->name));
+            MeaningService::attach_description($meaning, FilterHelper::get_searchable_name($meaning->name));
             
             if(isset($_SESSION["user_id"])) {
                 $user_vote = VoteRepository::load_vote($conn, $_SESSION["user_id"], $meaning->id);
@@ -183,7 +185,7 @@ class MeaningController
         {
             MeaningRepository::update_meaning($conn, $id, $dto);
             $meaning = MeaningRepository::load_meaning($conn, $id);
-            $searchable_name = MeaningService::get_searchable_name($meaning->name);
+            $searchable_name = FilterHelper::get_searchable_name($meaning->name);
 
             $document = DocbookHelper::load_abbreviation_document($searchable_name);
             if($document == null)

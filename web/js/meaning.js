@@ -382,7 +382,7 @@ function showListModal(ev, meaning) {
     modal.innerHTML = `
         <div class="modal-header">
             <h3>Add "${meaning.name}" to List</h3>
-            <button class="modal-close" onclick="closeListModal()">×</button>
+            <button class="modal-close">×</button>
         </div>
         <div class="modal-body">
             <div class="loading-spinner">
@@ -392,6 +392,7 @@ function showListModal(ev, meaning) {
         </div>
     `;
     
+    modal.querySelector(".modal-close").addEventListener("click", ev => closeListModal());
     modalOverlay.appendChild(modal);
     document.body.appendChild(modalOverlay);
     
@@ -407,11 +408,12 @@ function showListModal(ev, meaning) {
                         <div class="empty-icon">📋</div>
                         <h4>No lists found</h4>
                         <p>You don't have any lists yet. Create one first!</p>
-                        <button class="btn btn-primary" onclick="window.location.href='my_abbreviations'">
+                        <button class="btn btn-primary">
                             Create List
                         </button>
                     </div>
                 `;
+                modalBody.querySelector(".btn-primary").addEventListener("click", ev => {window.location.href='my_abbreviations';});
                 return;
             }
             
@@ -440,9 +442,10 @@ function showListModal(ev, meaning) {
                         <div class="error-icon">⚠️</div>
                         <h4>Error processing lists</h4>
                         <p>There was an issue displaying your lists. Please try again.</p>
-                        <button onclick="showListModal(${meaning.id}, '${meaning.name}')" class="retry-btn">Retry</button>
+                        <button class="retry-btn">Retry</button>
                     </div>
                 `;
+                modalBody.querySelector(".retry-btn").addEventListener("click", ev => showListModal(ev, meaning));
             }
         })
         .catch(error => {
@@ -452,9 +455,10 @@ function showListModal(ev, meaning) {
                     <div class="error-icon">⚠️</div>
                     <h4>Failed to load lists</h4>
                     <p>${error.message}</p>
-                    <button onclick="showListModal(${meaning.id}, '${meaning.name}')" class="retry-btn">Retry</button>
+                    <button class="retry-btn">Retry</button>
                 </div>
             `;
+            modalBody.querySelector(".retry-btn").addEventListener("click", ev => showListModal(ev, meaning));
         });
     
     modalOverlay.addEventListener('click', function(e) {
@@ -489,9 +493,11 @@ function handleAddMeaningToList(meaningId, listId, listName) {
                 <div class="success-icon">✅</div>
                 <h4>Success!</h4>
                 <p>Meaning added to "${listName}" successfully!</p>
-                <button onclick="closeListModal()" class="btn btn-primary">Close</button>
+                <button class="btn btn-primary">Close</button>
             </div>
         `;
+
+        modalBody.querySelector(".btn-primary").addEventListener("click", ev => closeListModal());
         
         const modal = document.querySelector('.modal-overlay');
         setTimeout(() => {
@@ -505,10 +511,13 @@ function handleAddMeaningToList(meaningId, listId, listName) {
                 <div class="error-icon">⚠️</div>
                 <h4>Failed to add meaning</h4>
                 <p>${error.message}</p>
-                <button onclick="addMeaningToList(${meaningId}, ${listId}, '${listName}')" class="retry-btn">Retry</button>
-                <button onclick="closeListModal()" class="btn btn-secondary">Cancel</button>
+                <button class="retry-btn">Retry</button>
+                <button class="btn btn-secondary">Cancel</button>
             </div>
         `;
+
+        modalBody.querySelector(".retry-btn").addEventListener("click", ev => handleAddMeaningToList(meaningId, listId, listName));
+        modalBody.querySelector(".btn-secondary").addEventListener("click", ev => closeListModal());
     });
 }
 

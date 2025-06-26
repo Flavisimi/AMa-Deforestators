@@ -185,7 +185,7 @@ function createUserCard(user, index) {
     card.className = 'user-card';
     card.style.animationDelay = `${index * 0.1}s`;
     
-    const isCurrentUser = currentUserId && user.id === currentUserId;
+    const isCurrentUser = currentUserId && user.id == currentUserId;
     const canModify = currentUserRole === 'ADMIN' && !isCurrentUser;
     
     let adminControlsHtml = '';

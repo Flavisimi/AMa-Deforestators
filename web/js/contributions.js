@@ -1,6 +1,5 @@
 let currentUser = null;
 let targetUserId = null;
-let editingMeaningId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     initializePage();
@@ -27,47 +26,10 @@ function attachEventListeners() {
             window.location.href = `profile?id=${targetUserId}`;
         });
     }
-    
-    const closeEditModalBtn = document.getElementById('closeEditModal');
-    if (closeEditModalBtn) {
-        closeEditModalBtn.addEventListener('click', closeEditModal);
-    }
-    
-    const cancelEdit = document.getElementById('cancelEdit');
-    if (cancelEdit) {
-        cancelEdit.addEventListener('click', closeEditModal);
-    }
-    
-    const editForm = document.getElementById('editForm');
-    if (editForm) {
-        editForm.addEventListener('submit', handleEditSubmit);
-    }
-    
-    const editModal = document.getElementById('editModal');
-    if (editModal) {
-        editModal.addEventListener('click', function(e) {
-            if (e.target === editModal) {
-                closeEditModal();
-            }
-        });
-    }
 }
 
 async function loadCurrentUser() {
-    try {
-        const response = await fetch('/api/profile');
-        if (response.ok) {
-            const userData = await response.json();
-            currentUser = userData;
-            updateUserInterface();
-            console.log('Current user loaded:', currentUser);
-        } else {
-            currentUser = null;
-        }
-    } catch (error) {
-        console.error('Error loading current user:', error);
-        currentUser = null;
-    }
+    currentUser = await GLOBAL_USER;
 }
 
 function updateUserInterface() {
@@ -116,62 +78,16 @@ function displayContributions(contributions) {
     const meanings = Object.values(contributions);
 
     container.innerHTML = '';
-    const grid = createMeaningsGrid(meanings, handleVote, null, handleDelete, openEditModal);
+    const grid = createMeaningsGrid(meanings, handleVote, null, handleDelete, handleSubmit);
     container.appendChild(grid);
 
     grid.querySelectorAll(".add-to-list-btn").forEach(btn => btn.remove());
 }
 
-function openEditModal(meaningId, name, lang, domain, shortExpansion) {
-    editingMeaningId = meaningId;
-    
-    document.getElementById('editName').value = name;
-    document.getElementById('editLang').value = lang;
-    document.getElementById('editDomain').value = domain;
-    document.getElementById('editExpansion').value = shortExpansion;
-    
-    document.getElementById('editModal').style.display = 'flex';
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').style.display = 'none';
-    editingMeaningId = null;
-    document.getElementById('editForm').reset();
-}
-
-async function handleEditSubmit(e) {
-    e.preventDefault();
-    
-    if (!editingMeaningId) {
-        showError('No meaning selected for editing');
-        return;
-    }
-    
-    const formData = new FormData(e.target);
-    const data = {
-        meaning_id: editingMeaningId,
-        name: formData.get('name').trim(),
-        lang: formData.get('lang').trim(),
-        domain: formData.get('domain').trim(),
-        short_expansion: formData.get('short_expansion').trim()
-    };
-    
-    if (!data.name || !data.lang || !data.domain || !data.short_expansion) {
-        showError('All fields are required');
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/contributions/update', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
+async function handleSubmit(ev, meaningCard, meaning)
+{
+    await submitEditModal(ev, meaning)
+    .then(result => {
         if (result.success) {
             showSuccess('Meaning updated successfully');
             closeEditModal();
@@ -179,10 +95,11 @@ async function handleEditSubmit(e) {
         } else {
             showError(result.error || 'Failed to update meaning');
         }
-    } catch (error) {
+    })
+    .catch(error => {
         console.error('Error updating meaning:', error);
         showError('Failed to update meaning');
-    }
+    });
 }
 
 async function handleDelete(btn, id)

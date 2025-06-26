@@ -18,7 +18,7 @@ document.addEventListener('click', function(e) {
 
 async function loadUserData(resolve, reject)
 {
-    await fetch('/api/profile', {
+    fetch('/api/profile', {
         method: 'GET',
         credentials: 'include'
     })
@@ -40,32 +40,12 @@ async function loadUserData(resolve, reject)
     });
 }
 
-function loadUserProfile() {
-    fetch('/api/profile', {
-        method: 'GET',
-        credentials: 'include'
-    })
-    .then(response => {
-        if (!response.ok) {
-            if (response.status === 401) {
-                displayGuestProfile();
-                return null;
-            }
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(user => {
-        if (user && !user.guest) {
-            displayUserProfile(user);
-        } else {
-            displayGuestProfile();
-        }
-    })
-    .catch(error => {
-        console.error('Error loading user profile:', error);
+async function loadUserProfile() {
+    const user = await GLOBAL_USER;
+    if(user)
+        displayUserProfile(user);
+    else
         displayGuestProfile();
-    });
 }
 
 function displayUserProfile(user) {

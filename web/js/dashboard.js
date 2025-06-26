@@ -308,6 +308,32 @@ function fetchMeanings(abbrId) {
         });
 }
 
+async function handleSubmit(ev, meaningCard, meaning)
+{
+    const placeholder = document.querySelector('.content-placeholder');
+    await submitEditModal(ev, meaning)
+    .then(result => {
+        if (result.success) {
+            closeEditModal();
+            refreshMeaning(meaningCard, meaning.id);
+        } else {
+            throw new Error(result.error || 'Failed to update meaning');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating meaning:', error);
+        closeEditModal();
+        placeholder.innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">⚠️</div>
+                    <h3>Failed to edit meaning</h3>
+                    <p>${error.message}</p>
+                    <button onclick="loadAllAbbreviations()" class="back-btn">Back to All</button>
+                </div>
+            `;
+    });
+}
+
 async function handleVote(event, meaningId, isUpvote) {
     const placeholder = document.querySelector('.content-placeholder');
     const meaningCard = event.target.closest('.meaning-card');
@@ -367,7 +393,7 @@ function displayMeanings(data) {
     `;
     meaningsContainer.appendChild(header);
 
-    meaningsContainer.appendChild(createMeaningsGrid(meanings, handleVote, showListModal, handleDeleteMeaning, null));
+    meaningsContainer.appendChild(createMeaningsGrid(meanings, handleVote, showListModal, handleDeleteMeaning, handleSubmit));
     placeholder.appendChild(meaningsContainer);
 }
 

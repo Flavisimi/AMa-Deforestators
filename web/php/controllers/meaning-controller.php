@@ -11,6 +11,7 @@ require_once( __DIR__ . "/../repositories/vote-repository.php");
 require_once( __DIR__ . "/../exceptions/api-exception.php");
 require_once( __DIR__ . "/../services/meaning-service.php");
 require_once( __DIR__ . "/../helpers/docbook-helper.php");
+require_once( __DIR__ . "/../dtos/meaning-update-dto.php");
 
 use ama\models\Meaning;
 use ama\helpers\ConnectionHelper;
@@ -21,6 +22,7 @@ use ama\repositories\VoteRepository;
 use ama\exceptions\ApiException;
 use ama\services\MeaningService;
 use ama\helpers\DocbookHelper;
+use ama\dtos\MeaningUpdateDTO;
 
 class MeaningController
 {
@@ -123,7 +125,7 @@ class MeaningController
     public static function delete_meaning($id)
     {
         if(!isset($_SESSION["user_id"]))
-            throw new ApiException(401, "You need to be logged in to vote for an abbreviation");
+            throw new ApiException(401, "You need to be logged in to delete a meaning");
 
         if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] == 'USER')
             throw new ApiException(403, "Users may not delete meanings");
@@ -166,6 +168,48 @@ class MeaningController
         }
 
         oci_close($conn);
+    }
+
+    public static function update_meaning($id, $dto): Meaning
+    {
+        if(!isset($_SESSION["user_id"]))
+            throw new ApiException(401, "You need to be logged in to update a meaning");
+
+        if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] == 'USER')
+            throw new ApiException(403, "Users may not update meanings");
+        
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            MeaningRepository::update_meaning($conn, $id, $dto);
+            $meaning = MeaningRepository::load_meaning($conn, $id);
+            $searchable_name = MeaningService::get_searchable_name($meaning->name);
+
+            $document = DocbookHelper::load_abbreviation_document($searchable_name);
+            if($document == null)
+            {
+                oci_rollback($conn);
+                throw new ApiException(500, "Inconsistent docbook state");
+            }
+
+            DocbookHelper::delete_meaning_from_document($document, $meaning->short_expansion);
+            DocbookHelper::add_meaning_to_abbr_document($document, $meaning, $dto->description);
+
+            if(!DocbookHelper::save_document($document))
+            {
+                oci_rollback($conn);
+                throw new ApiException(500, "Could not delete meaning from file");
+            }
+
+            oci_commit($conn);
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+
+        oci_close($conn);
+        return $meaning;
     }
 
     public static function handle_get()
@@ -248,6 +292,33 @@ class MeaningController
         }
     }
 
+    public static function handle_put()
+    {
+        $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $query_components = array();
+        parse_str($_SERVER['QUERY_STRING'], $query_components);
+
+        if($url === "/api/meanings")
+        {
+            if(!isset($query_components["id"]))
+            {
+                http_response_code(400);
+                return;
+            }
+
+            $id = $query_components["id"];
+            if(!is_numeric($id))
+                    throw new ApiException(400, "Invalid ID");
+
+            $request_body = file_get_contents("php://input");
+            $dto = MeaningUpdateDTO::from_json($request_body);
+            $rez = self::update_meaning($id, $dto);
+
+            header("Content-Type: application/json");
+            echo json_encode(["success" => true, "meaning" => $rez]);
+        }
+    }
+
     public static function handle_request()
     {
         session_start();
@@ -257,6 +328,8 @@ class MeaningController
             MeaningController::handle_post();
         else if($_SERVER['REQUEST_METHOD'] === 'DELETE')
             self::handle_delete();
+        else if($_SERVER['REQUEST_METHOD'] === 'PUT')
+            self::handle_put();
         else
         {
             http_response_code(400);

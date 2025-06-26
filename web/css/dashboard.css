@@ -265,21 +265,6 @@
     box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
 }
 
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    backdrop-filter: blur(5px);
-    animation: fadeIn 0.3s ease;
-}
-
 .list-modal {
     background: white;
     border-radius: 20px;
@@ -289,48 +274,6 @@
     max-height: 80vh;
     overflow: hidden;
     animation: slideUp 0.3s ease;
-}
-
-.modal-header {
-    padding: 25px 30px;
-    background: linear-gradient(135deg, #4caf50, #45a049);
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h3 {
-    font-size: 1.4rem;
-    font-weight: 600;
-    margin: 0;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.8rem;
-    cursor: pointer;
-    padding: 0;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.3s ease;
-}
-
-.modal-close:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: rotate(90deg);
-}
-
-.modal-body {
-    padding: 30px;
-    max-height: 60vh;
-    overflow-y: auto;
 }
 
 /* Lists Container */
@@ -500,18 +443,6 @@
         max-height: 90vh;
     }
     
-    .modal-header {
-        padding: 20px 25px;
-    }
-    
-    .modal-header h3 {
-        font-size: 1.2rem;
-    }
-    
-    .modal-body {
-        padding: 25px;
-    }
-    
     .list-item {
         padding: 15px;
     }
@@ -530,14 +461,6 @@
 }
 
 @media (max-width: 480px) {
-    .modal-header {
-        padding: 15px 20px;
-    }
-    
-    .modal-body {
-        padding: 20px;
-    }
-    
     .add-to-list-btn {
         padding: 10px 16px;
         font-size: 0.95rem;

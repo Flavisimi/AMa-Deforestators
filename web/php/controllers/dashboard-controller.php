@@ -25,16 +25,24 @@ class DashboardController
 
     public static function search_abbreviations(string $search_term, string $search_type, ?string $language = null, ?string $domain = null): ?array
     {
-        if (empty($search_term) || !in_array($search_type, ['name', 'signification'])) {
+        $search_term = trim($search_term);
+        
+        if (empty($search_term) && empty($language) && empty($domain)) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Invalid input']);
+            echo json_encode(['success' => false, 'error' => 'Search term or filters required']);
+            exit;
+        }
+
+        if (!in_array($search_type, ['name', 'signification'])) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Invalid search type']);
             exit;
         }
 
         $search_type = ($search_type === 'signification') ? 'meaning' : $search_type;
 
         $conn = ConnectionHelper::open_connection();
-        $abbreviations = DashboardRepository::search_abbreviations($conn, $search_term, $search_type, $language, $domain);
+        $abbreviations = DashboardRepository::search_abbreviations_with_filters($conn, $search_term, $search_type, $language, $domain);
         oci_close($conn);
 
         return $abbreviations;
@@ -78,7 +86,7 @@ class DashboardController
             $request_body = file_get_contents("php://input");
             $data = json_decode($request_body, true);
             
-            $search_term = trim($data['search_term'] ?? '');
+            $search_term = $data['search_term'] ?? '';
             $search_type = $data['search_type'] ?? '';
             $language = !empty($data['language']) ? trim($data['language']) : null;
             $domain = !empty($data['domain']) ? trim($data['domain']) : null;

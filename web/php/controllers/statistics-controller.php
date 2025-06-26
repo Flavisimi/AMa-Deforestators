@@ -100,7 +100,7 @@ class StatisticsController
             $text = "";
 
             foreach($output as $meaning)
-                $text .= $meaning->id . "," . $meaning->name . "," . $meaning->controversy . "\n";
+                $text .= $meaning->id . ",\"" . $meaning->name . "\"," . $meaning->controversy . "\n";
             return $text;
         }
         else //pdf
@@ -162,7 +162,7 @@ class StatisticsController
             $text = "";
 
             foreach($output as $meaning)
-                $text .= $meaning->id . "," . $meaning->name . "," . $meaning->like_rate . "\n";
+                $text .= $meaning->id . ",\"" . $meaning->name . "\"," . $meaning->like_rate . "\n";
             return $text;
         }
         else //pdf

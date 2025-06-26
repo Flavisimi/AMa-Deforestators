@@ -6,6 +6,7 @@ require_once( __DIR__ . "/../models/abbreviation.php");
 require_once( __DIR__ . "/../models/meaning.php");
 require_once( __DIR__ . "/../helpers/connection-helper.php");
 require_once( __DIR__ . "/../helpers/docbook-helper.php");
+require_once( __DIR__ . "/../helpers/filter-helper.php");
 require_once( __DIR__ . "/../repositories/abbreviation-repository.php");
 require_once( __DIR__ . "/../services/abbreviation-service.php");
 require_once( __DIR__ . "/../dtos/abbreviation-insert-dto.php");
@@ -16,6 +17,7 @@ use ama\models\Abbreviation;
 use ama\models\Meaning;
 use ama\helpers\ConnectionHelper;
 use ama\helpers\DocbookHelper;
+use ama\helpers\FilterHelper;
 use ama\repositories\AbbreviationRepository;
 use ama\services\AbbreviationService;
 use ama\dtos\AbbrInsertDTO;
@@ -94,6 +96,16 @@ class AbbreviationController
     {
         if(!isset($_SESSION["user_id"]))
             throw new ApiException(401, "You need to be logged in to create an abbreviation");
+
+        if(!isset($_SESSION['user_role']) || $_SESSION['user_role'] == 'USER')
+        {
+            if(FilterHelper::filter_words($dto->name)
+                || FilterHelper::filter_words($dto->short_expansion)
+                || FilterHelper::filter_words($dto->description)
+                || FilterHelper::filter_words($dto->lang)
+                || FilterHelper::filter_words($dto->domain))
+                throw new ApiException(400, "Input contained invalid words");
+        }
 
         $opened_here = false;
         if($conn == null)

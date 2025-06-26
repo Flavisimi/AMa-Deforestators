@@ -22,7 +22,7 @@ function createMeaningCard(meaning, voteHandler, showAddList, deleteHandler, sub
                     <strong>Domain:</strong> ${escapeHtml(meaning.domain)}
                 </span>
                 <span class="meta-item">
-                    <strong>Submitted by:</strong> ${escapeHtml(meaning.uploader_name)}
+                    <strong>Submitted by:</strong> <a href="/profile?id=${meaning.uploader_id}">${escapeHtml(meaning.uploader_name)}</a>
                 </span>
                 <div class="meta-div">
                     <span class="meta-item">

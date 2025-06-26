@@ -388,28 +388,6 @@ document.addEventListener('DOMContentLoaded', function() {
         reader.readAsDataURL(file);
     }
     
-    function showAlert(message, type) {
-        const successDiv = document.getElementById('success-message');
-        const errorDiv = document.getElementById('error-message');
-        
-        successDiv.style.display = 'none';
-        errorDiv.style.display = 'none';
-        
-        if (type === 'success') {
-            successDiv.textContent = escapeHtml(message);
-            successDiv.style.display = 'block';
-            setTimeout(() => {
-                successDiv.style.display = 'none';
-            }, 5000);
-        } else {
-            errorDiv.textContent = escapeHtml(message);
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
-    }
-    
     const form = document.querySelector('.edit-form');
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -829,9 +807,10 @@ async function updateUserCredentials(userId, modal) {
         }
     } catch (error) {
         console.error('Error updating credentials:', error);
-        const errorDiv = document.getElementById('error-message');
-        errorDiv.textContent = 'Failed to update credentials: ' + escapeHtml(error.message);
-        errorDiv.style.display = 'block';
+        // const errorDiv = document.getElementById('error-message');
+        // errorDiv.textContent = 'Failed to update credentials: ' + escapeHtml(error.message);
+        // errorDiv.style.display = 'block';
+        showAlert('Failed to update credentials: ' + escapeHtml(error.message));
     } finally {
         const overlay = document.getElementById('loading-overlay');
         overlay.style.display = 'none';
@@ -1066,44 +1045,27 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function showAlert(message, type) {
-    const existingAlert = document.querySelector('.temp-alert');
-    if (existingAlert) {
-        existingAlert.remove();
-    }
+    const successDiv = document.getElementById('success-message');
+    const errorDiv = document.getElementById('error-message');
     
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type} temp-alert`;
-    alert.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1001;
-        min-width: 300px;
-        padding: 12px 16px;
-        border-radius: 6px;
-        font-weight: 500;
-        animation: slideInRight 0.3s ease-out;
-    `;
+    successDiv.style.display = 'none';
+    errorDiv.style.display = 'none';
     
     if (type === 'success') {
-        alert.style.background = '#d4edda';
-        alert.style.color = '#155724';
-        alert.style.border = '1px solid #c3e6cb';
-    } else if (type === 'error') {
-        alert.style.background = '#f8d7da';
-        alert.style.color = '#721c24';
-        alert.style.border = '1px solid #f5c6cb';
+        successDiv.textContent = escapeHtml(message);
+        successDiv.style.display = 'block';
+        setTimeout(() => {
+            successDiv.style.display = 'none';
+        }, 5000);
+    } else {
+        errorDiv.textContent = escapeHtml(message);
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
     }
-    
-    alert.textContent = escapeHtml(message);
-    document.body.appendChild(alert);
-    
-    setTimeout(() => {
-        if (alert.parentNode) {
-            alert.remove();
-        }
-    }, 5000);
 }
+
 function addContributionButton(user) {
     const profileActionsHeader = document.querySelector('.profile-actions-header');
     

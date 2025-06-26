@@ -218,7 +218,7 @@ class MeaningController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/meanings")
+        if($url === "/api/meanings")
         {
             if(isset($query_components["id"]))
             {
@@ -248,7 +248,7 @@ class MeaningController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/meanings/upvote" || $url === "/meanings/downvote")
+        if($url === "/api/meanings/upvote" || $url === "/api/meanings/downvote")
         {
             if(!isset($query_components["id"]))
             {
@@ -260,7 +260,7 @@ class MeaningController
             if(!is_numeric($id))
                     throw new ApiException(400, "Invalid ID");
 
-            $is_upvote = $url === "/meanings/upvote";
+            $is_upvote = $url === "/api/meanings/upvote";
 
             MeaningController::vote_abbreviation($id, $is_upvote);
         }

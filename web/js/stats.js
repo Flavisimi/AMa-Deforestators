@@ -1,9 +1,9 @@
 const API_ENDPOINTS = {
-    mostVisited: '/statistics/most_visited',
-    mostControversial: '/statistics/most_controversial', 
-    highestLikeRate: '/statistics/highest_like_rate',
-    mostActiveUsers: '/statistics/most_active_users',
-    medianAbbreviation: '/statistics/median_abbreviation'
+    mostVisited: '/api/statistics/most_visited',
+    mostControversial: '/api/statistics/most_controversial', 
+    highestLikeRate: '/api/statistics/highest_like_rate',
+    mostActiveUsers: '/api/statistics/most_active_users',
+    medianAbbreviation: '/api/statistics/median_abbreviation'
 };
 
 function showLoading() {

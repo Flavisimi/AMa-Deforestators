@@ -134,7 +134,7 @@ function voteMeaning(event, meaningId, isUpvote)
     const wasUpvoteActive = upvoteBtn.classList.contains('active');
     const wasDownvoteActive = downvoteBtn.classList.contains('active');
 
-    const endpoint = isUpvote ? '/meanings/upvote' : '/meanings/downvote';
+    const endpoint = isUpvote ? '/api/meanings/upvote' : '/api/meanings/downvote';
     return fetch(`${endpoint}?id=${meaningId}`, {
         method: 'POST'
     }).then(response => {
@@ -161,7 +161,7 @@ function voteMeaning(event, meaningId, isUpvote)
 }
 
 function refreshMeaning(meaningCard, meaningId) {
-    return fetch(`/meanings?id=${meaningId}`)
+    return fetch(`/api/meanings?id=${meaningId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -175,7 +175,7 @@ function refreshMeaning(meaningCard, meaningId) {
 
 
 function addMeaningToList(meaningId, listId) {
-    return fetch(`/abbr-lists/entry?id=${listId}&meaning=${meaningId}`, {
+    return fetch(`/api/abbr-lists/entry?id=${listId}&meaning=${meaningId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -207,7 +207,7 @@ function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, hand
 
 function loadMeaningsByAbbrId(abbreviationId)
 {
-    return fetch(`/abbreviations?id=${abbreviationId}`)
+    return fetch(`/api/abbreviations?id=${abbreviationId}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -304,7 +304,7 @@ function closeEditModal() {
 }
 
 function loadUserLists() {
-    return fetch('/abbr-lists/mine')
+    return fetch('/api/abbr-lists/mine')
     .then(response => {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

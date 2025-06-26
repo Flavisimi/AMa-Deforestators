@@ -328,27 +328,27 @@ class StatisticsController
                 throw new ApiException(400, "Invalid export format for statistics");
         }
 
-        if($url === "/statistics/most_visited")
+        if($url === "/api/statistics/most_visited")
         {
             $rez = StatisticsController::most_visited($format);
             echo $rez;
         }
-        else if($url === "/statistics/most_controversial")
+        else if($url === "/api/statistics/most_controversial")
         {
             $rez = StatisticsController::most_controversial($format);
             echo $rez;
         }
-        else if($url === "/statistics/highest_like_rate")
+        else if($url === "/api/statistics/highest_like_rate")
         {
             $rez = StatisticsController::highest_like_rate($format);
             echo $rez;
         }
-        else if($url === "/statistics/most_active_users")
+        else if($url === "/api/statistics/most_active_users")
         {
             $rez = StatisticsController::most_active_users($format);
             echo $rez;
         }
-        else if($url === "/statistics/median_abbreviation")
+        else if($url === "/api/statistics/median_abbreviation")
         {
             $rez = StatisticsController::median_abbreviation($format);
             echo $rez;

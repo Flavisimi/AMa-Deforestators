@@ -194,7 +194,7 @@ class AbbreviationController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/abbreviations")
+        if($url === "/api/abbreviations")
         {
             if(isset($query_components["id"]))
             {

@@ -60,7 +60,7 @@ class UserController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/users")
+        if($url === "/api/users")
         {
             if(isset($query_components["id"]))
             {
@@ -78,7 +78,7 @@ class UserController
                 echo json_encode($rez);
             }
         }
-        else if($url === "/users/current")
+        else if($url === "/api/users/current")
         {
             $rez = UserController::get_current_user();
             header("Content-Type: application/json");

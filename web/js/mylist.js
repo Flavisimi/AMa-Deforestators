@@ -9,15 +9,6 @@ function getListIdFromUrl() {
     return urlParams.get('id');
 }
 
-function checkAuthentication() {
-
-    return fetch('/auth/check', { 
-        credentials: 'include' 
-    })
-    .then(response => response.ok)
-    .catch(() => false);
-}
-
 function loadListDetails() {
     const listId = getListIdFromUrl();
     if (!listId) {
@@ -26,7 +17,7 @@ function loadListDetails() {
         return;
     }
 
-    fetch(`/abbr-lists?id=${listId}`, {
+    fetch(`/api/abbr-lists?id=${listId}`, {
         credentials: 'include' 
     })
     .then(response => {
@@ -160,7 +151,7 @@ function removeAbbreviation(index) {
 
     const listId = getListIdFromUrl();
     
-    fetch(`/abbr-lists/entry?id=${listId}&index=${index}`, {
+    fetch(`/api/abbr-lists/entry?id=${listId}&index=${index}`, {
         method: 'DELETE',
         credentials: 'include' 
     })
@@ -268,7 +259,7 @@ function setupAbbreviationSearch() {
 }
 
 function searchAbbreviations(query) {
-    fetch(`/abbreviations/search?q=${encodeURIComponent(query)}`, {
+    fetch(`/api/abbreviations/search?q=${encodeURIComponent(query)}`, {
         credentials: 'include' 
     })
     .then(response => {
@@ -379,7 +370,7 @@ function addSelectedAbbreviation() {
         addBtn.disabled = true;
     }
 
-    fetch(`/abbr-lists/entry?id=${listId}&meaning=${selectedMeaningId}`, {
+    fetch(`/api/abbr-lists/entry?id=${listId}&meaning=${selectedMeaningId}`, {
         method: 'POST',
         credentials: 'include' 
     })

@@ -6,35 +6,8 @@ let hasMore = true;
 let currentAbbreviations = [];
 let isSearchMode = false;
 
-document.querySelectorAll('.nav-button').forEach(button => {
-    button.addEventListener('click', function(e) {
-        const href = this.getAttribute('href');
-        
-       if (href.startsWith('#')) {
-            e.preventDefault();
-            
-            if (href === '#create') {
-                window.location.href = 'create-abbreviation';
-                return;
-            }
-            if (href === '#myabv') {
-                window.location.href = 'my_abbreviations';
-                return;
-            }
-            if (href === '#vote') {
-                window.location.href = 'vote';
-                return;
-            }
-            if (href === '#stats') {
-                window.location.href = 'stats';
-                return;
-            }
-        }
-    });
-});
-
 function loadFilterOptions() {
-    fetch('/dashboard/filters')
+    fetch('/api/dashboard/filters')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -212,7 +185,7 @@ function loadAbbreviations(page = 1, append = false) {
     
     showLoadingIndicator(append);
     
-    fetch(`/abbreviations?page=${page}&limit=20`)
+    fetch(`/api/abbreviations?page=${page}&limit=20`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -455,7 +428,7 @@ function performSearch() {
         searchData.domain = domain;
     }
     
-    fetch('/dashboard/search', {
+    fetch('/api/dashboard/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(searchData)

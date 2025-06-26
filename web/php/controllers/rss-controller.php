@@ -49,7 +49,7 @@ class RssController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/rss")
+        if($url === "/api/rss")
         {
             $rez = RssController::rss_feed();
             header("Content-Type: application/rss+xml");

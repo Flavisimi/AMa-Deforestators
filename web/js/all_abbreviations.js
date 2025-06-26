@@ -7,7 +7,7 @@ function loadAbbreviationLists() {
         </div>
     `;
 
-    fetch('/abbr-lists')
+    fetch('/api/abbr-lists')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

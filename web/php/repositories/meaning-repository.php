@@ -189,6 +189,25 @@ class MeaningRepository
 
         oci_free_statement($stmt);
     }
+
+    public static function update_meaning($conn, int $id, $dto, bool $autocommit = false)
+    {
+        $stmt = oci_parse($conn, "update meanings set name = :name, short_expansion = :short, lang = :lang, domain = :dom, approval_status = :status where id = :id");
+        if(!$stmt) 
+            throw new ApiException(500, "Failed to parse SQL statement");
+        
+        oci_bind_by_name($stmt, ":name", $dto->name);
+        oci_bind_by_name($stmt, ":short", $dto->short_expansion);
+        oci_bind_by_name($stmt, ":lang", $dto->lang);
+        oci_bind_by_name($stmt, ":dom", $dto->domain);
+        oci_bind_by_name($stmt, ":status", $dto->approval_status);
+        oci_bind_by_name($stmt, ":id", $id);
+
+        if(!oci_execute($stmt, $autocommit ? OCI_COMMIT_ON_SUCCESS : OCI_NO_AUTO_COMMIT)) 
+            throw new ApiException(500, oci_error($stmt)['message'] ?? "unknown");
+
+        oci_free_statement($stmt);
+    }
 }
 
 

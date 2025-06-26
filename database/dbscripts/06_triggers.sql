@@ -62,11 +62,6 @@ compound trigger
         if(v_old_searchable_name != v_new_searchable_name) then
             raise_application_error(-20100, 'Cannot modify abbreviation name to mean something else');
         end if;
-        
-        if(:new.name != :old.name 
-            or :new.short_expansion != :new.short_expansion) then
-            :new.approval_status := 'pending';
-        end if;
     end before each row;
 
     after each row is

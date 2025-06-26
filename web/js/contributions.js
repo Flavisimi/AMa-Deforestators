@@ -122,13 +122,15 @@ function displayContributions(contributions) {
     grid.querySelectorAll(".add-to-list-btn").forEach(btn => btn.remove());
 }
 
-function openEditModal(meaningId, name, lang, domain, shortExpansion) {
-    editingMeaningId = meaningId;
+function openEditModal(ev, meaning) {
+    editingMeaningId = meaning.id;
     
-    document.getElementById('editName').value = name;
-    document.getElementById('editLang').value = lang;
-    document.getElementById('editDomain').value = domain;
-    document.getElementById('editExpansion').value = shortExpansion;
+    document.getElementById('editName').value = meaning.name;
+    document.getElementById('editLang').value = meaning.lang;
+    document.getElementById('editDomain').value = meaning.domain;
+    document.getElementById('editExpansion').value = meaning.short_expansion;
+    document.getElementById('editDescription').value = meaning.description;
+    document.getElementById('editStatus').value = meaning.approval_status;
     
     document.getElementById('editModal').style.display = 'flex';
 }
@@ -149,11 +151,12 @@ async function handleEditSubmit(e) {
     
     const formData = new FormData(e.target);
     const data = {
-        meaning_id: editingMeaningId,
         name: formData.get('name').trim(),
         lang: formData.get('lang').trim(),
         domain: formData.get('domain').trim(),
-        short_expansion: formData.get('short_expansion').trim()
+        short_expansion: formData.get('short_expansion').trim(),
+        description: formData.get('description').trim(),
+        approval_status: formData.get('approval_status')
     };
     
     if (!data.name || !data.lang || !data.domain || !data.short_expansion) {
@@ -162,7 +165,7 @@ async function handleEditSubmit(e) {
     }
     
     try {
-        const response = await fetch('/api/contributions/update', {
+        const response = await fetch(`/api/meanings?id=${editingMeaningId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

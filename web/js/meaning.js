@@ -68,7 +68,7 @@ async function createMeaningCard(meaning, voteHandler, addHandler, deleteHandler
     if(deleteHandler != null) meaningCard.querySelector(".delete-btn").addEventListener("click", ev => deleteHandler(ev.target, meaning.id));
     else meaningCard.querySelector(".delete-btn").remove();
 
-    if(editHandler != null) meaningCard.querySelector(".edit-btn").addEventListener("click", ev => editHandler(meaning.id, meaning.name, meaning.lang, meaning.domain, meaning.short_expansion));
+    if(editHandler != null) meaningCard.querySelector(".edit-btn").addEventListener("click", ev => editHandler(ev, meaning));
     else meaningCard.querySelector(".edit-btn").remove();
 
     await removeModControls(meaningCard);

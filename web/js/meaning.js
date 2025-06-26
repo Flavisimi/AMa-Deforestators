@@ -1,4 +1,4 @@
-function createMeaningCard(meaning, voteHandler, addHandler, deleteHandler, submitHandler)
+function createMeaningCard(meaning, voteHandler, showAddList, deleteHandler, submitHandler)
 {
     const meaningCard = document.createElement('div');
     meaningCard.className = 'meaning-card';
@@ -62,7 +62,7 @@ function createMeaningCard(meaning, voteHandler, addHandler, deleteHandler, subm
         voteButtons[1].remove();
     }
 
-    if(addHandler != null) meaningCard.querySelector(".add-to-list-btn").addEventListener("click", ev => addHandler(meaning.id, meaning.short_expansion));
+    if(showAddList) meaningCard.querySelector(".add-to-list-btn").addEventListener("click", ev => showListModal(ev, meaning));
     else meaningCard.querySelector(".add-to-list-btn").remove();
 
     if(deleteHandler != null) meaningCard.querySelector(".delete-btn").addEventListener("click", ev => deleteHandler(ev.target, meaning.id));
@@ -303,7 +303,214 @@ function closeEditModal() {
         modal.remove();
 }
 
-async function submitEditModal(e, meaning) {
+function loadUserLists() {
+    return fetch('/abbr-lists/mine')
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Raw API response:', data);
+        
+        let lists = [];
+        
+        if (Array.isArray(data)) {
+            lists = data;
+        } else if (data && Array.isArray(data.lists)) {
+            lists = data.lists;
+        } else if (data && Array.isArray(data.data)) {
+            lists = data.data;
+        } else if (data && typeof data === 'object') {
+            const values = Object.values(data);
+            const arrayValue = values.find(val => Array.isArray(val));
+            if (arrayValue) {
+                lists = arrayValue;
+            } else {
+                lists = values.filter(val => val && typeof val === 'object');
+            }
+        }
+        
+        console.log('Processed lists:', lists);
+        return lists;
+    })
+    .catch(error => {
+        console.error('Error loading user lists:', error);
+        throw error;
+    });
+}
+
+function createListItem(list)
+{
+    const listItem = document.createElement("div");
+    listItem.className = "list-item";
+
+    listItem.innerHTML = `
+        <div class="list-item-header">
+            <h4>${list.name}</h4>
+            <span class="list-privacy ${list.private ? 'private' : 'public'}">
+                ${list.private ? '🔒 Private' : '🌐 Public'}
+            </span>
+        </div>
+        <div class="list-item-body">
+            <p class="list-description">
+                Created: ${new Date(list.created_at.date).toLocaleDateString()}
+                Updated: ${new Date(list.updated_at.date).toLocaleDateString()}
+            </p>
+            <div class="list-stats">
+                <span>${list.meanings_count || 0} meanings</span>
+            </div>
+        </div>
+    `;
+
+    return listItem;
+}
+
+function showListModal(ev, meaning) {
+    const existingModal = document.querySelector('.list-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    const modalOverlay = document.createElement('div');
+    modalOverlay.className = 'modal-overlay';
+    
+    const modal = document.createElement('div');
+    modal.className = 'list-modal';
+    
+    modal.innerHTML = `
+        <div class="modal-header">
+            <h3>Add "${meaning.name}" to List</h3>
+            <button class="modal-close" onclick="closeListModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Loading your lists...</p>
+            </div>
+        </div>
+    `;
+    
+    modalOverlay.appendChild(modal);
+    document.body.appendChild(modalOverlay);
+    
+    loadUserLists()
+        .then(lists => {
+            const modalBody = modal.querySelector('.modal-body');
+            
+            console.log('Lists in modal:', lists, 'Type:', typeof lists, 'Is Array:', Array.isArray(lists));
+            
+            if (!lists || !Array.isArray(lists) || lists.length === 0) {
+                modalBody.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📋</div>
+                        <h4>No lists found</h4>
+                        <p>You don't have any lists yet. Create one first!</p>
+                        <button class="btn btn-primary" onclick="window.location.href='my_abbreviations'">
+                            Create List
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const listsGrid = document.createElement("div");
+                listsGrid.className = "lists-grid";
+
+                lists.forEach(list => {
+                    const listItem = createListItem(list, meaning);
+                    listItem.addEventListener("click", ev => handleAddMeaningToList(meaning.id, list.id, list.name.replace(/'/g, "\\'")))
+    
+                    listsGrid.appendChild(listItem);
+                })
+                
+                modalBody.innerHTML = `
+                    <div class="lists-container">
+                        <p>Select a list to add this meaning to:</p>
+                    </div>
+                `;
+
+                modalBody.querySelector(".lists-container").appendChild(listsGrid);
+            } catch (mapError) {
+                console.error('Error processing lists:', mapError, lists);
+                modalBody.innerHTML = `
+                    <div class="error-state">
+                        <div class="error-icon">⚠️</div>
+                        <h4>Error processing lists</h4>
+                        <p>There was an issue displaying your lists. Please try again.</p>
+                        <button onclick="showListModal(${meaning.id}, '${meaning.name}')" class="retry-btn">Retry</button>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            const modalBody = modal.querySelector('.modal-body');
+            modalBody.innerHTML = `
+                <div class="error-state">
+                    <div class="error-icon">⚠️</div>
+                    <h4>Failed to load lists</h4>
+                    <p>${error.message}</p>
+                    <button onclick="showListModal(${meaning.id}, '${meaning.name}')" class="retry-btn">Retry</button>
+                </div>
+            `;
+        });
+    
+    modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) {
+            closeListModal();
+        }
+    });
+}
+
+function closeListModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+
+function handleAddMeaningToList(meaningId, listId, listName) {
+    const modalBody = document.querySelector('.modal-body');
+    modalBody.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Adding to list...</p>
+        </div>
+    `;
+    
+    addMeaningToList(meaningId, listId)
+    .then(data => {
+        modalBody.innerHTML = `
+            <div class="success-state">
+                <div class="success-icon">✅</div>
+                <h4>Success!</h4>
+                <p>Meaning added to "${listName}" successfully!</p>
+                <button onclick="closeListModal()" class="btn btn-primary">Close</button>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            closeListModal();
+        }, 2000);
+    })
+    .catch(error => {
+        console.error('Error adding meaning to list:', error);
+        modalBody.innerHTML = `
+            <div class="error-state">
+                <div class="error-icon">⚠️</div>
+                <h4>Failed to add meaning</h4>
+                <p>${error.message}</p>
+                <button onclick="addMeaningToList(${meaningId}, ${listId}, '${listName}')" class="retry-btn">Retry</button>
+                <button onclick="closeListModal()" class="btn btn-secondary">Cancel</button>
+            </div>
+        `;
+    });
+}
+
+function submitEditModal(e, meaning) {
     e.preventDefault();
     
     const formData = new FormData(e.target);
@@ -318,29 +525,6 @@ async function submitEditModal(e, meaning) {
     
     if (!data.name || !data.lang || !data.domain || !data.short_expansion)
         throw new Error('All fields are required');
-    
-    // try {
-    //     const response = await fetch(`/api/meanings?id=${editingMeaningId}`, {
-    //         method: 'PUT',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify(data)
-    //     });
-        
-    //     const result = await response.json();
-        
-    //     if (result.success) {
-    //         showSuccess('Meaning updated successfully');
-    //         closeEditModal();
-    //         loadUserContributions();
-    //     } else {
-    //         showError(result.error || 'Failed to update meaning');
-    //     }
-    // } catch (error) {
-    //     console.error('Error updating meaning:', error);
-    //     showError('Failed to update meaning');
-    // }
 
     return fetch(`/api/meanings?id=${meaning.id}`, {
         method: 'PUT',

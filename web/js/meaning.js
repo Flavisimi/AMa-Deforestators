@@ -187,16 +187,18 @@ function addMeaningToList(meaningId, listId) {
     })
 }
 
-function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, handleEdit)
+async function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, handleEdit)
 {
     const meaningsGrid = document.createElement('div');
     meaningsGrid.className = 'meanings-grid';
     
-    meanings.forEach(async (meaning, index) => {
-        let meaningCard = await createMeaningCard(meaning, handleVote, handleList, handleDelete, handleEdit);
+    for(let index = 0; index < meanings.length; index++)
+    {
+        const meaning = meanings[index];
+        const meaningCard = await createMeaningCard(meaning, handleVote, handleList, handleDelete, handleEdit);
         meaningCard.style.animationDelay = `${index * 0.1}s`;
         meaningsGrid.appendChild(meaningCard);
-    });
+    }
 
     return meaningsGrid;
 }
@@ -246,7 +248,7 @@ function createEditModal(meaningCard, meaning, submitHandler)
                         <textarea id="editExpansion" name="short_expansion" required maxlength="256" rows="3"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="editDescription">Description:</label>
+                        <label for="description">Description</label>
                         <textarea id="editDescription" name="description" required></textarea>
                     </div>
                     <div class="form-group">

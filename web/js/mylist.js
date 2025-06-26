@@ -98,7 +98,7 @@ function displayListDetails(list) {
     `;
 }
 
-async function displayAbbreviations(meanings) {
+function displayAbbreviations(meanings) {
     allAbbreviations = meanings;
     filteredAbbreviations = meanings;
     
@@ -115,7 +115,7 @@ async function displayAbbreviations(meanings) {
         return;
     }
 
-    const grid = await createMeaningsGrid(meanings, null, null, null, null);
+    const grid = createMeaningsGrid(meanings, null, null, null, null);
 
     grid.querySelectorAll(".meaning-header").forEach((header, index) => {
         const button = document.createElement("button");

@@ -1,4 +1,4 @@
-async function createMeaningCard(meaning, voteHandler, addHandler, deleteHandler, submitHandler)
+function createMeaningCard(meaning, voteHandler, addHandler, deleteHandler, submitHandler)
 {
     const meaningCard = document.createElement('div');
     meaningCard.className = 'meaning-card';
@@ -71,7 +71,7 @@ async function createMeaningCard(meaning, voteHandler, addHandler, deleteHandler
     if(submitHandler != null) meaningCard.querySelector(".edit-btn").addEventListener("click", ev => openEditModal(ev, meaningCard, meaning, submitHandler));
     else meaningCard.querySelector(".edit-btn").remove();
 
-    await removeModControls(meaningCard);
+    removeModControls(meaningCard);
     hideCardActionsIfNeeded(meaningCard);
     
     return meaningCard;
@@ -99,14 +99,16 @@ function setMeaningCardData(meaningCard, meaning)
     voteButtons[1].className = `vote-btn ${downvoteClass}`;
 }
 
-async function removeModControls(element)
+async function removeModControls(meaningCard)
 {
     const user = await GLOBAL_USER;
     if(user == null || user.current_user_role == "USER")
-        element.querySelectorAll(".edit-btn, .delete-btn").forEach(btn => btn.remove());
+        meaningCard.querySelectorAll(".edit-btn, .delete-btn").forEach(btn => btn.remove());
+
+    hideCardActionsIfNeeded(meaningCard);
 }
 
-async function hideCardActionsIfNeeded(meaningCard)
+function hideCardActionsIfNeeded(meaningCard)
 {
     const actionsDiv = meaningCard.querySelector(".meaning-actions");
     if(actionsDiv.childElementCount == 0)
@@ -187,7 +189,7 @@ function addMeaningToList(meaningId, listId) {
     })
 }
 
-async function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, handleEdit)
+function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, handleEdit)
 {
     const meaningsGrid = document.createElement('div');
     meaningsGrid.className = 'meanings-grid';
@@ -195,7 +197,7 @@ async function createMeaningsGrid(meanings, handleVote, handleList, handleDelete
     for(let index = 0; index < meanings.length; index++)
     {
         const meaning = meanings[index];
-        const meaningCard = await createMeaningCard(meaning, handleVote, handleList, handleDelete, handleEdit);
+        const meaningCard = createMeaningCard(meaning, handleVote, handleList, handleDelete, handleEdit);
         meaningCard.style.animationDelay = `${index * 0.1}s`;
         meaningsGrid.appendChild(meaningCard);
     }

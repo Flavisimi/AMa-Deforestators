@@ -117,8 +117,9 @@ function createListCard(list, index) {
     card.className = 'list-card';
     card.style.animationDelay = `${index * 0.1}s`;
     
-    const createdDate = list.created_at ? 
-        new Date(list.created_at.date || list.created_at).toLocaleDateString() : 'Unknown';
+    const createdDate = new Date(list.created_at.date).toLocaleDateString();
+    
+    const updatedDate = new Date(list.updated_at.date).toLocaleDateString();
     
     const canEdit = canUserEditList(list);
     const canDelete = canUserDeleteList(list);
@@ -146,15 +147,19 @@ function createListCard(list, index) {
             <div class="list-info">
                 <div class="info-item">
                     <span class="info-label">Creator:</span>
-                    <span class="info-value">${escapeHtml(list.creator_name)}</span>
+                    <span class="info-value"><a href="/profile?id=${list.creator_id}">${escapeHtml(list.creator_name)}</a></span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Meanings:</span>
-                    <span class="info-value">${list.meanings_count || 0}</span>
+                    <span class="info-value">${list.meanings_count}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Created:</span>
                     <span class="info-value">${createdDate}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Updated:</span>
+                    <span class="info-value">${updatedDate}</span>
                 </div>
             </div>
         </div>
@@ -248,8 +253,8 @@ function displayListContents(list) {
                     </span>
                 </div>
                 <div class="list-meta">
-                    <span>Created by ${escapeHtml(list.creator_name)}</span>
-                    <span>${list.meanings_count || 0} meanings</span>
+                    <span>Created by <a href="/profile?id=${list.creator_id}">${escapeHtml(list.creator_name)}</a></span>
+                    <span>${list.meanings_count} meanings</span>
                 </div>
             </div>
             <div class="meanings-container" id="meaningsContainer">
@@ -287,7 +292,7 @@ function displayMeanings(meanings) {
         handleVote,
         false,
         canUserEditList(getCurrentList()) ? handleDeleteMeaning : null,
-        canUserEditList(getCurrentList()) ? handleEditMeaning : null
+        canUserEditList(getCurrentList()) ? submitHandler : null
     );
     
     // Add remove buttons if user can edit
@@ -355,22 +360,21 @@ async function handleDeleteMeaning(btn, meaningId) {
     }
 }
 
-async function handleEditMeaning(ev, meaningCard, meaning, submitHandler) {
-    await openEditModal(ev, meaningCard, meaning, async (ev, meaningCard, meaning) => {
-        try {
-            const result = await submitEditModal(ev, meaning);
-            if (result.success) {
-                showSuccess('Meaning updated successfully');
-                closeEditModal();
-                await refreshMeaning(meaningCard, meaning.id);
-            } else {
-                showError(result.error || 'Failed to update meaning');
-            }
-        } catch (error) {
-            console.error('Error updating meaning:', error);
-            showError('Failed to update meaning');
+async function submitHandler(ev, meaningCard, meaning) {
+    try
+    {
+        const result = await submitEditModal(ev, meaning);
+        if (result.success) {
+            showSuccess('Meaning updated successfully');
+            closeEditModal();
+            await refreshMeaning(meaningCard, meaning.id);
+        } else {
+            showError(result.error || 'Failed to update meaning');
         }
-    });
+    } catch (error) {
+        console.error('Error updating meaning:', error);
+        showError('Failed to update meaning');
+    }
 }
 
 async function removeMeaningFromList(meaningId) {

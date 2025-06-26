@@ -69,9 +69,9 @@ class DashboardController
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        if ($url === "/dashboard/user") {
+        if ($url === "/api/dashboard/user") {
             self::get_user_info();
-        } elseif ($url === "/dashboard/filters") {
+        } elseif ($url === "/api/dashboard/filters") {
             self::get_filter_data();
         } else {
             http_response_code(400);
@@ -82,7 +82,7 @@ class DashboardController
     {
         $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        if ($url === "/dashboard/search") {
+        if ($url === "/api/dashboard/search") {
             $request_body = file_get_contents("php://input");
             $data = json_decode($request_body, true);
             

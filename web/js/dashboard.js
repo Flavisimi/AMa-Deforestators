@@ -34,7 +34,7 @@ document.querySelectorAll('.nav-button').forEach(button => {
 });
 
 function loadFilterOptions() {
-    fetch('/dashboard/filters')
+    fetch('/api/dashboard/filters')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -212,7 +212,7 @@ function loadAbbreviations(page = 1, append = false) {
     
     showLoadingIndicator(append);
     
-    fetch(`/abbreviations?page=${page}&limit=20`)
+    fetch(`/api/abbreviations?page=${page}&limit=20`)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -455,7 +455,7 @@ function performSearch() {
         searchData.domain = domain;
     }
     
-    fetch('/dashboard/search', {
+    fetch('/api/dashboard/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(searchData)

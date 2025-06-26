@@ -48,7 +48,7 @@ class AbbreviationSearchController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/abbreviations/search")
+        if($url === "/api/abbreviations/search")
         {
             if(!isset($query_components["q"]))
                 throw new ApiException(400, "Missing search query parameter 'q'");

@@ -172,7 +172,7 @@ class AbbreviationListController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/abbr-lists")
+        if($url === "/api/abbr-lists")
         {
             if(isset($query_components["id"]))
             {
@@ -190,7 +190,7 @@ class AbbreviationListController
                 echo json_encode($rez);
             }
         }
-        else if($url === "/abbr-lists/mine")
+        else if($url === "/api/abbr-lists/mine")
         {
             $rez = AbbreviationListController::get_my_abbr_lists();
             header("Content-Type: application/json");
@@ -208,7 +208,7 @@ class AbbreviationListController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/abbr-lists")
+        if($url === "/api/bbr-lists")
         {
             if(!isset($query_components["name"]))
                 throw new ApiException(400, "Missing name");
@@ -219,7 +219,7 @@ class AbbreviationListController
             header("Content-Type: application/json");
             echo json_encode($rez);
         }
-        else if($url === "/abbr-lists/entry")
+        else if($url === "/api/abbr-lists/entry")
         {
             if(!isset($query_components["id"]))
                 throw new ApiException(400, "Missing list ID");
@@ -247,7 +247,7 @@ class AbbreviationListController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/abbr-lists")
+        if($url === "/api/abbr-lists")
         {
             if(!isset($query_components["id"]))
                 throw new ApiException(400, "Missing ID");
@@ -256,7 +256,7 @@ class AbbreviationListController
 
             AbbreviationListController::delete_abbr_list($query_components["id"]);
         }
-        else if($url === "/abbr-lists/entry")
+        else if($url === "/api/abbr-lists/entry")
         {
             if(!isset($query_components["id"]))
                 throw new ApiException(400, "Missing ID");

@@ -16,7 +16,7 @@ function loadAbbreviationLists() {
         </div>
     `;
 
-    fetch('/abbr-lists/mine')
+    fetch('/api/abbr-lists/mine')
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -119,7 +119,7 @@ document.getElementById('createListForm').addEventListener('submit', function(e)
     const privateValue = isPrivate ? 'true' : 'false';
 
     // Server expects query parameters for POST
-    fetch(`/abbr-lists?name=${encodeURIComponent(name)}&private=${privateValue}`, {
+    fetch(`/api/abbr-lists?name=${encodeURIComponent(name)}&private=${privateValue}`, {
         method: 'POST'
     })
     .then(response => {
@@ -174,7 +174,7 @@ function deleteList(listId, listName) {
     }
 
     // Server expects query parameter for DELETE
-    fetch(`/abbr-lists?id=${listId}`, {
+    fetch(`/api/abbr-lists?id=${listId}`, {
         method: 'DELETE'
     })
     .then(response => {

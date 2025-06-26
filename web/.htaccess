@@ -32,22 +32,6 @@ RewriteRule ^api/contributions/delete/?$ php/controllers/contributions-controlle
 RewriteRule ^api/contributions/?$ php/controllers/contributions-controller.php [L]
 RewriteRule ^api/contributions-debug/?$ php/controllers/contributions-debug.php [L]
 
-
-# Legacy API routes (without /api prefix) for backward compatibility
-RewriteRule ^abbreviations/search php/controllers/abbreviation-search-controller.php [L]
-RewriteRule ^abbreviations php/controllers/abbreviation-controller.php [L]
-RewriteRule ^meanings php/controllers/meaning-controller.php [L]
-RewriteRule ^all-users/search php/controllers/users-controller.php [L]
-RewriteRule ^all-users php/controllers/users-controller.php [L]
-RewriteRule ^users php/controllers/user-controller.php [L]
-RewriteRule ^abbr-lists php/controllers/abbreviation-list-controller.php [L]
-RewriteRule ^dashboard php/controllers/dashboard-controller.php [L]
-RewriteRule ^statistics php/controllers/statistics-controller.php [L]
-RewriteRule ^rss php/controllers/rss-controller.php [L]
-RewriteRule ^profile/update php/controllers/profile-controller.php [L]
-RewriteRule ^logout php/logout.php [L]
-
-
 # HTML file redirects - handle both with and without .html extension
 RewriteRule ^register/?$ html/register.html [L]
 RewriteRule ^register\.html$ html/register.html [L]

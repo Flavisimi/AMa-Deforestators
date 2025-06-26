@@ -6,41 +6,6 @@ let hasMore = true;
 let currentAbbreviations = [];
 let isSearchMode = false;
 
-function loadFilterOptions() {
-    fetch('/api/dashboard/filters')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                availableLanguages = data.languages || [];
-                availableDomains = data.domains || [];
-                
-                populateDatalist('language-options', availableLanguages);
-                populateDatalist('domain-options', availableDomains);
-            }
-        })
-        .catch(error => {
-            console.error('Error loading filter options:', error);
-        });
-}
-
-function populateDatalist(datalistId, options) {
-    const datalist = document.getElementById(datalistId);
-    if (datalist) {
-        datalist.innerHTML = '';
-        
-        options.forEach(option => {
-            const optionElement = document.createElement('option');
-            optionElement.value = option;
-            datalist.appendChild(optionElement);
-        });
-    }
-}
-
 function createAbbreviationCard(abbreviation) {
     const card = document.createElement('div');
     card.className = 'abbreviation-card';
@@ -91,7 +56,8 @@ function createAbbreviationCard(abbreviation) {
         </div>
     `;
 
-    card.querySelector(".view-meanings-btn").addEventListener("click", ev => fetchMeanings(abbreviation.id));
+    // card.querySelector(".view-meanings-btn").addEventListener("click", ev => fetchMeanings(abbreviation.id));
+    card.querySelector(".view-meanings-btn").addEventListener("click", ev => window.location.href = "/main?initialAbbrId=" + abbreviation.id);
     card.querySelector(".export-meanings-btn").addEventListener("click", ev => exportMeaningsAsHtml(abbreviation));
 
     return card;
@@ -279,9 +245,24 @@ function loadAbbreviations(page = 1, append = false) {
                     </div>
                 `;
 
-                placeholder.querySelector(".retry-btn").addEventListener("click", ev => loadAllAbbreviations());
+                placeholder.querySelector(".retry-btn").addEventListener("click", ev => backToAll());
             }
         });
+}
+
+function backToAll()
+{
+    // const params = new URLSearchParams(window.location.search);
+
+    // const abbrId = params.get("abbrId");
+    // if(abbrId != null)
+    // {
+    //     window.location.href = "/main";
+    // }
+    // else
+    // {
+         loadAllAbbreviations();
+    // }
 }
 
 function loadAllAbbreviations() {
@@ -343,7 +324,7 @@ function fetchMeanings(abbrId) {
                     <button class="back-btn">Back to All</button>
                 </div>
             `;
-            placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
+            placeholder.querySelector(".back-btn").addEventListener("click", ev => backToAll());
         });
 }
 
@@ -371,7 +352,7 @@ async function handleSubmit(ev, meaningCard, meaning)
                 </div>
             `;
 
-        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => backToAll());
     });
 }
 
@@ -391,7 +372,7 @@ async function handleVote(event, meaningId, isUpvote) {
             </div>
         `;
 
-        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => backToAll());
     })
     .then(() => refreshMeaning(meaningCard, meaningId))
     .catch(error => {
@@ -405,7 +386,7 @@ async function handleVote(event, meaningId, isUpvote) {
             </div>
         `;
 
-        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => backToAll());
     });
 }
 
@@ -425,7 +406,7 @@ function displayMeanings(data) {
             </div>
         `;
 
-        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => backToAll());
         return;
     }
     
@@ -438,10 +419,10 @@ function displayMeanings(data) {
         <button class="back-btn">← Back to All</button>
         <h2>Meanings for "${data.searchable_name}"</h2>
     `;
-    header.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
+    header.querySelector(".back-btn").addEventListener("click", ev => backToAll());
     meaningsContainer.appendChild(header);
 
-    meaningsContainer.appendChild(createMeaningsGrid(meanings, handleVote, true, handleDeleteMeaning, handleSubmit));
+    meaningsContainer.appendChild(createMeaningsGrid(meanings, handleVote, true, handleDeleteMeaning, handleSubmit, true));
     placeholder.appendChild(meaningsContainer);
 }
 
@@ -514,7 +495,7 @@ function performSearch() {
         `;
 
         placeholder.querySelector(".retry-btn").addEventListener("click", ev => performSearch());
-        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => backToAll());
     });
 }
 
@@ -565,7 +546,7 @@ function handleDeleteMeaning(btn, id)
             </div>
         `;
 
-        placeholder.querySelector(".back-btn").addEventListener("click", ev => loadAllAbbreviations());
+        placeholder.querySelector(".back-btn").addEventListener("click", ev => backToAll());
     });
 }
 
@@ -581,9 +562,8 @@ document.querySelector('#search-bar').addEventListener('keypress', function(e) {
 
 document.addEventListener('DOMContentLoaded', function() {
     loadFilterOptions();
-    loadAllAbbreviations();
     setupInfiniteScroll();
-    
+
     const languageFilter = document.querySelector('#language-filter');
     const domainFilter = document.querySelector('#domain-filter');
     
@@ -615,5 +595,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         domainFilter.parentElement.querySelector(".clear-filter").addEventListener("click", ev => clearDomainFilter());
+    }
+
+    const params = new URLSearchParams(window.location.search);
+
+    const abbrId = params.get("initialAbbrId");
+    if(abbrId != null)
+    {
+        fetchMeanings(abbrId);
+    }
+    else
+    {
+        loadAllAbbreviations();
     }
 });

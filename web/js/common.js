@@ -202,3 +202,39 @@ function escapeHtml(text) {
     };
     return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
+
+//for dashboard & create-abbreviation
+function loadFilterOptions() {
+    fetch('/api/dashboard/filters')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                availableLanguages = data.languages || [];
+                availableDomains = data.domains || [];
+                
+                populateDatalist('language-options', availableLanguages);
+                populateDatalist('domain-options', availableDomains);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading filter options:', error);
+        });
+}
+
+function populateDatalist(datalistId, options) {
+    const datalist = document.getElementById(datalistId);
+    if (datalist) {
+        datalist.innerHTML = '';
+        
+        options.forEach(option => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option;
+            datalist.appendChild(optionElement);
+        });
+    }
+}

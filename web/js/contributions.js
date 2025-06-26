@@ -78,7 +78,7 @@ function displayContributions(contributions) {
     const meanings = Object.values(contributions);
 
     container.innerHTML = '';
-    const grid = createMeaningsGrid(meanings, handleVote, true, handleDelete, handleSubmit);
+    const grid = createMeaningsGrid(meanings, handleVote, true, handleDelete, handleSubmit, true);
     container.appendChild(grid);
 }
 

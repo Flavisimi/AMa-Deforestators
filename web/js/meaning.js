@@ -1,4 +1,4 @@
-function createMeaningCard(meaning, voteHandler, showAddList, deleteHandler, submitHandler)
+function createMeaningCard(meaning, voteHandler, showAddList, deleteHandler, submitHandler, linkToDashboard = false)
 {
     const meaningCard = document.createElement('div');
     meaningCard.className = 'meaning-card';
@@ -71,6 +71,14 @@ function createMeaningCard(meaning, voteHandler, showAddList, deleteHandler, sub
     if(submitHandler != null) meaningCard.querySelector(".edit-btn").addEventListener("click", ev => openEditModal(ev, meaningCard, meaning, submitHandler));
     else meaningCard.querySelector(".edit-btn").remove();
 
+    console.log(linkToDashboard);
+    if(linkToDashboard)
+    {
+        meaningCard.querySelector(".meaning-header > h4").addEventListener("click", ev => {
+            if(window.location.search != "?initialAbbrId=" + meaning.abbr_id)
+                window.location.href = "/main?initialAbbrId=" + meaning.abbr_id;
+        });
+    }
     removeModControls(meaningCard);
     hideCardActionsIfNeeded(meaningCard);
     
@@ -189,7 +197,7 @@ function addMeaningToList(meaningId, listId) {
     })
 }
 
-function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, handleEdit)
+function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, handleEdit, linkToDashboard = false)
 {
     const meaningsGrid = document.createElement('div');
     meaningsGrid.className = 'meanings-grid';
@@ -197,7 +205,7 @@ function createMeaningsGrid(meanings, handleVote, handleList, handleDelete, hand
     for(let index = 0; index < meanings.length; index++)
     {
         const meaning = meanings[index];
-        const meaningCard = createMeaningCard(meaning, handleVote, handleList, handleDelete, handleEdit);
+        const meaningCard = createMeaningCard(meaning, handleVote, handleList, handleDelete, handleEdit, linkToDashboard);
         meaningCard.style.animationDelay = `${index * 0.1}s`;
         meaningsGrid.appendChild(meaningCard);
     }

@@ -137,3 +137,8 @@ document.querySelector(".extra-actions > button").onclick = (ev) =>
 
     fileInput.click();
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadFilterOptions();
+});

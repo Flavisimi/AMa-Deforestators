@@ -218,6 +218,10 @@ function deleteList(listId, listName) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector(".create-list-btn").addEventListener("click", ev => openCreateModal());
+    document.querySelector("#createModal .close-btn").addEventListener("click", ev => closeCreateModal());
+    document.querySelector("#createModal .form-actions > .btn-secondary").addEventListener("click", ev => closeCreateModal());
+    
     loadAbbreviationLists();
 });
 

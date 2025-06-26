@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll(".modal-overlay").forEach(elem => elem.style.display = "none");
+    document.querySelector("#success-message").style.display = "none";
+    document.querySelector("#error-message").style.display = "none";
+
     const editBtn = document.getElementById('editProfileBtn');
     const cancelBtn = document.getElementById('cancelEditBtn');
     const editFormContainer = document.getElementById('editFormContainer');

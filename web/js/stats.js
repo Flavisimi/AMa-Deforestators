@@ -205,6 +205,8 @@ async function initialize()
         elem.appendChild(actions);
     });
 
+    document.querySelector(".refresh-btn").addEventListener("click", ev => loadAllStatistics());
+
     loadAllStatistics();
 }
 

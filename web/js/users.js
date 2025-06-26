@@ -256,7 +256,8 @@ function createUserCard(user, index) {
         </div>
     `;
 
-    card.querySelector(".user-avatar > img").addEventListener("error", ev => {this.style.display='none'; this.parentElement.setAttribute('data-initial', userInitial); this.parentElement.classList.add('no-image');})
+    if(user.profile_picture)
+        card.querySelector(".user-avatar > img").addEventListener("error", ev => {this.style.display='none'; this.parentElement.setAttribute('data-initial', userInitial); this.parentElement.classList.add('no-image');})
     
     if(canModify)
     {
@@ -618,7 +619,26 @@ function setupLoadMoreButton() {
     });
 }
 
+function setDisplayNoneIfExists(id)
+{
+    if(document.querySelector(`#${id}`) != null)
+        document.querySelector(`#${id}`).style.display = "none";
+}
+
 function initialize() {
+    setDisplayNoneIfExists("success-message")
+    setDisplayNoneIfExists("error-message")
+
+    setDisplayNoneIfExists("editProfileBtn")
+    setDisplayNoneIfExists("editFormContainer")
+    setDisplayNoneIfExists("credentialsModal") 
+    setDisplayNoneIfExists("password-fields")
+
+    setDisplayNoneIfExists("load-more-container");
+    setDisplayNoneIfExists("loading-more");
+
+    document.querySelectorAll(".modal-overlay").forEach(elem => elem.style = "display: none;");
+
     setupSearch();
     setupInfiniteScroll();
     setupLoadMoreButton();

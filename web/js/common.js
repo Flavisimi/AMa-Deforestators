@@ -70,6 +70,8 @@ function displayUserProfile(user) {
             avatarElement.textContent = initial;
         }
     }
+    
+    updateProfileMenuForLoggedUser();
 }
 
 function displayGuestProfile() {
@@ -85,6 +87,44 @@ function displayGuestProfile() {
         avatarElement.classList.remove('has-image');
         avatarElement.style.backgroundImage = '';
         avatarElement.textContent = '';
+    }
+    
+    updateProfileMenuForGuest();
+}
+
+function updateProfileMenuForLoggedUser() {
+    const profileMenu = document.querySelector('.profile-menu');
+    if (profileMenu) {
+        profileMenu.innerHTML = `
+            <a href="profile">View Profile</a>
+            <a href="#" id="logout-btn">Logout</a>
+        `;
+        
+        const logoutBtn = profileMenu.querySelector('#logout-btn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                logout();
+            });
+        }
+    }
+}
+
+function updateProfileMenuForGuest() {
+    const profileMenu = document.querySelector('.profile-menu');
+    if (profileMenu) {
+        profileMenu.innerHTML = `
+            <a href="profile">View Profile</a>
+            <a href="#" id="login-btn">Login</a>
+        `;
+        
+        const loginBtn = profileMenu.querySelector('#login-btn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = '/';
+            });
+        }
     }
 }
 

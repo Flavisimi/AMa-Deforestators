@@ -12,5 +12,6 @@ class AbbreviationList
 
     public ?array $meanings;
     public ?string $creator_name;
+    public ?int $meanings_count;
 }
 ?>

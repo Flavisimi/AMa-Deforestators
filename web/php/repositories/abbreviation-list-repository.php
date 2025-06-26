@@ -13,7 +13,7 @@ error_reporting(0);
 
 class AbbreviationListRepository
 {
-    public static string $SQL_SELECT_TEMPLATE = "select id, creator_id, name, private, created_at, updated_at, (select name from users where id = abbr_lists.creator_id) as creator_name from abbr_lists";
+    public static string $SQL_SELECT_TEMPLATE = "select id, creator_id, name, private, created_at, updated_at, (select name from users where id = abbr_lists.creator_id) as creator_name, (select count(*) from abbr_list_contents where list_id = abbr_lists.id) as meanings_count from abbr_lists";
 
     public static function convert_row_to_object( $row ): AbbreviationList
     {
@@ -27,7 +27,8 @@ class AbbreviationListRepository
         $abbr_list->updated_at = new \DateTime();
         $abbr_list->updated_at->setTimestamp(strtotime($row["UPDATED_AT"]));
         $abbr_list->creator_name = $row["CREATOR_NAME"];
-
+        $abbr_list->meanings_count = $row["MEANINGS_COUNT"];
+        
         return $abbr_list;
     }
 

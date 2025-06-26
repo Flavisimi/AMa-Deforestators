@@ -2,13 +2,14 @@ declare
     v_id integer;
 begin
     insert into users values(seq_user.nextval, 'admin', auth_package.hash_password('admin_test'), 'ADMIN', sysdate, sysdate, null, 'admin@ama.io',null,null);
+    insert into users values(0, 'AMA', '0', 'USER', sysdate, sysdate, null, 'ama@ama.io', null, null);
     for v_index in 1..100 loop
         insert into users values(seq_user.nextval, 'user' || v_index, auth_package.hash_password('user' || v_index || '_test'), 'USER', sysdate, sysdate, null, 'user' || v_index || '@ama.io',null,null);
     end loop;
 
     insert into combined_view values('AMA', 'ask me anything', 'eng', 'internet', 2, null, null);
     insert into combined_view values('AMa', 'abbreviation management', 'eng', 'web', 1, null, null);
-    insert into combined_view values('Îma--ș!!', 'nonsens', 'ro', 'random', 3, null, null);
+    insert into combined_view values('Îma--ș!!', 'intalnirea martorilor americani -- serpii !!', 'ro', 'random', 3, null, null);
     insert into combined_view values('NP', 'no problem', 'eng', 'speech', 1, null, null);
     insert into combined_view values('NP', 'nondeterministic polynomial', 'eng', 'computer science', 1, null, null);
     insert into combined_view values('TY', 'thank you', 'eng', 'speech', 23, null, null);

@@ -42,6 +42,25 @@ class MeaningService
         throw new ApiException(500, "Couldn't find meaning in file");
     }
 
+    public static function attach_user_vote($conn, Meaning & $meaning)
+    {
+        if(isset($_SESSION["user_id"])) {
+            $user_vote = VoteRepository::load_vote($conn, $_SESSION["user_id"], $meaning->id);
+            $meaning->user_vote = $user_vote ? $user_vote->vote : null;
+        } else {
+            $meaning->user_vote = null;
+        }
+    }
+
+    public static function get_searchable_name($name)
+    {
+        $out = $name;
+
+        $out = strtr($out, array("Â" => "A", "Ă" => "A", "â" => "a", "ă" => "a", "Î" => "I", "î" => "i", "Ș" => "S", "ș" => "s", "Ț" => "T", "ț" => "t"));
+        $out = strtoupper($out);
+        $out = str_replace(str_split(" 0123456789!@#$%^&*(),./;''[]-=<>?:\"{}|_+"), [], $out);
+        return $out;
+    }
 }
 
 ?>

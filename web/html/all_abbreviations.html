@@ -28,6 +28,35 @@
             </button>
         </div>
 
+        <div class="search-filters-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search lists by name or creator...">
+                </div>
+            </div>
+            
+            <div class="filter-controls">
+                <div class="toggle-control">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="myListsToggle">
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label">Show only my lists</span>
+                    </label>
+                </div>
+                
+                <div class="visibility-checkboxes" id="visibilityCheckboxes">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="publicListsCheck" checked>
+                        <span>Public lists</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="privateListsCheck" checked>
+                        <span>Private lists</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
         <div class="lists-container">
             <div id="lists-content">
                 <div class="loading-spinner">

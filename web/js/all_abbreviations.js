@@ -1030,6 +1030,8 @@ async function handleCreateList(e) {
         
         closeCreateModal();
         showSuccess('List created successfully!');
+        
+        document.getElementById('myListsToggle').checked = false;
         await loadAbbreviationLists();
         
     } catch (error) {

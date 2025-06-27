@@ -99,7 +99,10 @@ function setMeaningCardData(meaningCard, meaning)
     const metaItems = meaningCard.querySelectorAll(".meaning-meta span");
     metaItems[0].innerHTML = `<strong>Language:</strong> ${escapeHtml(meaning.lang)}`;
     metaItems[1].innerHTML = `<strong>Domain:</strong> ${escapeHtml(meaning.domain)}`;
-    metaItems[2].innerHTML = `<strong>Submitted by:</strong> ${escapeHtml(meaning.uploader_name)}`;
+    if(metaItems[2].querySelector("a") != null)
+        metaItems[2].innerHTML = `<strong>Submitted by:</strong> <a href="/profile?id=${meaning.uploader_id}">${escapeHtml(meaning.uploader_name)}</a>`;
+    else
+        metaItems[2].innerHTML = `<strong>Submitted by:</strong> ${escapeHtml(meaning.uploader_name)}`;
     metaItems[3].innerHTML = `<strong>Score:</strong> ${meaning.score}`;
 
     const voteButtons = meaningCard.querySelectorAll(".meta-div > button");

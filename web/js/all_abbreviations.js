@@ -1031,7 +1031,8 @@ async function handleCreateList(e) {
         closeCreateModal();
         showSuccess('List created successfully!');
         
-        document.getElementById('myListsToggle').checked = false;
+        if(document.getElementById('myListsToggle').checked)
+            document.getElementById('myListsToggle').click();
         await loadAbbreviationLists();
         
     } catch (error) {

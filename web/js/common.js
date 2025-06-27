@@ -36,6 +36,7 @@ function initializeNavigator()
             <li><a href="stats" class="nav-button">Statistics</a></li>
             <li><a href="all_abbreviations" class="nav-button">Abbreviation Lists</a></li>
             <li><a href="users-page" class="nav-button">Users</a></li>
+            <li><a href="documentation" class="nav-button">Documentation</a></li>
         </ul>
     `;
 

@@ -315,6 +315,13 @@
     margin-left: 10px;
 }
 
+#editStatus {
+    width: 100%;
+    border-radius: 5px;
+    padding: 10px;
+    color: #555;
+}
+
 @media (max-width: 768px) {
     .meanings-grid {
         grid-template-columns: 1fr;

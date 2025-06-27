@@ -224,12 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
             adminActionsDiv.querySelectorAll("div")[1].style = "display: flex; gap: 10px; flex-wrap: wrap;";
 
             adminActionsDiv.querySelector(".btn-primary").addEventListener("click", ev => enableProfileEdit());
-            adminActionsDiv.querySelector(".btn-info").addEventListener("click", ev => showAdminEditModal(user.id, user.role, user.name));
+            adminActionsDiv.querySelector(".btn-info").addEventListener("click", ev => showAdminEditModal(user.id, user.name, user.email));
             adminActionsDiv.querySelector(".btn-warning").addEventListener("click", ev => showRoleChangeModal(user.id, user.role, user.name));
             adminActionsDiv.querySelector(".btn-danger").addEventListener("click", ev => confirmDeleteUser(user.id, user.name));
             adminActionsDiv.querySelector(".btn-secondary").addEventListener("click", ev => clearProfilePicture(user.id, user.name));
 
             profileCard.appendChild(adminActionsDiv);
+            setupAdminButtons();
         }
     } else if (user.current_user_role === 'MOD' && !user.is_own_profile && user.role === 'USER') {
         const profileCard = document.querySelector('.profile-card');
@@ -258,6 +259,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modActionsDiv.querySelector(".btn-secondary").addEventListener("click", ev => clearProfilePicture(user.id, user.name));
 
             profileCard.appendChild(modActionsDiv);
+            setupAdminButtons();
         }
     }
 }
@@ -642,26 +644,26 @@ function setupAdminButtons() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(setupAdminButtons, 100);
+// document.addEventListener('DOMContentLoaded', function() {
+//     setTimeout(setupAdminButtons, 100);
     
-    const observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            if (mutation.type === 'childList') {
-                mutation.addedNodes.forEach(function(node) {
-                    if (node.nodeType === 1 && node.classList && node.classList.contains('admin-profile-actions')) {
-                        setupAdminButtons();
-                    }
-                });
-            }
-        });
-    });
+//     const observer = new MutationObserver(function(mutations) {
+//         mutations.forEach(function(mutation) {
+//             if (mutation.type === 'childList') {
+//                 mutation.addedNodes.forEach(function(node) {
+//                     if (node.nodeType === 1 && node.classList && node.classList.contains('admin-profile-actions')) {
+//                         setupAdminButtons();
+//                     }
+//                 });
+//             }
+//         });
+//     });
     
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-});
+//     observer.observe(document.body, {
+//         childList: true,
+//         subtree: true
+//     });
+// });
 
 async function removePicture(userId) {
     try {

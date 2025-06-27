@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modActionsDiv.className = 'admin-profile-actions';
             modActionsDiv.innerHTML = `
                 <div>
-                    <h4 >Moderator Actions</h4>
+                    <h4>Moderator Actions</h4>
                     <div>
                         <button type="button" class="btn btn-primary">
                             Edit Profile
@@ -250,15 +250,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            adminActionsDiv.querySelectorAll("div")[0].style = "border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;";
-            adminActionsDiv.querySelector("h4").style = "color: #ffc107; margin-bottom: 15px; font-size: 1.1rem;"
-            adminActionsDiv.querySelectorAll("div")[1].style = "display: flex; gap: 10px; flex-wrap: wrap;";
+            modActionsDiv.querySelectorAll("div")[0].style = "border-top: 1px solid #e9ecef; padding-top: 20px; margin-top: 20px;";
+            modActionsDiv.querySelector("h4").style = "color: #ffc107; margin-bottom: 15px; font-size: 1.1rem;";
+            modActionsDiv.querySelectorAll("div")[1].style = "display: flex; gap: 10px; flex-wrap: wrap;";
 
-            adminActionsDiv.querySelector(".btn-primary").addEventListener("click", ev => enableProfileEdit());
-            adminActionsDiv.querySelector(".btn-info").addEventListener("click", ev => showAdminEditModal(user.id, user.role, user.name));
-            adminActionsDiv.querySelector(".btn-warning").addEventListener("click", ev => showRoleChangeModal(user.id, user.role, user.name));
-            adminActionsDiv.querySelector(".btn-danger").addEventListener("click", ev => confirmDeleteUser(user.id, user.name));
-            adminActionsDiv.querySelector(".btn-secondary").addEventListener("click", ev => clearProfilePicture(user.id, user.name));
+            modActionsDiv.querySelector(".btn-primary").addEventListener("click", ev => enableProfileEdit());
+            modActionsDiv.querySelector(".btn-secondary").addEventListener("click", ev => clearProfilePicture(user.id, user.name));
 
             profileCard.appendChild(modActionsDiv);
         }

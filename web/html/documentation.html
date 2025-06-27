@@ -73,6 +73,10 @@
                             <td>A registered individual with basic access rights</td>
                         </tr>
                         <tr>
+                            <td>Guest</td>
+                            <td>An unregistered individual with reduced access rights</td>
+                        </tr>
+                        <tr>
                             <td>Admin</td>
                             <td>Administrator with full system access</td>
                         </tr>
@@ -83,6 +87,10 @@
                         <tr>
                             <td>Meaning</td>
                             <td>A definition or expansion of an abbreviation</td>
+                        </tr>
+                         <tr>
+                            <td>List</td>
+                            <td>A place where the user can save his favorite meanings</td>
                         </tr>
                         <tr>
                             <td>XSS</td>
@@ -108,10 +116,11 @@
                     <li>Create and manage abbreviations with meanings</li>
                     <li>Vote on abbreviation meanings (upvote/downvote)</li>
                     <li>Create and manage abbreviation lists (public/private)</li>
-                    <li>Search functionality for abbreviations and users</li>
+                    <li>Search functionality for abbreviations, lists and users</li>
                     <li>Statistical analysis and reporting</li>
                     <li>User profile management</li>
                     <li>Role-based access control</li>
+                    <li>Importing and exporting abbreviations from different formats like CSV,HTML</li>
                 </ul>
                 
                 <h3>2.3 User Classes and Characteristics</h3>
@@ -197,7 +206,7 @@
                 
                 <div class="requirement">
                     <h4>FR-2.3: Search Abbreviations</h4>
-                    <p><strong>Description:</strong> Users can search for abbreviations by name or meaning.</p>
+                    <p><strong>Description:</strong> Users can search for abbreviations by name or meaning with the possiblity of filtering them by language or domain.</p>
                     <p><strong>Input:</strong> Search query</p>
                     <p><strong>Process:</strong> Query database with pattern matching</p>
                     <p><strong>Output:</strong> List of matching abbreviations</p>
@@ -261,7 +270,7 @@
                     <li>All passwords must be hashed using SHA-256</li>
                     <li>Protection against SQL injection attacks</li>
                     <li>Protection against XSS attacks</li>
-                    <li>Session management with secure cookies</li>
+                    <li>Session management</li>
                     <li>Role-based access control enforcement</li>
                 </ul>
                 
@@ -275,7 +284,7 @@
                 
                 <h3>4.4 Reliability Requirements</h3>
                 <ul>
-                    <li>System availability of 99.5% uptime</li>
+                    <li>System availability with a high rate uptime</li>
                     <li>Graceful error handling without data loss</li>
                     <li>Transaction integrity for database operations</li>
                 </ul>
@@ -306,7 +315,7 @@
                         </tr>
                         <tr>
                             <td>Database</td>
-                            <td>Oracle Database</td>
+                            <td>Oracle Database (using PLSQL)</td>
                             <td>Data persistence</td>
                         </tr>
                         <tr>
@@ -440,7 +449,7 @@ web/
                         <tr>
                             <td>Users</td>
                             <td>/users-page</td>
-                            <td>User directory (admin/mod only)</td>
+                            <td>User directory (admin/mod only functionality)</td>
                         </tr>
                         <tr>
                             <td>Profile</td>
@@ -471,7 +480,7 @@ web/
                 <h3>7.1 Authentication and Authorization</h3>
                 <ul>
                     <li>Password hashing using SHA-256 algorithm</li>
-                    <li>Session-based authentication with secure cookies</li>
+                    <li>Session-based authentication</li>
                     <li>Role-based access control (Guest, User, Moderator, Admin)</li>
                     <li>Session timeout after inactivity</li>
                 </ul>
@@ -499,7 +508,7 @@ web/
                 <h3>7.3 Data Protection</h3>
                 <ul>
                     <li>Sensitive data encryption in database</li>
-                    <li>HTTPS enforcement for all communications</li>
+                    <li>HTTP(S) enforcement for all communications</li>
                     <li>Secure file upload validation</li>
                     <li>Protection against CSRF attacks</li>
                 </ul>
@@ -588,12 +597,5 @@ web/
     </main>
 
     <script src="../js/common.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeNavigator();
-            initializeHamburger();
-            loadUserData();
-        });
-    </script>
 </body>
 </html>

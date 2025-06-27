@@ -34,7 +34,6 @@ function initializeNavigator()
             <li><a href="main" class="nav-button">Dashboard</a></li>
             <li><a href="create-abbreviation" class="nav-button">Create an Abbreviation</a></li>
             <li><a href="stats" class="nav-button">Statistics</a></li>
-            <li><a href="my_abbreviations" class="nav-button">Saved Abbreviations</a></li>
             <li><a href="all_abbreviations" class="nav-button">Abbreviation Lists</a></li>
             <li><a href="users-page" class="nav-button">Users</a></li>
         </ul>

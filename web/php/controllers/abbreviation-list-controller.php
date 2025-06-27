@@ -63,7 +63,26 @@ class AbbreviationListController
             $output = [];
             foreach($abbr_lists as $abbr_list)
             {
-                // Convert object to array for easier access
+                $output[] = $abbr_list;
+            }
+        } catch(ApiException $e)
+        {
+            oci_close($conn);
+            throw $e;
+        }
+        oci_close($conn);
+        return $output;
+    }
+
+    public static function search_abbr_lists(string $search_query = '', int $user_id = null, bool $public_only = null, bool $private_only = null): ?array
+    {
+        $conn = ConnectionHelper::open_connection();
+        try
+        {
+            $abbr_lists = AbbreviationListRepository::search_abbr_lists($conn, $search_query, $user_id, $public_only, $private_only);
+            $output = [];
+            foreach($abbr_lists as $abbr_list)
+            {
                 $output[] = $abbr_list;
             }
         } catch(ApiException $e)
@@ -241,7 +260,33 @@ class AbbreviationListController
         $query_components = array();
         parse_str($_SERVER['QUERY_STRING'], $query_components);
 
-        if($url === "/api/abbr-lists")
+        if($url === "/api/abbr-lists/search")
+{
+    $search_query = isset($query_components["q"]) ? trim($query_components["q"]) : '';
+    $user_id = null;
+    $public_only = null;
+    $private_only = null;
+    
+    if(isset($query_components["user_id"]) && is_numeric($query_components["user_id"]))
+    {
+        $user_id = (int)$query_components["user_id"];
+    }
+    
+    if(isset($query_components["public_only"]) && $query_components["public_only"] === "true")
+    {
+        $public_only = true;
+    }
+    
+    if(isset($query_components["private_only"]) && $query_components["private_only"] === "true")
+    {
+        $private_only = true;
+    }
+    
+    $rez = AbbreviationListController::search_abbr_lists($search_query, $user_id, $public_only, $private_only);
+    header("Content-Type: application/json");
+    echo json_encode($rez);
+}
+        else if($url === "/api/abbr-lists")
         {
             if(isset($query_components["id"]))
             {

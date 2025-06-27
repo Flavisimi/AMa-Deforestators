@@ -1,7 +1,9 @@
 let currentUser = null;
 let allLists = [];
+let filteredLists = [];
 let isViewingMeanings = false;
 let currentListId = null;
+let searchTimeout = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     initializePage();
@@ -10,7 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializePage() {
     await loadCurrentUser();
     await loadAbbreviationLists();
-    setupCreateListModal(); 
+    setupCreateListModal();
+    setupSearchAndFilters();
 }
 
 async function loadCurrentUser() {
@@ -39,7 +42,8 @@ async function loadAbbreviationLists() {
         }
         
         allLists = await response.json();
-        displayLists(allLists);
+        filteredLists = allLists;
+        displayLists(filteredLists);
     } catch (error) {
         console.error('Error loading lists:', error);
         showError('Failed to load abbreviation lists');
@@ -48,28 +52,126 @@ async function loadAbbreviationLists() {
     }
 }
 
+function setupSearchAndFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const myListsToggle = document.getElementById('myListsToggle');
+    const publicListsCheck = document.getElementById('publicListsCheck');
+    const privateListsCheck = document.getElementById('privateListsCheck');
+    const visibilityCheckboxes = document.getElementById('visibilityCheckboxes');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                performSearch();
+            }, 300);
+        });
+    }
+
+    if (myListsToggle) {
+        myListsToggle.addEventListener('change', function() {
+            if (this.checked) {
+                visibilityCheckboxes.classList.add('show');
+            } else {
+                visibilityCheckboxes.classList.remove('show');
+            }
+            performSearch();
+        });
+    }
+
+    if (publicListsCheck) {
+        publicListsCheck.addEventListener('change', performSearch);
+    }
+
+    if (privateListsCheck) {
+        privateListsCheck.addEventListener('change', performSearch);
+    }
+}
+
+async function performSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const myListsToggle = document.getElementById('myListsToggle');
+    const publicListsCheck = document.getElementById('publicListsCheck');
+    const privateListsCheck = document.getElementById('privateListsCheck');
+
+    const searchQuery = searchInput ? searchInput.value.trim() : '';
+    const showOnlyMyLists = myListsToggle ? myListsToggle.checked : false;
+    const showPublic = publicListsCheck ? publicListsCheck.checked : true;
+    const showPrivate = privateListsCheck ? privateListsCheck.checked : true;
+
+    try {
+        showLoading();
+        
+        let url = '/api/abbr-lists/search?';
+        const params = new URLSearchParams();
+        
+        if (searchQuery) {
+            params.append('q', searchQuery);
+        }
+        
+        if (showOnlyMyLists && currentUser) {
+            const userId = currentUser.current_user_id || currentUser.id;
+            params.append('user_id', userId);
+            
+            if (showPublic && !showPrivate) {
+                params.append('public_only', 'true');
+            } else if (!showPublic && showPrivate) {
+                params.append('private_only', 'true');
+            }
+        }
+        
+        url += params.toString();
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        let searchResults = await response.json();
+        
+        if (!searchQuery && !showOnlyMyLists) {
+            const allListsResponse = await fetch('/api/abbr-lists');
+            if (allListsResponse.ok) {
+                searchResults = await allListsResponse.json();
+            }
+        }
+        
+        filteredLists = searchResults;
+        displayLists(filteredLists);
+        
+    } catch (error) {
+        console.error('Error searching lists:', error);
+        showError('Failed to search lists: ' + error.message);
+    } finally {
+        hideLoading();
+    }
+}
 function displayLists(lists) {
     const container = document.getElementById('lists-content');
     
     if (!lists || lists.length === 0) {
+        const searchInput = document.getElementById('searchInput');
+        const isSearching = searchInput && searchInput.value.trim() !== '';
+        
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📋</div>
-                <h3>No lists available</h3>
-                <p>There are currently no abbreviation lists to display.</p>
+                <div class="empty-icon">${isSearching ? '🔍' : '📋'}</div>
+                <h3>${isSearching ? 'No lists found' : 'No lists available'}</h3>
+                <p>${isSearching ? 'Try adjusting your search criteria.' : 'There are currently no abbreviation lists to display.'}</p>
             </div>
         `;
         return;
     }
 
-    const filteredLists = getFilteredLists(lists);
+    const accessibleLists = getFilteredLists(lists);
     
-    if (filteredLists.length === 0) {
+    if (accessibleLists.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">🔒</div>
                 <h3>No accessible lists</h3>
-                <p>You don't have access to any abbreviation lists at the moment.</p>
+                <p>You don't have access to any abbreviation lists matching your criteria.</p>
             </div>
         `;
         return;
@@ -80,7 +182,7 @@ function displayLists(lists) {
     const grid = document.createElement('div');
     grid.className = 'lists-grid';
     
-    filteredLists.forEach((list, index) => {
+    accessibleLists.forEach((list, index) => {
         const listCard = createListCard(list, index);
         grid.appendChild(listCard);
     });
@@ -116,10 +218,8 @@ function getFilteredLists(lists) {
 function createListCard(list, index) {
     const card = document.createElement('div');
     card.className = 'list-card';
-    card.style.animationDelay = `${index * 0.1}s`;
     
     const createdDate = new Date(list.created_at.date).toLocaleDateString();
-    
     const updatedDate = new Date(list.updated_at.date).toLocaleDateString();
     
     const canEdit = canUserEditList(list);
@@ -241,6 +341,8 @@ async function viewList(listId) {
 function displayListContents(list) {
     const container = document.getElementById('lists-content');
     
+    const canAddMeanings = canUserAddMeanings(list);
+    
     container.innerHTML = `
         <div class="list-view">
             <div class="list-header-section">
@@ -257,6 +359,11 @@ function displayListContents(list) {
                     <span>Created by <a href="/profile?id=${list.creator_id}">${escapeHtml(list.creator_name)}</a></span>
                     <span>${list.meanings_count} meanings</span>
                 </div>
+                ${canAddMeanings ? `
+                <div class="list-actions-section">
+                    <button class="add-meanings-btn" id="addMeaningsBtn">+ Add Meanings</button>
+                </div>
+                ` : ''}
             </div>
             <div class="meanings-container" id="meaningsContainer">
                 <div class="loading-spinner">
@@ -269,7 +376,25 @@ function displayListContents(list) {
     
     document.getElementById('backToListsBtn').addEventListener('click', goBackToLists);
     
+    if (canAddMeanings) {
+        const addMeaningsBtn = document.getElementById('addMeaningsBtn');
+        if (addMeaningsBtn) {
+            addMeaningsBtn.addEventListener('click', () => openAddMeaningsModal(list.id));
+        }
+    }
+    
     displayMeanings(list.meanings || []);
+}
+
+function canUserAddMeanings(list) {
+    if (!currentUser) return false;
+    
+    const userRole = currentUser.current_user_role || currentUser.role;
+    const userId = currentUser.current_user_id || currentUser.id;
+    
+    if (userRole === 'ADMIN' || userRole === 'MOD') return true;
+    
+    return list.creator_id === userId;
 }
 
 function displayMeanings(meanings) {
@@ -297,7 +422,6 @@ function displayMeanings(meanings) {
         true
     );
     
-    // Add remove buttons if user can edit
     if (canUserEditList(getCurrentList())) {
         grid.querySelectorAll('.meaning-card').forEach((card, index) => {
             const removeBtn = document.createElement('button');
@@ -482,7 +606,7 @@ async function updateList(listId, closeModal) {
         
         showSuccess('List updated successfully');
         closeModal();
-        await loadAbbreviationLists();
+        await performSearch();
         
     } catch (error) {
         console.error('Error updating list:', error);
@@ -510,7 +634,7 @@ async function deleteList(listId, listName) {
         if (isViewingMeanings && currentListId === listId) {
             goBackToLists();
         } else {
-            await loadAbbreviationLists();
+            await performSearch();
         }
         
     } catch (error) {
@@ -522,7 +646,7 @@ async function deleteList(listId, listName) {
 function goBackToLists() {
     isViewingMeanings = false;
     currentListId = null;
-    displayLists(allLists);
+    displayLists(filteredLists);
 }
 
 function showLoading() {
@@ -540,87 +664,30 @@ function hideLoading() {
 
 function showError(message) {
     const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-message';
+    errorDiv.className = 'toast-message toast-error';
     errorDiv.textContent = message;
     
     document.body.appendChild(errorDiv);
     
     setTimeout(() => {
-        errorDiv.remove();
+        if (errorDiv.parentNode) {
+            errorDiv.remove();
+        }
     }, 5000);
 }
 
 function showSuccess(message) {
     const successDiv = document.createElement('div');
-    successDiv.className = 'success-message';
+    successDiv.className = 'toast-message toast-success';
     successDiv.textContent = message;
     
     document.body.appendChild(successDiv);
     
     setTimeout(() => {
-        successDiv.remove();
-    }, 3000);
-}
-function displayListContents(list) {
-    const container = document.getElementById('lists-content');
-    
-    // Check if user can add meanings to this list
-    const canAddMeanings = canUserAddMeanings(list);
-    
-    container.innerHTML = `
-        <div class="list-view">
-            <div class="list-header-section">
-                <button class="back-btn" id="backToListsBtn">
-                    ← Back to Lists
-                </button>
-                <div class="list-title-section">
-                    <h2>${escapeHtml(list.name)}</h2>
-                    <span class="privacy-badge">
-                        ${list.private ? '🔒 Private' : '🌐 Public'}
-                    </span>
-                </div>
-                <div class="list-meta">
-                    <span>Created by <a href="/profile?id=${list.creator_id}">${escapeHtml(list.creator_name)}</a></span>
-                    <span>${list.meanings_count} meanings</span>
-                </div>
-                ${canAddMeanings ? `
-                <div class="list-actions-section">
-                    <button class="add-meanings-btn" id="addMeaningsBtn">+ Add Meanings</button>
-                </div>
-                ` : ''}
-            </div>
-            <div class="meanings-container" id="meaningsContainer">
-                <div class="loading-spinner">
-                    <div class="spinner"></div>
-                    <p>Loading meanings...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('backToListsBtn').addEventListener('click', goBackToLists);
-    
-    if (canAddMeanings) {
-        const addMeaningsBtn = document.getElementById('addMeaningsBtn');
-        if (addMeaningsBtn) {
-            addMeaningsBtn.addEventListener('click', () => openAddMeaningsModal(list.id));
+        if (successDiv.parentNode) {
+            successDiv.remove();
         }
-    }
-    
-    displayMeanings(list.meanings || []);
-}
-
-function canUserAddMeanings(list) {
-    if (!currentUser) return false;
-    
-    const userRole = currentUser.current_user_role || currentUser.role;
-    const userId = currentUser.current_user_id || currentUser.id;
-    
-    // Admin and Mod can add to any list
-    if (userRole === 'ADMIN' || userRole === 'MOD') return true;
-    
-    // Regular users can only add to their own lists
-    return list.creator_id === userId;
+    }, 3000);
 }
 
 function openAddMeaningsModal(listId) {
@@ -704,7 +771,6 @@ function setupAddMeaningsModal(listId, modalOverlay) {
         }, 300);
     });
     
-    // Add selected meanings
     addSelectedBtn.addEventListener('click', async () => {
         if (selectedMeanings.length === 0) return;
         
@@ -764,7 +830,6 @@ async function searchForMeanings(query, listId, resultsContainer) {
         
         const meanings = await response.json();
         
-        // Get current list contents to filter out already added meanings
         const listResponse = await fetch(`/api/abbr-lists?id=${listId}`);
         const currentList = listResponse.ok ? await listResponse.json() : { meanings: [] };
         const currentMeaningIds = (currentList.meanings || []).map(m => m.id);
@@ -871,6 +936,7 @@ async function addMeaningToList(meaningId, listId) {
     
     return response.json();
 }
+
 function setupCreateListModal() {
     const createBtn = document.getElementById('createNewListBtn');
     const modal = document.getElementById('createModal');
@@ -961,7 +1027,7 @@ async function handleCreateList(e) {
 
         closeCreateModal();
         showSuccess('List created successfully');
-        await loadAbbreviationLists();
+        await performSearch();
 
     } catch (error) {
         console.error('Error creating list:', error);

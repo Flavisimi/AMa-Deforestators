@@ -426,6 +426,18 @@ function displayMeanings(data) {
     placeholder.appendChild(meaningsContainer);
 }
 
+function clearSearchTerm() {
+    document.getElementById('search-bar').value = '';
+    const language = document.querySelector('#language-filter').value.trim();
+    const domain = document.querySelector('#domain-filter').value.trim();
+    
+    if (language || domain) {
+        performSearch();
+    } else {
+        loadAllAbbreviations();
+    }
+}
+
 function performSearch() {
     const searchTerm = document.querySelector('#search-bar').value.trim();
     const searchType = document.querySelector('#search-type').value;
@@ -597,15 +609,19 @@ document.addEventListener('DOMContentLoaded', function() {
         domainFilter.parentElement.querySelector(".clear-filter").addEventListener("click", ev => clearDomainFilter());
     }
 
+    const searchClearButton = document.querySelector('.search-wrapper .clear-search');
+    if (searchClearButton) {
+        searchClearButton.addEventListener('click', function() {
+            clearSearchTerm();
+        });
+    }
+
     const params = new URLSearchParams(window.location.search);
 
     const abbrId = params.get("initialAbbrId");
-    if(abbrId != null)
-    {
+    if(abbrId != null) {
         fetchMeanings(abbrId);
-    }
-    else
-    {
+    } else {
         loadAllAbbreviations();
     }
 });

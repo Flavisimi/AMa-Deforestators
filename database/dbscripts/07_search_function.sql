@@ -257,16 +257,20 @@ create or replace function search_abv_with_filters(
     p_domain in varchar2 default null
 ) return sys_refcursor is
     v_cursor sys_refcursor;
-    v_search_term varchar2(256) := upper(trim(p_search_term));
-    v_language varchar2(30) := trim(p_language);
-    v_domain varchar2(30) := trim(p_domain);
+    v_search_term varchar2(256);
+    v_language varchar2(30);
+    v_domain varchar2(30);
     v_has_search boolean := false;
     v_has_filters boolean := false;
 begin
-    if p_search_type not in ('name', 'meaning') then
-        raise_application_error(-20006, 'Invalid search type');
+    v_search_term := upper(trim(p_search_term));
+    v_language := trim(p_language);
+    v_domain := trim(p_domain);
+    
+    if v_search_term = '' then
+        v_search_term := null;
     end if;
-
+    
     if v_language = '' then
         v_language := null;
     end if;
@@ -275,15 +279,21 @@ begin
         v_domain := null;
     end if;
 
-    v_has_search := v_search_term is not null and v_search_term != '';
+    if p_search_type not in ('name', 'meaning') then
+        raise_application_error(-20006, 'Invalid search type. Must be name or meaning.');
+    end if;
+
+    v_has_search := v_search_term is not null;
     v_has_filters := v_language is not null or v_domain is not null;
 
     if not v_has_search and not v_has_filters then
         raise_application_error(-20008, 'Either search term or filters must be provided');
     end if;
 
+    -- Search by name with search term
     if v_has_search and p_search_type = 'name' then
         if v_has_filters then
+            -- Search by name WITH language/domain filters
             open v_cursor for
                 select distinct
                     a.id,
@@ -297,29 +307,22 @@ begin
                 where levenshtein_distance(v_search_term, upper(a.searchable_name), 0) < 3
                 and (v_language is null or upper(m.lang) = upper(v_language))
                 and (v_domain is null or upper(m.domain) = upper(v_domain))
-                order by distance, a.searchable_name;
+                order by distance asc, a.searchable_name asc;
         else
+            -- Search by name WITHOUT filters
             open v_cursor for
                 select 
-                    id,
-                    searchable_name,
-                    meaning_count,
-                    created_at,
-                    updated_at,
-                    distance
-                from (
-                    select 
-                        a.id,
-                        a.searchable_name,
-                        a.meaning_count,
-                        a.created_at,
-                        a.updated_at,
-                        levenshtein_distance(v_search_term, upper(a.searchable_name), 0) as distance
-                    from abbreviations a
-                )
-                where distance < 3
-                order by distance, searchable_name;
+                    a.id,
+                    a.searchable_name,
+                    a.meaning_count,
+                    a.created_at,
+                    a.updated_at,
+                    levenshtein_distance(v_search_term, upper(a.searchable_name), 0) as distance
+                from abbreviations a
+                where levenshtein_distance(v_search_term, upper(a.searchable_name), 0) < 3
+                order by distance asc, a.searchable_name asc;
         end if;
+    -- Search by meaning with search term
     elsif v_has_search and p_search_type = 'meaning' then
         open v_cursor for
             select distinct
@@ -334,7 +337,8 @@ begin
             where parse_words(upper(m.short_expansion)) like parse_words(v_search_term)
             and (v_language is null or upper(m.lang) = upper(v_language))
             and (v_domain is null or upper(m.domain) = upper(v_domain))
-            order by a.searchable_name;
+            order by a.searchable_name asc;
+    --  Only filters, no search term
     else
         open v_cursor for
             select distinct
@@ -348,7 +352,7 @@ begin
             join meanings m on a.id = m.abbr_id
             where (v_language is null or upper(m.lang) = upper(v_language))
             and (v_domain is null or upper(m.domain) = upper(v_domain))
-            order by a.searchable_name;
+            order by a.searchable_name asc;
     end if;
 
     return v_cursor;

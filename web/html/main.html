@@ -28,7 +28,10 @@
         <div id="error-message" class="error-message"></div>
         <div class="search-container">
             <div class="search-wrapper">
-                <input type="search" id="search-bar" placeholder="Search abbreviations (leave empty for all)..." aria-label="Search abbreviations">
+                <div class="search-input-container">
+                    <input type="text" id="search-bar" placeholder="Search abbreviations (leave empty for all)..." aria-label="Search abbreviations">
+                    <button type="button" class="clear-search" title="Clear search term">×</button>
+                </div>
                 <select id="search-type" aria-label="Search type">
                     <option value="name">Abbreviation Name</option>
                     <option value="signification">Signification</option>

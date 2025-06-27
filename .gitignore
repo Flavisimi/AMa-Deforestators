@@ -28,3 +28,5 @@ Thumbs.db
 
 # Ignore coverage reports
 coverage/
+
+web/uploads/profiles/*

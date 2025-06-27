@@ -227,9 +227,25 @@
                     <p><strong>Process:</strong> Query database with pattern matching</p>
                     <p><strong>Output:</strong> List of matching abbreviations</p>
                 </div>
+
+                <div class="requirement">
+                    <h4>FR-2.4: Export abbreviation as HTML</h4>
+                    <p><strong>Description:</strong> Users can export abbreviations in an HTML format.</p>
+                    <p><strong>Input:</strong> Abbreviation ID</p>
+                    <p><strong>Process:</strong> Prepare HTML file from a template with the meanings of the abbreviation</p>
+                    <p><strong>Output:</strong> HTML file representing the abbreviation</p>
+                </div>
                 
                 <div class="requirement">
-                    <h4>FR-2.4: Edit Meanings</h4>
+                    <h4>FR-2.5: View Meanings</h4>
+                    <p><strong>Description:</strong> Users can view meanings based on the abbreviation they belong to.</p>
+                    <p><strong>Input:</strong> Abbreviation ID</p>
+                    <p><strong>Process:</strong> Query database for meanings belonging to the abbreviation</p>
+                    <p><strong>Output:</strong> List of meanings</p>
+                </div>
+
+                <div class="requirement">
+                    <h4>FR-2.6: Edit Meanings</h4>
                     <p><strong>Description:</strong> Moderators and admins can edit meanings from abbreviations.</p>
                     <p><strong>Input:</strong> Meaning ID, Meaning properties</p>
                     <p><strong>Process:</strong> Verify authorization, validate constraints, edit meaning</p>
@@ -237,7 +253,7 @@
                 </div>
                 
                 <div class="requirement">
-                    <h4>FR-2.5: Delete Meanings</h4>
+                    <h4>FR-2.7: Delete Meanings</h4>
                     <p><strong>Description:</strong> Moderators and admins can delete meanings from abbreviations.</p>
                     <p><strong>Input:</strong> Meaning ID</p>
                     <p><strong>Process:</strong> Verify authorization, delete meaning</p>

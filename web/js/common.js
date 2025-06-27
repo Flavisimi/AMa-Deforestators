@@ -30,7 +30,7 @@ function initializeNavigator()
     navigator.className = "navigator";
     navigator.innerHTML = `
         <ul class="nav-list">
-            <li><div class="nav-header"><h2>Abbreviations</h2></div></li>
+            <li><div class="nav-header"><h2>Abbreviation Management</h2></div></li>
             <li><a href="main" class="nav-button">Dashboard</a></li>
             <li><a href="create-abbreviation" class="nav-button">Create an Abbreviation</a></li>
             <li><a href="stats" class="nav-button">Statistics</a></li>

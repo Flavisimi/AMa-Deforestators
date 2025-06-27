@@ -92,11 +92,11 @@ document.querySelector(".extra-actions > button").onclick = (ev) =>
     fileInput.addEventListener("change", async ev => {
         hideMessages();
         const file = fileInput.files[0];
-        if(file.type != "text/csv")
-        {
-            showError("Invalid file type!");
-            return;
-        }
+        // if(file.type != "text/csv")
+        // {
+        //     showError("Invalid file type!");
+        //     return;
+        // }
 
         const data = await file.text();
 

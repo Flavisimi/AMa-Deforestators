@@ -1008,36 +1008,33 @@ async function handleCreateList(e) {
     submitBtn.disabled = true;
 
     try {
-        const privateValue = isPrivate ? 'true' : 'false';
-
-        const response = await fetch(`/api/abbr-lists?name=${encodeURIComponent(name)}&private=${privateValue}`, {
-            method: 'POST'
+        const privateValue = isPrivate ? 1 : 0;
+        
+        const response = await fetch('/api/abbr-lists', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                private: privateValue
+            })
         });
 
         if (!response.ok) {
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                const errorData = await response.json();
-                throw new Error(errorData.err_msg || errorData.message || `HTTP ${response.status}: ${response.statusText}`);
-            } else {
-                const text = await response.text();
-                throw new Error(text || `HTTP ${response.status}: ${response.statusText}`);
-            }
+            const errorData = await response.json();
+            throw new Error(errorData.err_msg || errorData.error || 'Failed to create list');
         }
 
+        const result = await response.json();
+        
         closeCreateModal();
-        showSuccess('List created successfully');
-        await performSearch();
-
+        showSuccess('List created successfully!');
+        await loadAbbreviationLists();
+        
     } catch (error) {
         console.error('Error creating list:', error);
-        let errorMessage = 'Failed to create list';
-        if (error && typeof error === 'object') {
-            errorMessage = error.err_msg || error.message || errorMessage;
-        } else if (typeof error === 'string') {
-            errorMessage = error;
-        }
-        showError(errorMessage);
+        showError(error.message || 'Failed to create list');
     } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;

@@ -1080,9 +1080,14 @@ function addContributionButton(user) {
     
     const actionsHeader = document.querySelector('.profile-actions-header');
     if (actionsHeader) {
+        const existingBtn = actionsHeader.querySelector('.contributions-btn');
+        if (existingBtn) {
+            existingBtn.remove();
+        }
+        
         const contributionBtn = document.createElement('button');
         contributionBtn.type = 'button';
-        contributionBtn.className = 'btn btn-secondary';
+        contributionBtn.className = 'btn btn-secondary contributions-btn';
         contributionBtn.textContent = 'Contributions';
         contributionBtn.addEventListener('click', function() {
             window.location.href = `contributions?user_id=${user.id}`;

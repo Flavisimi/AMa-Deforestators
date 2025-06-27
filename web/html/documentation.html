@@ -180,10 +180,26 @@
                 
                 <div class="requirement">
                     <h4>FR-1.3: Profile Management</h4>
-                    <p><strong>Description:</strong> Users can update their profile information.</p>
-                    <p><strong>Input:</strong> Description, Date of birth, Profile picture</p>
+                    <p><strong>Description:</strong> Users or admins/moderators can update profile information.</p>
+                    <p><strong>Input:</strong> User ID, Description, Date of birth, Profile picture</p>
                     <p><strong>Process:</strong> Validate input, update user record</p>
                     <p><strong>Output:</strong> Updated profile display</p>
+                </div>
+
+                <div class="requirement">
+                    <h4>FR-1.3: Credential Management</h4>
+                    <p><strong>Description:</strong> Users or admins can update account credentials.</p>
+                    <p><strong>Input:</strong> User ID, modified credentials</p>
+                    <p><strong>Process:</strong> Validate input, update credentials</p>
+                    <p><strong>Output:</strong> Updated user</p>
+                </div>
+
+                <div class="requirement">
+                    <h4>FR-1.4: Account deletion</h4>
+                    <p><strong>Description:</strong> Admins/moderators can delete user accounts. Meanings created by deleted users are attributed to a default user (AMA).</p>
+                    <p><strong>Input:</strong> User ID</p>
+                    <p><strong>Process:</strong> Verify authorization, delete account</p>
+                    <p><strong>Output:</strong> Success or error</p>
                 </div>
                 
                 <h3>3.2 Abbreviation Management</h3>
@@ -212,6 +228,22 @@
                     <p><strong>Output:</strong> List of matching abbreviations</p>
                 </div>
                 
+                <div class="requirement">
+                    <h4>FR-2.4: Edit Meanings</h4>
+                    <p><strong>Description:</strong> Moderators and admins can edit meanings from abbreviations.</p>
+                    <p><strong>Input:</strong> Meaning ID, Meaning properties</p>
+                    <p><strong>Process:</strong> Verify authorization, validate constraints, edit meaning</p>
+                    <p><strong>Output:</strong> Updated meaning</p>
+                </div>
+                
+                <div class="requirement">
+                    <h4>FR-2.5: Delete Meanings</h4>
+                    <p><strong>Description:</strong> Moderators and admins can delete meanings from abbreviations.</p>
+                    <p><strong>Input:</strong> Meaning ID</p>
+                    <p><strong>Process:</strong> Verify authorization, delete meaning</p>
+                    <p><strong>Output:</strong> Success or error</p>
+                </div>
+
                 <h3>3.3 List Management</h3>
                 
                 <div class="requirement">
@@ -227,6 +259,22 @@
                     <p><strong>Description:</strong> Users can add abbreviations to their lists.</p>
                     <p><strong>Input:</strong> List ID, Meaning ID</p>
                     <p><strong>Process:</strong> Verify ownership, create list entry</p>
+                    <p><strong>Output:</strong> Updated list contents</p>
+                </div>
+
+                <div class="requirement">
+                    <h4>FR-3.3: Delete from List</h4>
+                    <p><strong>Description:</strong> Users can delete abbreviations from their lists.</p>
+                    <p><strong>Input:</strong> List ID, Meaning ID</p>
+                    <p><strong>Process:</strong> Verify ownership, delete list entry</p>
+                    <p><strong>Output:</strong> Updated list contents</p>
+                </div>
+                
+                <div class="requirement">
+                    <h4>FR-3.4: Modify List</h4>
+                    <p><strong>Description:</strong> Users can modify the list name and privacy properties.</p>
+                    <p><strong>Input:</strong> List ID, Meaning ID, Name, Privacy</p>
+                    <p><strong>Process:</strong> Verify ownership, update list properties</p>
                     <p><strong>Output:</strong> Updated list contents</p>
                 </div>
                 
@@ -251,6 +299,14 @@
                     <p><strong>Formats:</strong> CSV, PDF</p>
                     <p><strong>Process:</strong> Generate file in requested format</p>
                     <p><strong>Output:</strong> Downloadable file</p>
+                </div>
+
+                <div class="requirement">
+                    <h4>FR-4.3: Export RSS feed</h4>
+                    <p><strong>Description:</strong> The application publishes an RSS feed of the most visited abbreviations</p>
+                    <p><strong>Formats:</strong> RSS</p>
+                    <p><strong>Process:</strong> Generate RSS feed</p>
+                    <p><strong>Output:</strong> XML file describing the feed</p>
                 </div>
             </section>
             
@@ -284,7 +340,6 @@
                 
                 <h3>4.4 Reliability Requirements</h3>
                 <ul>
-                    <li>System availability with a high rate uptime</li>
                     <li>Graceful error handling without data loss</li>
                     <li>Transaction integrity for database operations</li>
                 </ul>
@@ -333,8 +388,11 @@ web/
 ├── css/            # Stylesheets
 ├── js/             # JavaScript files
 ├── php/            # PHP backend
-│   ├── controllers/    # Request handlers
+│   ├── controllers/   # Request handlers
 │   ├── models/        # Data models
+│   ├── dtos/          # Data transfer objects for requests
+│   ├── services/      # Services for common operations
+│   ├── exceptions/    # API exception class
 │   ├── repositories/  # Database access
 │   └── helpers/       # Utility functions
 └── assets/         # Images and other assets
@@ -361,14 +419,19 @@ web/
                             <td>User registration</td>
                         </tr>
                         <tr>
+                            <td>/api/logout</td>
+                            <td>POST</td>
+                            <td>User logout</td>
+                        </tr>
+                        <tr>
                             <td>/api/abbreviations</td>
                             <td>GET, POST</td>
                             <td>List or create abbreviations</td>
                         </tr>
                         <tr>
-                            <td>/api/meanings/vote</td>
-                            <td>POST</td>
-                            <td>Vote on meanings</td>
+                            <td>/api/meanings</td>
+                            <td>GET, POST, PUTE</td>
+                            <td>List meanings, update meanings, vote on meanings</td>
                         </tr>
                         <tr>
                             <td>/api/abbr-lists</td>
@@ -389,6 +452,11 @@ web/
                             <td>/api/all-users</td>
                             <td>GET</td>
                             <td>Admin user management</td>
+                        </tr>
+                        <tr>
+                            <td>/api/contributions</td>
+                            <td>GET</td>
+                            <td>Get user contributions (submitted meanings)</td>
                         </tr>
                     </tbody>
                 </table>
@@ -501,16 +569,12 @@ web/
                         <li>Prepared statements for all database queries</li>
                         <li>Parameterized queries with bound variables</li>
                         <li>Input type validation</li>
-                        <li>Escaping special characters</li>
                     </ul>
                 </div>
                 
                 <h3>7.3 Data Protection</h3>
                 <ul>
                     <li>Sensitive data encryption in database</li>
-                    <li>HTTP(S) enforcement for all communications</li>
-                    <li>Secure file upload validation</li>
-                    <li>Protection against CSRF attacks</li>
                 </ul>
             </section>
             
@@ -525,7 +589,7 @@ web/
                     <li><code>meanings</code> - Meanings for abbreviations</li>
                     <li><code>votes</code> - User votes on meanings</li>
                     <li><code>abbr_lists</code> - User-created lists</li>
-                    <li><code>abbr_list_contents</code> - List membership</li>
+                    <li><code>abbr_list_contents</code> - Meanings included in lists</li>
                     <li><code>visit_logs</code> - Page visit tracking</li>
                 </ul>
                 
@@ -576,7 +640,7 @@ web/
                         </tr>
                         <tr>
                             <td>Approval Status</td>
-                            <td>State of a meaning (pending, accepted, rejected, manual)</td>
+                            <td>State of a meaning (pending, accepted, rejected)</td>
                         </tr>
                         <tr>
                             <td>Controversy Score</td>

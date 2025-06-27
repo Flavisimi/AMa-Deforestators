@@ -40,7 +40,7 @@ create table meanings(
     name varchar2(30) not null,
     short_expansion varchar2(256) unique not null,
     uploader_id integer references users(id) not null,
-    approval_status varchar2(50) not null, -- pending, accepted, rejected, manual
+    approval_status varchar2(50) not null, -- pending, accepted, rejected
     lang varchar2(3) not null,
     domain varchar2(30) not null,
     created_at date not null,

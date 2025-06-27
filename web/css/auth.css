@@ -28,8 +28,6 @@ h2 {
     font-size: 2rem;
     font-weight: 700;
     background: linear-gradient(135deg, #4caf50, #45a049);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
@@ -53,6 +51,7 @@ input {
     font-size: 1rem;
     transition: all 0.3s ease;
     background: #ffffff;
+    box-sizing: border-box;
 }
 
 input:focus {

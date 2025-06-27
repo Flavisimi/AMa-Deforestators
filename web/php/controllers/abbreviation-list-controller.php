@@ -324,11 +324,13 @@ class AbbreviationListController
 
         if($url === "/api/abbr-lists")
         {
-            if(!isset($query_components["name"]))
+            $request_body = file_get_contents("php://input");
+            $data = json_decode($request_body, true);
+            if(!isset($data["name"]))
                 throw new ApiException(400, "Missing name");
-            if(!isset($query_components["private"]))
+            if(!isset($data["private"]))
                 throw new ApiException(400, "Missing private setting");
-            $rez = AbbreviationListController::create_abbr_list($query_components["name"], $query_components["private"] == "true" ? true : false);
+            $rez = AbbreviationListController::create_abbr_list($data["name"], $data["private"] == "true" ? true : false);
 
             header("Content-Type: application/json");
             echo json_encode($rez);

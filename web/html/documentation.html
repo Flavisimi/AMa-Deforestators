@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Abbreviations Management Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/common.css">
+    <link rel="stylesheet" href="../css/documentation.css">
+</head>
+<body>
+    <div class="user-profile">
+        <div class="avatar"></div>
+        <span class="username">Guest</span>
+        <div class="profile-menu">
+            <a href="profile">View Profile</a>
+            <a href="/">Logout</a>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <article typeof="schema:ScholarlyArticle">
+            <h1 property="schema:name">Abbreviations Management Application (AMA)</h1>
+            <div class="authors">
+                <span property="schema:author">System Requirements Specification</span>
+            </div>
+            
+            <section class="abstract" role="doc-abstract">
+                <h2>Abstract</h2>
+                <p property="schema:description">
+                    The Abbreviations Management Application (AMA) is a comprehensive web-based system designed to create, manage, and organize abbreviations and their meanings. This document provides a complete specification of the system's requirements, functionalities, and technical implementation following the IEEE System Requirements Specification standards.
+                </p>
+            </section>
+            
+            <section class="toc" role="doc-toc">
+                <h2>Table of Contents</h2>
+                <ol>
+                    <li><a href="#introduction">Introduction</a></li>
+                    <li><a href="#system-overview">System Overview</a></li>
+                    <li><a href="#functional-requirements">Functional Requirements</a></li>
+                    <li><a href="#non-functional-requirements">Non-Functional Requirements</a></li>
+                    <li><a href="#system-architecture">System Architecture</a></li>
+                    <li><a href="#user-interface">User Interface Specification</a></li>
+                    <li><a href="#security-requirements">Security Requirements</a></li>
+                    <li><a href="#appendices">Appendices</a></li>
+                </ol>
+            </section>
+            
+            <section id="introduction">
+                <h2>1. Introduction</h2>
+                
+                <h3>1.1 Purpose</h3>
+                <p>This document specifies the requirements for the Abbreviations Management Application (AMA), a web-based platform that enables users to create, manage, and share abbreviations and their meanings in a collaborative environment.</p>
+                
+                <h3>1.2 Scope</h3>
+                <p>AMA provides functionality for user authentication, abbreviation management, collaborative voting, list organization, and statistical analysis. The system supports multiple user roles with different permission levels and ensures data integrity through validation and security measures.</p>
+                
+                <h3>1.3 Definitions, Acronyms, and Abbreviations</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>AMA</td>
+                            <td>Abbreviations Management Application</td>
+                        </tr>
+                        <tr>
+                            <td>User</td>
+                            <td>A registered individual with basic access rights</td>
+                        </tr>
+                        <tr>
+                            <td>Admin</td>
+                            <td>Administrator with full system access</td>
+                        </tr>
+                        <tr>
+                            <td>Moderator</td>
+                            <td>User with elevated privileges for content moderation</td>
+                        </tr>
+                        <tr>
+                            <td>Meaning</td>
+                            <td>A definition or expansion of an abbreviation</td>
+                        </tr>
+                        <tr>
+                            <td>XSS</td>
+                            <td>Cross-Site Scripting attack</td>
+                        </tr>
+                        <tr>
+                            <td>SQL Injection</td>
+                            <td>Database query manipulation attack</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <section id="system-overview">
+                <h2>2. System Overview</h2>
+                
+                <h3>2.1 System Description</h3>
+                <p>AMA is a web-based application that allows users to collaboratively build and maintain a database of abbreviations and their meanings. The system provides features for creating, searching, voting on, and organizing abbreviations into custom lists.</p>
+                
+                <h3>2.2 System Features</h3>
+                <ul>
+                    <li>User registration and authentication</li>
+                    <li>Create and manage abbreviations with meanings</li>
+                    <li>Vote on abbreviation meanings (upvote/downvote)</li>
+                    <li>Create and manage abbreviation lists (public/private)</li>
+                    <li>Search functionality for abbreviations and users</li>
+                    <li>Statistical analysis and reporting</li>
+                    <li>User profile management</li>
+                    <li>Role-based access control</li>
+                </ul>
+                
+                <h3>2.3 User Classes and Characteristics</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User Class</th>
+                            <th>Description</th>
+                            <th>Permissions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Guest</td>
+                            <td>Non-authenticated visitor</td>
+                            <td>View public content only</td>
+                        </tr>
+                        <tr>
+                            <td>User</td>
+                            <td>Registered user</td>
+                            <td>Create content, vote, manage own profile</td>
+                        </tr>
+                        <tr>
+                            <td>Moderator</td>
+                            <td>Content moderator</td>
+                            <td>All User permissions + manage User content</td>
+                        </tr>
+                        <tr>
+                            <td>Admin</td>
+                            <td>System administrator</td>
+                            <td>Full system access</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <section id="functional-requirements">
+                <h2>3. Functional Requirements</h2>
+                
+                <h3>3.1 User Management</h3>
+                
+                <div class="requirement">
+                    <h4>FR-1.1: User Registration</h4>
+                    <p><strong>Description:</strong> Users can register for a new account by providing username, email, and password.</p>
+                    <p><strong>Input:</strong> Username (unique), Email (unique), Password</p>
+                    <p><strong>Process:</strong> Validate input, hash password, create user record with USER role</p>
+                    <p><strong>Output:</strong> Success/failure message, automatic login on success</p>
+                </div>
+                
+                <div class="requirement">
+                    <h4>FR-1.2: User Authentication</h4>
+                    <p><strong>Description:</strong> Users can log in using their credentials.</p>
+                    <p><strong>Input:</strong> Username, Password</p>
+                    <p><strong>Process:</strong> Validate credentials against database, create session</p>
+                    <p><strong>Output:</strong> Redirect to dashboard or error message</p>
+                </div>
+                
+                <div class="requirement">
+                    <h4>FR-1.3: Profile Management</h4>
+                    <p><strong>Description:</strong> Users can update their profile information.</p>
+                    <p><strong>Input:</strong> Description, Date of birth, Profile picture</p>
+                    <p><strong>Process:</strong> Validate input, update user record</p>
+                    <p><strong>Output:</strong> Updated profile display</p>
+                </div>
+                
+                <h3>3.2 Abbreviation Management</h3>
+                
+                <div class="requirement">
+                    <h4>FR-2.1: Create Abbreviation</h4>
+                    <p><strong>Description:</strong> Users can create new abbreviations with meanings.</p>
+                    <p><strong>Input:</strong> Abbreviation name, Expansion, Language, Domain</p>
+                    <p><strong>Process:</strong> Validate uniqueness, create abbreviation and meaning records</p>
+                    <p><strong>Output:</strong> Success message with abbreviation details</p>
+                </div>
+                
+                <div class="requirement">
+                    <h4>FR-2.2: Vote on Meanings</h4>
+                    <p><strong>Description:</strong> Users can upvote or downvote abbreviation meanings.</p>
+                    <p><strong>Input:</strong> Meaning ID, Vote type (upvote/downvote)</p>
+                    <p><strong>Process:</strong> Record or update vote, recalculate statistics</p>
+                    <p><strong>Output:</strong> Updated vote count display</p>
+                </div>
+                
+                <div class="requirement">
+                    <h4>FR-2.3: Search Abbreviations</h4>
+                    <p><strong>Description:</strong> Users can search for abbreviations by name or meaning.</p>
+                    <p><strong>Input:</strong> Search query</p>
+                    <p><strong>Process:</strong> Query database with pattern matching</p>
+                    <p><strong>Output:</strong> List of matching abbreviations</p>
+                </div>
+                
+                <h3>3.3 List Management</h3>
+                
+                <div class="requirement">
+                    <h4>FR-3.1: Create Abbreviation List</h4>
+                    <p><strong>Description:</strong> Users can create custom lists to organize abbreviations.</p>
+                    <p><strong>Input:</strong> List name, Privacy setting (public/private)</p>
+                    <p><strong>Process:</strong> Create list record linked to user</p>
+                    <p><strong>Output:</strong> New list ready for abbreviations</p>
+                </div>
+                
+                <div class="requirement">
+                    <h4>FR-3.2: Add to List</h4>
+                    <p><strong>Description:</strong> Users can add abbreviations to their lists.</p>
+                    <p><strong>Input:</strong> List ID, Meaning ID</p>
+                    <p><strong>Process:</strong> Verify ownership, create list entry</p>
+                    <p><strong>Output:</strong> Updated list contents</p>
+                </div>
+                
+                <h3>3.4 Statistics and Reporting</h3>
+                
+                <div class="requirement">
+                    <h4>FR-4.1: View Statistics</h4>
+                    <p><strong>Description:</strong> Users can view various system statistics.</p>
+                    <p><strong>Categories:</strong></p>
+                    <ul>
+                        <li>Most visited abbreviations</li>
+                        <li>Most controversial meanings (high vote count with mixed opinions)</li>
+                        <li>Highest like rate meanings</li>
+                        <li>Most active users</li>
+                        <li>Median abbreviation by visits</li>
+                    </ul>
+                </div>
+                
+                <div class="requirement">
+                    <h4>FR-4.2: Export Statistics</h4>
+                    <p><strong>Description:</strong> Users can export statistics in different formats.</p>
+                    <p><strong>Formats:</strong> CSV, PDF</p>
+                    <p><strong>Process:</strong> Generate file in requested format</p>
+                    <p><strong>Output:</strong> Downloadable file</p>
+                </div>
+            </section>
+            
+            <section id="non-functional-requirements">
+                <h2>4. Non-Functional Requirements</h2>
+                
+                <h3>4.1 Performance Requirements</h3>
+                <ul>
+                    <li>Page load time should not exceed 3 seconds</li>
+                    <li>Search results should return within 1 second</li>
+                    <li>System should support at least 100 concurrent users</li>
+                    <li>Database queries should be optimized with proper indexing</li>
+                </ul>
+                
+                <h3>4.2 Security Requirements</h3>
+                <ul>
+                    <li>All passwords must be hashed using SHA-256</li>
+                    <li>Protection against SQL injection attacks</li>
+                    <li>Protection against XSS attacks</li>
+                    <li>Session management with secure cookies</li>
+                    <li>Role-based access control enforcement</li>
+                </ul>
+                
+                <h3>4.3 Usability Requirements</h3>
+                <ul>
+                    <li>Responsive design for mobile and desktop devices</li>
+                    <li>Intuitive navigation with consistent UI elements</li>
+                    <li>Clear error messages and user feedback</li>
+                    <li>Accessibility compliance for screen readers</li>
+                </ul>
+                
+                <h3>4.4 Reliability Requirements</h3>
+                <ul>
+                    <li>System availability of 99.5% uptime</li>
+                    <li>Graceful error handling without data loss</li>
+                    <li>Transaction integrity for database operations</li>
+                </ul>
+            </section>
+            
+            <section id="system-architecture">
+                <h2>5. System Architecture</h2>
+                
+                <h3>5.1 Technology Stack</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Layer</th>
+                            <th>Technology</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Frontend</td>
+                            <td>HTML5, CSS3, Vanilla JavaScript</td>
+                            <td>User interface without frameworks</td>
+                        </tr>
+                        <tr>
+                            <td>Backend</td>
+                            <td>PHP (vanilla, no frameworks)</td>
+                            <td>Business logic and API endpoints</td>
+                        </tr>
+                        <tr>
+                            <td>Database</td>
+                            <td>Oracle Database</td>
+                            <td>Data persistence</td>
+                        </tr>
+                        <tr>
+                            <td>Security</td>
+                            <td>Prepared statements, Input validation</td>
+                            <td>Prevent injection attacks</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>5.2 Directory Structure</h3>
+                <pre>
+web/
+├── html/           # HTML pages
+├── css/            # Stylesheets
+├── js/             # JavaScript files
+├── php/            # PHP backend
+│   ├── controllers/    # Request handlers
+│   ├── models/        # Data models
+│   ├── repositories/  # Database access
+│   └── helpers/       # Utility functions
+└── assets/         # Images and other assets
+                </pre>
+                
+                <h3>5.3 API Endpoints</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Method</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>/api/login</td>
+                            <td>POST</td>
+                            <td>User authentication</td>
+                        </tr>
+                        <tr>
+                            <td>/api/register</td>
+                            <td>POST</td>
+                            <td>User registration</td>
+                        </tr>
+                        <tr>
+                            <td>/api/abbreviations</td>
+                            <td>GET, POST</td>
+                            <td>List or create abbreviations</td>
+                        </tr>
+                        <tr>
+                            <td>/api/meanings/vote</td>
+                            <td>POST</td>
+                            <td>Vote on meanings</td>
+                        </tr>
+                        <tr>
+                            <td>/api/abbr-lists</td>
+                            <td>GET, POST</td>
+                            <td>Manage abbreviation lists</td>
+                        </tr>
+                        <tr>
+                            <td>/api/statistics/*</td>
+                            <td>GET</td>
+                            <td>Retrieve various statistics</td>
+                        </tr>
+                        <tr>
+                            <td>/api/profile</td>
+                            <td>GET, PUT</td>
+                            <td>User profile management</td>
+                        </tr>
+                        <tr>
+                            <td>/api/all-users</td>
+                            <td>GET</td>
+                            <td>Admin user management</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <section id="user-interface">
+                <h2>6. User Interface Specification</h2>
+                
+                <h3>6.1 Page Structure</h3>
+                <p>Each page follows a consistent layout with:</p>
+                <ul>
+                    <li><strong>Navigation sidebar:</strong> Contains links to all major sections</li>
+                    <li><strong>User profile widget:</strong> Shows current user and provides profile/logout options</li>
+                    <li><strong>Main content area:</strong> Page-specific content</li>
+                    <li><strong>Responsive design:</strong> Hamburger menu on mobile devices</li>
+                </ul>
+                
+                <h3>6.2 Key Pages</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Page</th>
+                            <th>URL</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Login</td>
+                            <td>/</td>
+                            <td>User authentication</td>
+                        </tr>
+                        <tr>
+                            <td>Register</td>
+                            <td>/register</td>
+                            <td>New user registration</td>
+                        </tr>
+                        <tr>
+                            <td>Dashboard</td>
+                            <td>/main</td>
+                            <td>Main application interface</td>
+                        </tr>
+                        <tr>
+                            <td>Create Abbreviation</td>
+                            <td>/create-abbreviation</td>
+                            <td>Form to add new abbreviations</td>
+                        </tr>
+                        <tr>
+                            <td>Statistics</td>
+                            <td>/stats</td>
+                            <td>View system statistics</td>
+                        </tr>
+                        <tr>
+                            <td>Abbreviation Lists</td>
+                            <td>/all_abbreviations</td>
+                            <td>Manage abbreviation lists</td>
+                        </tr>
+                        <tr>
+                            <td>Users</td>
+                            <td>/users-page</td>
+                            <td>User directory (admin/mod only)</td>
+                        </tr>
+                        <tr>
+                            <td>Profile</td>
+                            <td>/profile</td>
+                            <td>User profile management</td>
+                        </tr>
+                        <tr>
+                            <td>Documentation</td>
+                            <td>/documentation</td>
+                            <td>System documentation (this page)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>6.3 Interactive Elements</h3>
+                <ul>
+                    <li><strong>Event Listeners:</strong> All interactive elements use addEventListener instead of inline onClick</li>
+                    <li><strong>Forms:</strong> Client-side validation before submission</li>
+                    <li><strong>Modals:</strong> Used for create operations and confirmations</li>
+                    <li><strong>Loading states:</strong> Spinners shown during async operations</li>
+                    <li><strong>Error handling:</strong> Toast notifications for user feedback</li>
+                </ul>
+            </section>
+            
+            <section id="security-requirements">
+                <h2>7. Security Requirements</h2>
+                
+                <h3>7.1 Authentication and Authorization</h3>
+                <ul>
+                    <li>Password hashing using SHA-256 algorithm</li>
+                    <li>Session-based authentication with secure cookies</li>
+                    <li>Role-based access control (Guest, User, Moderator, Admin)</li>
+                    <li>Session timeout after inactivity</li>
+                </ul>
+                
+                <h3>7.2 Input Validation</h3>
+                <div class="warning">
+                    <p><strong>XSS Prevention:</strong></p>
+                    <ul>
+                        <li>All user input is sanitized before display</li>
+                        <li>HTML encoding for special characters</li>
+                        <li>Content Security Policy headers</li>
+                    </ul>
+                </div>
+                
+                <div class="warning">
+                    <p><strong>SQL Injection Prevention:</strong></p>
+                    <ul>
+                        <li>Prepared statements for all database queries</li>
+                        <li>Parameterized queries with bound variables</li>
+                        <li>Input type validation</li>
+                        <li>Escaping special characters</li>
+                    </ul>
+                </div>
+                
+                <h3>7.3 Data Protection</h3>
+                <ul>
+                    <li>Sensitive data encryption in database</li>
+                    <li>HTTPS enforcement for all communications</li>
+                    <li>Secure file upload validation</li>
+                    <li>Protection against CSRF attacks</li>
+                </ul>
+            </section>
+            
+            <section id="appendices">
+                <h2>8. Appendices</h2>
+                
+                <h3>8.1 Database Schema Overview</h3>
+                <p>Key database tables include:</p>
+                <ul>
+                    <li><code>users</code> - User accounts and profiles</li>
+                    <li><code>abbreviations</code> - Abbreviation entries</li>
+                    <li><code>meanings</code> - Meanings for abbreviations</li>
+                    <li><code>votes</code> - User votes on meanings</li>
+                    <li><code>abbr_lists</code> - User-created lists</li>
+                    <li><code>abbr_list_contents</code> - List membership</li>
+                    <li><code>visit_logs</code> - Page visit tracking</li>
+                </ul>
+                
+                <h3>8.2 Error Codes</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>400</td>
+                            <td>Bad Request - Invalid input</td>
+                        </tr>
+                        <tr>
+                            <td>401</td>
+                            <td>Unauthorized - Authentication required</td>
+                        </tr>
+                        <tr>
+                            <td>403</td>
+                            <td>Forbidden - Insufficient permissions</td>
+                        </tr>
+                        <tr>
+                            <td>404</td>
+                            <td>Not Found - Resource doesn't exist</td>
+                        </tr>
+                        <tr>
+                            <td>500</td>
+                            <td>Internal Server Error</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>8.3 Glossary</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Term</th>
+                            <th>Definition</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Searchable Name</td>
+                            <td>Normalized uppercase version of abbreviation for searching</td>
+                        </tr>
+                        <tr>
+                            <td>Approval Status</td>
+                            <td>State of a meaning (pending, accepted, rejected, manual)</td>
+                        </tr>
+                        <tr>
+                            <td>Controversy Score</td>
+                            <td>Measure of mixed voting on a meaning</td>
+                        </tr>
+                        <tr>
+                            <td>Like Rate</td>
+                            <td>Ratio of upvotes to total views</td>
+                        </tr>
+                        <tr>
+                            <td>Activity Score</td>
+                            <td>Weighted sum of user actions (visits, votes, contributions)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </article>
+    </main>
+
+    <script src="../js/common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNavigator();
+            initializeHamburger();
+            loadUserData();
+        });
+    </script>
+</body>
+</html>

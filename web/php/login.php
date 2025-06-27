@@ -55,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         {
             if ($result > 0) 
             {
-                // Get user role from database
                 $role_stmt = oci_parse($conn, "SELECT role FROM users WHERE id = :user_id");
                 oci_bind_by_name($role_stmt, ':user_id', $result);
                 
@@ -70,13 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Regenerate session ID for security
                 session_regenerate_id(true);
                 
-                // Set session variables
                 $_SESSION['user_id'] = (int)$result;
                 $_SESSION['username'] = $username;
                 $_SESSION['user_role'] = $user_role;
                 $_SESSION['login_time'] = time();
                 
-                // Force session write
                 session_write_close();
                 
                 echo json_encode([
